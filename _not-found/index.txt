@@ -1,0 +1,21 @@
+1:"$Sreact.fragment"
+3:"/_next/static/chunks/0umf92h1sb77c.js"
+4:I[39756,["$3"],"default"]
+5:I[37457,["$3"],"default"]
+8:I[97367,["$3"],"OutletBoundary"]
+9:"$Sreact.suspense"
+b:"ViewportBoundary"
+c:I[97367,["$3"],"$b"]
+e:"MetadataBoundary"
+f:I[97367,["$3"],"$e"]
+11:I[68027,[],"default",1]
+:HL["/_next/static/chunks/06adcnib-5dkf.css","style"]
+6:X
+7:[["children",{"s":"__PAGE__","h":512,"d":{"r":["$","$1","c",{"children":[null,null,["$","$L8",null,{"children":["$","$9",null,{"name":"Next.MetadataOutlet","children":"$@a"}]}]]}],"p":false,"v":null}}]]
+2:[["children",{"s":"/_not-found","h":512,"d":{"r":["$","$1","c",{"children":[null,["$","$L4",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L5",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],"p":false,"v":"$6"},"c":"$Q7"}]]
+0:{"P":null,"c":["","_not-found",""],"q":"","i":false,"t":{"t":{"s":"","h":528,"d":{"r":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/chunks/06adcnib-5dkf.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}],["$","script","script-0",{"src":"/_next/static/chunks/0umf92h1sb77c.js","async":true,"nonce":"$undefined"}]],["$","html",null,{"lang":"ru","className":"msJcNq_variable SBgkWW_variable","children":["$","body",null,{"children":["$","main",null,{"className":"container","style":{"minHeight":"100dvh","display":"grid","placeContent":"center","gap":24,"textAlign":"center"},"children":[["$","p",null,{"className":"caption","children":"404"}],["$","h1",null,{"style":{"fontSize":"var(--fs-h)","lineHeight":1.1},"children":"Страница не найдена"}],["$","p",null,{"lang":"en","style":{"color":"var(--g-400)"},"children":"Page not found"}],["$","p",null,{"style":{"display":"flex","gap":12,"justifyContent":"center","flexWrap":"wrap"},"children":[["$","a",null,{"className":"btn btn--primary","href":"/","children":["$","span",null,{"className":"btn__l","children":"На главную"}]}],["$","a",null,{"className":"btn btn--outline","href":"/en/","lang":"en","hrefLang":"en","children":["$","span",null,{"className":"btn__l","children":"Home page"}]}]]}]]}]}]}]]}],"p":false,"v":null},"c":"$Q2"},"h":{"r":["$","$1","h",{"children":[["$","meta",null,{"name":"robots","content":"noindex"}],["$","$Lc",null,{"children":"$Ld"}],["$","$Lf",null,{"children":[["$","div",null,{"hidden":true,"children":["$","$9",null,{"name":"Next.Metadata","children":"$L10"}]}],null]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"p":false,"v":null}},"m":"$undefined","G":["$11",[]],"S":true,"r":"$undefined","s":"$undefined","a":"$undefined","l":"$undefined","p":"$undefined","d":"$undefined","b":"o8bKVxIycYg-IiFWoLlIc"}
+6:C
+d:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+12:I[27201,["$3"],"IconMark"]
+a:null
+10:[["$","title","0",{"children":"404 · Boris Pikover"}],["$","meta","1",{"name":"robots","content":"noindex, nofollow"}],["$","link","2",{"rel":"icon","href":"/icon.svg?icon.20e2h09q879qa.svg","sizes":"any","type":"image/svg+xml"}],["$","link","3",{"rel":"apple-touch-icon","href":"/apple-icon.png?apple-icon.3g8rky7h0hq91.png","sizes":"180x180","type":"image/png"}],["$","$L12","4",{}]]

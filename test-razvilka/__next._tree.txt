@@ -1,0 +1,11 @@
+:HL["/_next/static/chunks/06adcnib-5dkf.css","style"]
+:HL["/_next/static/chunks/0h_0hyb-it7de.css","style"]
+:HL["/_next/static/media/a30037bada340db0-s.p.1i0-tkhmnd6is.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/_next/static/media/f60ca64f6f52eefb-s.p.03a2ea1r26czb.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/_next/static/chunks/1ki3i99n3nqqi.css","style"]
+:HL["/_next/static/chunks/42ee0seoe12qs.css","style"]
+:HL["/_next/static/chunks/2ystk1_kepp2r.css","style"]
+3:[["children",{"s":"__PAGE__","h":160}]]
+2:[["children",{"s":"test-razvilka","h":96,"c":"$Q3"}]]
+1:[["children",{"s":"(ru)","h":112,"c":"$Q2"}]]
+0:{"b":"o8bKVxIycYg-IiFWoLlIc","t":{"t":{"s":"","h":80,"c":"$Q1"}}}

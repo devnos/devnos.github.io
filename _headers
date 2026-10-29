@@ -1,0 +1,8 @@
+/test-stvorki
+  X-Robots-Tag: noindex, nofollow
+/test-stvorki/*
+  X-Robots-Tag: noindex, nofollow
+/test-razvilka
+  X-Robots-Tag: noindex, nofollow
+/test-razvilka/*
+  X-Robots-Tag: noindex, nofollow
