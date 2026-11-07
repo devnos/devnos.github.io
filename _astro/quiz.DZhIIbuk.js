@@ -1,0 +1,1 @@
+var e=`/_astro/quiz.XB5qTjR6.css`;export{e as default};

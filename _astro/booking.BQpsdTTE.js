@@ -1,0 +1,1 @@
+var e=`/_astro/booking.BlHnnOkR.css`;export{e as default};
