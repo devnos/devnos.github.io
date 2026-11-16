@@ -194,12 +194,12 @@
         '<span class="voice-play-icon" aria-hidden="true">',
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>',
         '</span>',
-        '<span class="voice-play-label"></span>',
+
       ].join('');
       btn.hidden = true;
       root.appendChild(btn);
     }
-    const labelEl = btn.querySelector('.voice-play-label');
+
 
     function releaseFocus() {
       try {
@@ -214,7 +214,7 @@
       const show = centerPlayVisible(snap);
       const lang = snap && snap.lang === 'ru' ? 'ru' : 'en';
       const text = CENTER_PLAY[lang];
-      if (labelEl && labelEl.textContent !== text) labelEl.textContent = text;
+
       if (btn.getAttribute('aria-label') !== text) btn.setAttribute('aria-label', text);
       const nextHidden = !show;
       if (btn.hidden !== nextHidden) {
