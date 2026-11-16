@@ -10,6 +10,75 @@
 (function () {
   'use strict';
 
+  /* @visit-history:start */
+  /*
+   * One boolean per app version, written by the physical startup Play only.
+   * The value captured at construction is the snapshot for THIS launch: the
+   * first Play writes the marker but the running session must stay a first
+   * visit, otherwise the listening lock would disappear mid-sentence.
+   * Storage is optional: absent, private or throwing storage is a silent
+   * first-visit failsafe, never an error and never a heuristic (no lang/OS/IP).
+   */
+  const VISIT_KEY = 'rwa-nft:presentation-started:v1';
+
+  function createVisitHistory(storage, options) {
+    const opts = options || {};
+    const key = typeof opts.key === 'string' && opts.key ? opts.key : VISIT_KEY;
+    let storageAvailable = false;
+    let stored = false;
+    let launchedThisSession = false;
+    let markerWritten = false;
+
+    try {
+      if (storage && typeof storage.getItem === 'function') {
+        storageAvailable = true;
+        stored = storage.getItem(key) === '1';
+      }
+    } catch (e) {
+      storageAvailable = false;
+      stored = false;
+    }
+
+    /* Frozen for the lifetime of the page: markStarted never flips it. */
+    const returningAtStart = stored;
+
+    function markStarted() {
+      if (launchedThisSession) return returningAtStart;
+      launchedThisSession = true;
+      if (!storageAvailable || !storage || typeof storage.setItem !== 'function') {
+        return returningAtStart;
+      }
+      try {
+        storage.setItem(key, '1');
+        markerWritten = true;
+      } catch (e) {
+        /* Quota/SecurityError: keep this launch strict and stop pretending
+           the marker exists. */
+        storageAvailable = false;
+      }
+      return returningAtStart;
+    }
+
+    return {
+      key: key,
+      isReturningVisitor: function () { return returningAtStart; },
+      storageAvailable: function () { return storageAvailable; },
+      launchedThisSession: function () { return launchedThisSession; },
+      markStarted: markStarted,
+      info: function () {
+        return {
+          key: key,
+          returning: returningAtStart,
+          marker: returningAtStart ? '1' : null,
+          markerWritten: markerWritten,
+          storageAvailable: storageAvailable,
+          launchedThisSession: launchedThisSession,
+        };
+      },
+    };
+  }
+  /* @visit-history:end */
+
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   if (!window.VoiceCore || !window.VoiceProtocol || !window.VoiceSlides ||
       !window.VoiceDeck || !window.VoiceUI || !window.VoiceRoute ||
@@ -20,6 +89,12 @@
     /* Inactive, preloaded or nested iframe: no audio owner, no UI. */
     window.RwaVoice = {
       embedded: true,
+      /* A subframe is not an audio owner and never reads or writes the
+         owner's visit marker; standalone pages take their own snapshot. */
+      isReturningVisitor() { return false; },
+      visitInfo() {
+        return { embedded: true, returning: false, storageAvailable: false, launchedThisSession: false };
+      },
       stop() {},
       onSlideChanged() {},
       snapshot() { return null; },
@@ -39,6 +114,27 @@
 
   function gateStarted() {
     return !gate || gate.started() === true;
+  }
+
+  function browserStorage() {
+    try { return window.localStorage; } catch (e) { return null; }
+  }
+
+  /* The flag is read once per page load: Play writes history but never turns
+     the current first visit into a returning one. */
+  const visits = createVisitHistory(browserStorage());
+
+  /*
+   * Repeat-visit navigation still requires the round Play on every document.
+   * Only after it is pressed does a browser that already launched the deck
+   * skip the listening lock and the repeated welcome instruction.
+   */
+  function repeatNavigation() {
+    /* A page without the startup gate (older embed, unit harness) keeps the
+       previous strict behaviour even if this browser launched the deck before. */
+    if (!gate) return false;
+    if (!gateStarted()) return false;
+    return !!(state.visits && state.visits.isReturningVisitor());
   }
 
   const state = {
@@ -63,6 +159,7 @@
     centerPlay: null,
     gestureDoc: null,
     gate: gate,
+    visits: visits,
     help: null,
     introData: null,
     intro: null,
@@ -262,7 +359,14 @@
     /* The welcome owns the screen until it ends: mount/reconcile/rescan may
        call selectStep every 600ms and must not replace the intro with the
        first content step. During the handover phase selection is allowed. */
-    if (state.intro && state.intro.blocksSelection()) return;
+    if (state.intro && state.intro.blocksSelection()) {
+      if (!repeatNavigation()) return;
+      /* Returning visitor: an explicit new step replaces the welcome on the
+         single audio element, exactly as stop('navigation') does for the UI
+         menu. The new step is read at once instead of being swallowed. */
+      state.intro = null;
+      state.introDone = true;
+    }
     const index = state.config.steps.indexOf(stepId);
     if (index < 0) return;
     state.stepId = stepId;
@@ -328,6 +432,14 @@
   function startPlayback() {
     state.startRequested = true;
     if (state.dataStatus !== 'ready' || !state.controller) return;
+    /* Returning visitor: the mandatory Play opens the deck, but the welcome
+       instruction is not repeated. The first real step is selected and its
+       own narration starts on the same single Audio. */
+    if (repeatNavigation()) {
+      state.introDone = true;
+      if (state.config) selectStep(state.config.steps[0], true);
+      return;
+    }
     if (state.intro && state.intro.isActive()) return;
     if (state.introDone) {
       if (state.config) selectStep(state.config.steps[0], true);
@@ -355,7 +467,11 @@
    * no arrows at all.
    */
   function navigationState() {
-    if (state.intro && state.intro.isActive()) return { hasNext: false, hasPrevious: false };
+    /* The returning visitor may navigate at once: the welcome no longer gates
+       the pair. A first visit keeps the old "wait for the welcome" behaviour. */
+    if (!repeatNavigation() && state.intro && state.intro.isActive()) {
+      return { hasNext: false, hasPrevious: false };
+    }
     if (screenFrameIfOpen()) return { hasNext: true, hasPrevious: true };
     const cfg = state.config;
     if (!cfg || !Array.isArray(cfg.steps) || !cfg.steps.length) {
@@ -447,6 +563,7 @@
    */
   function navigateFromArrows(direction) {
     if (direction !== 'next' && direction !== 'prev') return false;
+    if (isTransitioningNow()) return false;
     let carousel = null;
     try { const f=activeFrame();carousel=(f?f.contentWindow:window).RwaNftCarousel; } catch(e) {}
     const before = carousel && carousel.state();
@@ -864,6 +981,9 @@
       win: window,
       getController: function () { return state.controller; },
       isStarted: gateStarted,
+      /* Repeat visit: after the mandatory Play the narration no longer locks
+         navigation. The snapshot is per launch, not per status. */
+      canSkipNarration: repeatNavigation,
       isHelpOpen: function () {
         return !!(state.help && typeof state.help.isOpen === 'function' && state.help.isOpen());
       },
@@ -905,6 +1025,9 @@
    */
   if (gate && typeof gate.onStart === 'function') {
     gate.onStart(function () {
+      /* History is written by the physical Play and by nothing else. The
+         snapshot taken at boot keeps THIS launch on the first-visit rules. */
+      state.visits.markStarted();
       if (state.narrator) state.narrator.bind(state.gestureDoc || document);
       mountHelp();
       if (!state.controller) return;
@@ -979,6 +1102,16 @@
     },
     helpOpen: function () {
       return !!(state.help && typeof state.help.isOpen === 'function' && state.help.isOpen());
+    },
+    isReturningVisitor: function () {
+      return state.visits.isReturningVisitor();
+    },
+    /* QA readout: the frozen launch snapshot plus whether the physical Play
+       has unlocked repeat navigation on this page. */
+    visitInfo: function () {
+      const info = state.visits.info();
+      info.repeatNavigation = repeatNavigation();
+      return info;
     },
     startGate: function () {
       return gate ? {

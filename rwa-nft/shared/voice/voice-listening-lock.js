@@ -88,9 +88,12 @@
   const HINT_MS = 1600;
   const HINT_GAP_MS = 1200;
   const PULSE_MS = 2800;
-  const GHOST_OPACITY = 0.6;
-  const PULSE_DIM = 0.34;
-  const PULSE_PEAK = 0.78;
+  const GHOST_OPACITY = 0.8;
+  const PULSE_DIM = 0.72;
+  const PULSE_PEAK = 0.94;
+  /* Warm gold over dark pixels, graphite over bright pixels, sampled by the
+     compositor through a chevron mask. No rectangular plate is painted. */
+  const ADAPTIVE_FILTER = 'grayscale(1) brightness(1.18) contrast(1000) invert(1) brightness(0.8) sepia(1) saturate(1.2) contrast(0.9)';
   const HINT_CLASS = 'voice-listening-lock-hint';
   const NAV_ROOT_CLASS = 'voice-listening-nav';
   const NAV_CLASS = 'voice-listening-nav-btn';
@@ -371,6 +374,17 @@
     const isHelpOpen = typeof opts.isHelpOpen === 'function' ? opts.isHelpOpen : function () { return false; };
     const onNavigate = typeof opts.onNavigate === 'function' ? opts.onNavigate : null;
     const getNavigationState = typeof opts.getNavigationState === 'function' ? opts.getNavigationState : null;
+    /*
+     * Optional repeat-visit relaxation. The callers supply a boolean snapshot
+     * of the CURRENT launch; the lock itself stays strict for every old test
+     * and API that does not pass it. The caller is responsible for requiring
+     * the startup Play (the boot passes gate-scoped repeatNavigation).
+     */
+    const canSkipNarration = typeof opts.canSkipNarration === 'function'
+      ? opts.canSkipNarration
+      : (typeof opts.isReturningVisitor === 'function'
+        ? opts.isReturningVisitor
+        : function () { return false; });
 
     const entries = new Map();          /* document -> binding entry */
     const frameBindings = new WeakMap();/* iframe element -> {doc, cleanup} */
@@ -416,10 +430,20 @@
       }
     }
 
+    /* A returning launch may replace the narration without hearing it out. */
+    function skipNarrationNow() {
+      try {
+        return canSkipNarration() === true;
+      } catch (e) {
+        return false;
+      }
+    }
+
     /* The one source of truth. No cached status, no captured controller. */
     function isLocked() {
       if (destroyed) return false;
       if (!startedNow()) return false;
+      if (skipNarrationNow()) return false;
       const snap = liveSnapshot();
       return !!(snap && LOCK_STATUSES.has(snap.status));
     }
@@ -528,6 +552,15 @@
       }
     }
 
+    function supportsAdaptiveContrast() {
+      try {
+        const css = win && win.CSS;
+        if (!css || typeof css.supports !== 'function') return false;
+        return (css.supports('backdrop-filter', 'invert(1)') || css.supports('-webkit-backdrop-filter', 'invert(1)')) &&
+          (css.supports('mask-image', 'linear-gradient(black,black)') || css.supports('-webkit-mask-image', 'linear-gradient(black,black)'));
+      } catch (e) { return false; }
+    }
+
     function navigationLabels() {
       if (hintLanguage() === 'en') {
         return { group: 'Navigation', next: 'Next', prev: 'Back' };
@@ -582,9 +615,9 @@
       if (navAnimation) return; /* already breathing */
       try {
         navAnimation = navPulse.animate([
-          { opacity: PULSE_DIM },
-          { opacity: PULSE_PEAK },
-          { opacity: PULSE_DIM },
+          { opacity: PULSE_DIM, transform: 'scale(1)' },
+          { opacity: PULSE_PEAK, transform: 'scale(1.035)' },
+          { opacity: PULSE_DIM, transform: 'scale(1)' },
         ], { duration: PULSE_MS, iterations: Infinity, easing: 'ease-in-out' });
       } catch (e) {
         setOpacity(navPulse, GHOST_OPACITY);
@@ -653,6 +686,29 @@
            plate, no ring. The opacity attribute is the ghost resting state. */
         button.innerHTML = '<svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden="true" fill="none" opacity="' + GHOST_OPACITY + '">' +
           '<path d="' + path + '" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        const svg = button.querySelector('svg');
+        svg.setAttribute('data-voice-chevron', 'fallback');
+        if (supportsAdaptiveContrast()) {
+          const face = doc.createElement('span');
+          face.className = 'voice-listening-nav-face';
+          face.setAttribute('data-voice-chevron', 'adaptive');
+          face.setAttribute('aria-hidden', 'true');
+          const image = 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="' + path + '" fill="none" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>') + '")';
+          face.setAttribute('style', [
+            'position:absolute', 'inset:0', 'pointer-events:none',
+            'opacity:' + GHOST_OPACITY, 'transform-origin:50% 50%',
+            'backdrop-filter:' + ADAPTIVE_FILTER, '-webkit-backdrop-filter:' + ADAPTIVE_FILTER,
+            'mask-image:' + image, '-webkit-mask-image:' + image,
+            'mask-size:100% 100%', '-webkit-mask-size:100% 100%',
+            'mask-repeat:no-repeat', '-webkit-mask-repeat:no-repeat',
+          ].join(';'));
+          svg.setAttribute('style', 'display:none');
+          button.appendChild(face);
+          button.setAttribute('data-voice-contrast', 'adaptive');
+        } else {
+          svg.setAttribute('style', 'filter:drop-shadow(0 0 1px #171318) drop-shadow(0 1px 1px #171318)');
+          button.setAttribute('data-voice-contrast', 'fallback');
+        }
         for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'keydown', 'keyup', 'keypress']) {
           try { button.addEventListener(type, containEvent); } catch (e) {}
         }
@@ -675,7 +731,7 @@
       navRoot = root;
       navPrev = prev;
       navNext = next;
-      navPulse = next.querySelector ? next.querySelector('svg') : null;
+      navPulse = next.querySelector ? (next.querySelector('.voice-listening-nav-face') || next.querySelector('svg')) : null;
       return root;
     }
 
@@ -688,7 +744,15 @@
       let helpOpen = false;
       try { helpOpen = isHelpOpen() === true; } catch (e) { helpOpen = false; }
 
-      const eligible = !!(onNavigate && started && !helpOpen && status === 'ended' && !navConsumed);
+      /*
+       * A returning visitor gets the pair while speech is still running, so a
+       * step can be replaced without waiting. The first visit keeps the strict
+       * post-ended gate. navConsumed still guards against a double click and is
+       * re-armed by update() when the replacement segment starts.
+       */
+      const skipNarration = skipNarrationNow();
+      const eligible = !!(onNavigate && started && !helpOpen && !navConsumed &&
+        (skipNarration || status === 'ended'));
       if (!eligible) {
         hideNavigation();
         return;
