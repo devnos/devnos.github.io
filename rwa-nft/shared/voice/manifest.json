@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 1,
+  "provider": "kie.ai",
+  "approval": {
+    "status": "not-approved",
+    "audioAssets": "none",
+    "note": "No paid TTS call has been made. Every path below is a planned destination, not an existing file. Do not mark ready/approved until a generated file is downloaded, decoded and checked."
+  },
+  "languages": ["ru", "en"],
+  "segments": [
+    {
+      "id": "finflow.funding-fee",
+      "kind": "step",
+      "ru": {
+        "path": "audio/finflow/ru/finflow.funding-fee.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      },
+      "en": {
+        "path": "audio/finflow/en/finflow.funding-fee.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      }
+    },
+    {
+      "id": "finflow.funding-flow",
+      "kind": "step",
+      "ru": {
+        "path": "audio/finflow/ru/finflow.funding-flow.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      },
+      "en": {
+        "path": "audio/finflow/en/finflow.funding-flow.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      }
+    },
+    {
+      "id": "finflow.mean-reversion",
+      "kind": "step",
+      "ru": {
+        "path": "audio/finflow/ru/finflow.mean-reversion.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      },
+      "en": {
+        "path": "audio/finflow/en/finflow.mean-reversion.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      }
+    },
+    {
+      "id": "finflow.volume-split",
+      "kind": "step",
+      "ru": {
+        "path": "audio/finflow/ru/finflow.volume-split.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      },
+      "en": {
+        "path": "audio/finflow/en/finflow.volume-split.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      }
+    },
+    {
+      "id": "finflow.three-sources",
+      "kind": "step",
+      "ru": {
+        "path": "audio/finflow/ru/finflow.three-sources.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      },
+      "en": {
+        "path": "audio/finflow/en/finflow.three-sources.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      }
+    },
+    {
+      "id": "finflow.formulas.open",
+      "kind": "action",
+      "ru": {
+        "path": "audio/finflow/ru/finflow.formulas.open.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      },
+      "en": {
+        "path": "audio/finflow/en/finflow.formulas.open.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      }
+    },
+    {
+      "id": "finflow.formulas.close",
+      "kind": "action",
+      "ru": {
+        "path": "audio/finflow/ru/finflow.formulas.close.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      },
+      "en": {
+        "path": "audio/finflow/en/finflow.formulas.close.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      }
+    },
+    {
+      "id": "finflow.formulas.next",
+      "kind": "action",
+      "ru": {
+        "path": "audio/finflow/ru/finflow.formulas.next.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      },
+      "en": {
+        "path": "audio/finflow/en/finflow.formulas.next.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      }
+    },
+    {
+      "id": "finflow.formulas.prev",
+      "kind": "action",
+      "ru": {
+        "path": "audio/finflow/ru/finflow.formulas.prev.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      },
+      "en": {
+        "path": "audio/finflow/en/finflow.formulas.prev.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      }
+    },
+    {
+      "id": "finflow.trade.advance",
+      "kind": "action",
+      "ru": {
+        "path": "audio/finflow/ru/finflow.trade.advance.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      },
+      "en": {
+        "path": "audio/finflow/en/finflow.trade.advance.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      }
+    },
+    {
+      "id": "finflow.operations.break",
+      "kind": "action",
+      "ru": {
+        "path": "audio/finflow/ru/finflow.operations.break.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      },
+      "en": {
+        "path": "audio/finflow/en/finflow.operations.break.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      }
+    },
+    {
+      "id": "finflow.operations.reset",
+      "kind": "action",
+      "ru": {
+        "path": "audio/finflow/ru/finflow.operations.reset.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      },
+      "en": {
+        "path": "audio/finflow/en/finflow.operations.reset.mp3",
+        "status": "missing",
+        "approved": false,
+        "duration": null,
+        "model": null,
+        "voice": null,
+        "cacheKey": null
+      }
+    }
+  ]
+}

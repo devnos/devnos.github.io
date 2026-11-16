@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0A0E14">
+<title>FinFlow. Калькулятор доходности</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23F97316'/%3E%3Cstop offset='1' stop-color='%23EA580C'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230A0E14'/%3E%3Ctext x='32' y='46' font-family='Arial Black,Arial' font-size='40' font-weight='900' text-anchor='middle' fill='url(%23g)'%3EF%3C/text%3E%3C/svg%3E">
+
+<script>
+  (function() {
+    const origWarn = console.warn;
+    const origLog = console.log;
+    const silenceList = ['cdn.tailwindcss.com', 'in-browser Babel', 'should not be used in production', 'precompile your scripts'];
+    const shouldSilence = (args) => {
+      const msg = String(args[0] || '');
+      return silenceList.some(s => msg.includes(s));
+    };
+    console.warn = function(...args) { if (shouldSilence(args)) return; origWarn.apply(console, args); };
+    console.log = function(...args) { if (shouldSilence(args)) return; origLog.apply(console, args); };
+  })();
+</script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.0/babel.min.js"></script>
+
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: #0A0E14; color: #E5E7EB;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'tnum' 1, 'ss01' 1;
+    letter-spacing: -0.01em;
+  }
+  .container-main { max-width: 1280px; margin: 0 auto; padding: 10px 16px 14px; }
+  @media (min-width: 1024px) { .container-main { padding: 22px 24px; } }
+  @media (min-width: 1280px) { .container-main { max-width: 1500px; padding: 28px 32px; } }
+  @media (min-width: 1536px) { .container-main { max-width: 1700px; padding: 36px 44px; } }
+  @media (min-width: 1920px) { .container-main { max-width: 1880px; padding: 44px 56px; } }
+
+  .ff-title { font-size: 28px; line-height: 1; letter-spacing: -0.02em; }
+  @media (min-width: 1280px) { .ff-title { font-size: 36px; } }
+  @media (min-width: 1536px) { .ff-title { font-size: 44px; } }
+  .ff-subtitle { font-size: 13px; }
+  @media (min-width: 1280px) { .ff-subtitle { font-size: 15px; } }
+  .header-meta { font-size: 10px; line-height: 1.5; }
+  @media (min-width: 1280px) { .header-meta { font-size: 11px; } }
+
+  .section-label { font-size: 10px; }
+  @media (min-width: 1280px) { .section-label { font-size: 11px; } }
+  @media (min-width: 1536px) { .section-label { font-size: 12px; } }
+
+  .deposit-input { font-size: 24px; }
+  @media (min-width: 1024px) { .deposit-input { font-size: 28px; } }
+  @media (min-width: 1280px) { .deposit-input { font-size: 34px; } }
+  @media (min-width: 1536px) { .deposit-input { font-size: 40px; } }
+
+  .nft-name { font-size: 10px; }
+  @media (min-width: 1280px) { .nft-name { font-size: 11px; } }
+  @media (min-width: 1536px) { .nft-name { font-size: 12px; } }
+  .nft-limit { font-size: 14px; letter-spacing: -0.01em; }
+  @media (min-width: 1280px) { .nft-limit { font-size: 16px; } }
+  @media (min-width: 1536px) { .nft-limit { font-size: 18px; } }
+  .nft-price { font-size: 9px; }
+  @media (min-width: 1280px) { .nft-price { font-size: 10px; } }
+  @media (min-width: 1536px) { .nft-price { font-size: 11px; } }
+
+  .mode-btn-text { font-size: 12px; }
+  @media (min-width: 1280px) { .mode-btn-text { font-size: 13px; } }
+  @media (min-width: 1536px) { .mode-btn-text { font-size: 14px; } }
+  .slider-label { font-size: 12px; }
+  @media (min-width: 1280px) { .slider-label { font-size: 13px; } }
+  @media (min-width: 1536px) { .slider-label { font-size: 14px; } }
+  .slider-value { font-size: 18px; letter-spacing: -0.01em; }
+  @media (min-width: 1280px) { .slider-value { font-size: 22px; } }
+  @media (min-width: 1536px) { .slider-value { font-size: 26px; } }
+
+  /* HERO block typography */
+  .hero-label { font-size: 11px; letter-spacing: 0.7px; }
+  @media (min-width: 1280px) { .hero-label { font-size: 12px; } }
+  .hero-number { font-size: 38px; line-height: 1; letter-spacing: -0.03em; }
+  @media (min-width: 1024px) { .hero-number { font-size: 44px; } }
+  @media (min-width: 1280px) { .hero-number { font-size: 56px; } }
+  @media (min-width: 1536px) { .hero-number { font-size: 68px; } }
+  .hero-subtitle { font-size: 12px; }
+  @media (min-width: 1280px) { .hero-subtitle { font-size: 14px; } }
+  @media (min-width: 1536px) { .hero-subtitle { font-size: 15px; } }
+
+  .cell-label { font-size: 10px; letter-spacing: 0.4px; }
+  @media (min-width: 1280px) { .cell-label { font-size: 11px; } }
+  .cell-value { font-size: 17px; letter-spacing: -0.01em; }
+  @media (min-width: 1280px) { .cell-value { font-size: 20px; } }
+  @media (min-width: 1536px) { .cell-value { font-size: 24px; } }
+  .cell-sub { font-size: 9px; }
+  @media (min-width: 1280px) { .cell-sub { font-size: 10px; } }
+  /* Inline % годовых рядом с цифрой; на узких экранах - на новой строке */
+  .cell-apy { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; }
+  @media (min-width: 1280px) { .cell-apy { font-size: 12px; } }
+  @media (min-width: 1536px) { .cell-apy { font-size: 13px; } }
+  .cell-apy-sep { margin: 0 4px; opacity: 0.5; }
+  @media (max-width: 768px) {
+    .cell-apy-sep { display: none; }
+    .cell-apy { display: block; margin-top: 3px; font-size: 11px; }
+  }
+
+  .progress-pct { font-size: 14px; letter-spacing: -0.01em; }
+  @media (min-width: 1280px) { .progress-pct { font-size: 16px; } }
+
+  .chart-container { min-height: 200px; }
+  @media (min-width: 1280px) { .chart-container { min-height: 270px; } }
+  @media (min-width: 1536px) { .chart-container { min-height: 330px; } }
+
+  .scenario-title { font-size: 12px; letter-spacing: 0.6px; }
+  @media (min-width: 1280px) { .scenario-title { font-size: 13px; } }
+  .scenario-sub { font-size: 11px; }
+  @media (min-width: 1280px) { .scenario-sub { font-size: 12px; } }
+  .scenario-main { font-size: 22px; letter-spacing: -0.02em; }
+  @media (min-width: 1280px) { .scenario-main { font-size: 27px; } }
+  @media (min-width: 1536px) { .scenario-main { font-size: 32px; } }
+  .scenario-meta { font-size: 11px; }
+  @media (min-width: 1280px) { .scenario-meta { font-size: 12px; } }
+
+  .selected-nft-info { font-size: 11px; }
+  @media (min-width: 1280px) { .selected-nft-info { font-size: 12px; } }
+  @media (min-width: 1536px) { .selected-nft-info { font-size: 13px; } }
+  .warn-text { font-size: 12px; line-height: 1.5; }
+  @media (min-width: 1280px) { .warn-text { font-size: 13px; } }
+
+  .phase-title { font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; }
+  @media (min-width: 1280px) { .phase-title { font-size: 11px; } }
+
+  input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; width: 100%; height: 22px; }
+  input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: #1A1F28; border-radius: 3px; border: 1px solid #20242E; }
+  input[type="range"]::-moz-range-track { height: 4px; background: #1A1F28; border-radius: 3px; border: 1px solid #20242E; }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: #F97316; border: 2px solid #fff; margin-top: -7px;
+    box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
+  }
+  input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #F97316; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35); }
+  input[type="range"].blue-thumb::-webkit-slider-thumb { background: #60A5FA; box-shadow: 0 2px 6px rgba(96, 165, 250, 0.4); }
+  input[type="range"].blue-thumb::-moz-range-thumb { background: #60A5FA; box-shadow: 0 2px 6px rgba(96, 165, 250, 0.4); }
+  input[type="range"].purple-thumb::-webkit-slider-thumb { background: #A78BFA; box-shadow: 0 2px 6px rgba(167, 139, 250, 0.4); }
+  input[type="range"].purple-thumb::-moz-range-thumb { background: #A78BFA; box-shadow: 0 2px 6px rgba(167, 139, 250, 0.4); }
+  input[type="text"]:focus { border-color: #F97316 !important; outline: none; }
+  input.over-limit { border-color: #EF4444 !important; }
+
+  .nft-btn {
+    transition: all 0.2s ease;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 6px 4px; gap: 1px;
+    background: transparent; border: 1px solid #20242E; border-radius: 8px;
+    cursor: pointer; min-height: 56px;
+  }
+  @media (min-width: 1280px) { .nft-btn { min-height: 66px; padding: 8px 4px; gap: 2px; } }
+  @media (min-width: 1536px) { .nft-btn { min-height: 74px; padding: 10px 4px; gap: 3px; } }
+  .nft-btn:hover:not(.active) { background: #181C25; border-color: #2C313C; transform: translateY(-1px); }
+  .nft-btn.active {
+    background: linear-gradient(135deg, rgba(249,115,22,0.16), rgba(249,115,22,0.04));
+    border-color: #F97316;
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.2);
+  }
+  .nft-btn .nft-name { color: #9CA3AF; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+  .nft-btn.active .nft-name { color: #FB923C; }
+  .nft-btn .nft-limit { color: #E5E7EB; font-weight: 800; }
+  .nft-btn.active .nft-limit { color: #F97316; }
+  .nft-btn .nft-price { color: #6B7280; }
+  .nft-btn.active .nft-price { color: #FB923C; }
+
+  .mode-btn { transition: all 0.2s ease; }
+  .mode-btn:hover:not(.active) { background: #181C25 !important; }
+
+  .card { background: #131720; border: 1px solid #20242E; border-radius: 14px; transition: border-color 0.2s ease; }
+  .card.is-primary { border: 1.5px solid #F97316; box-shadow: 0 4px 22px rgba(249, 115, 22, 0.14); }
+
+  .hero-card {
+    background: linear-gradient(180deg, #161A23 0%, #131720 100%);
+    border: 1px solid #2A303C;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  .phase-box {
+    background: #0F131A; border: 1px solid #20242E; border-radius: 10px;
+    padding: 10px 12px; margin-bottom: 10px;
+  }
+  .phase-box.phase-1 { border-left: 3px solid #A78BFA; }
+  .phase-box.phase-2 { border-left: 3px solid #4ADE80; margin-bottom: 0; }
+
+  .upgrade-btn {
+    background: linear-gradient(135deg, #F97316, #EA580C);
+    color: #fff; border: none; border-radius: 8px;
+    padding: 8px 14px; font-weight: 700; cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 2px 10px rgba(249, 115, 22, 0.25);
+  }
+  .upgrade-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(249, 115, 22, 0.4); }
+
+  .anim-value { transition: color 0.2s ease; }
+  .progress-bar-fill { transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+
+  .scenario-card {
+    background: #131720; border: 1px solid #20242E; border-radius: 14px;
+    padding: 14px 16px;
+    transition: all 0.2s ease;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .scenario-card:hover { border-color: #2C313C; transform: translateY(-1px); }
+  .scenario-card.highlighted {
+    border: 1.5px solid #F97316;
+    background: linear-gradient(180deg, rgba(249,115,22,0.06) 0%, rgba(249,115,22,0.02) 100%);
+    box-shadow: 0 4px 18px rgba(249, 115, 22, 0.15);
+  }
+
+  .star-badge {
+    display: inline-block; font-size: 9px; padding: 2px 7px;
+    background: #F97316; color: #fff; border-radius: 4px;
+    font-weight: 700; letter-spacing: 0.5px; vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #0A0E14; }
+  ::-webkit-scrollbar-thumb { background: #262A33; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3A3F4A; }
+
+  .loader { min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #6B7280; font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div id="root">
+  <div class="loader">FinFlow · Загрузка...</div>
+</div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useEffect, useRef } = React;
+const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } = Recharts;
+
+const C = {
+  bg: '#0A0E14', card: '#131720', border: '#20242E', borderStrong: '#2C313C',
+  bgInput: '#0F131A',
+  orange: '#F97316', orangeBright: '#FB923C',
+  green: '#4ADE80', greenDark: '#22C55E',
+  blue: '#60A5FA', blueDark: '#3B82F6',
+  purple: '#A78BFA', purpleDark: '#8B5CF6',
+  red: '#EF4444', redBg: 'rgba(239, 68, 68, 0.08)',
+  text: '#E5E7EB', textSec: '#9CA3AF', textMuted: '#6B7280',
+};
+
+const NFT_TIERS = [
+  { name: 'GENESIS',  price: 28,    limit: 75,    levels: '1-2',  freq: 130.81 }, // C3
+  { name: 'ADVANCE',  price: 55,    limit: 160,   levels: '1-3',  freq: 146.83 }, // D3
+  { name: 'ASCEND',   price: 140,   limit: 375,   levels: '1-4',  freq: 164.81 }, // E3
+  { name: 'ECLIPSE',  price: 275,   limit: 650,   levels: '1-6',  freq: 196.00 }, // G3
+  { name: 'HYDRO',    price: 550,   limit: 1400,  levels: '1-9',  freq: 220.00 }, // A3
+  { name: 'QUANTUM',  price: 1100,  limit: 2700,  levels: '1-11', freq: 261.63 }, // C4
+  { name: 'PULSE',    price: 2200,  limit: 5800,  levels: '1-13', freq: 293.66 }, // D4
+  { name: 'AURORA',   price: 5500,  limit: 12800, levels: '1-14', freq: 329.63 }, // E4
+  { name: 'FLAME',    price: 11000, limit: 28000, levels: '1-16', freq: 392.00 }, // G4
+  { name: 'INFINITY', price: 24000, limit: 70000, levels: '1-19', freq: 440.00 }, // A4
+];
+
+const MAX_DAYS = 1095;
+const MIN_DEPOSIT = 25;
+
+function mulberry32(seed) {
+  return function() {
+    let t = (seed += 0x6D2B79F5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// ═══ Web Audio: мягкий тон / приятный аккорд ═══
+let _audioCtx = null;
+// ═══ Звук монеток при пересчёте (реальная запись, встроена base64) ═══
+const COIN_VOLUME = 0.4; // громкость 0..1 - крутить здесь
+const COIN_B64 = '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';
+let _coinBuf = null;
+let _coinSrc = null;
+function playCoinSound(volume = COIN_VOLUME) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  const playBuf = (buf) => {
+    try { if (_coinSrc) _coinSrc.stop(); } catch (e) {}  // обрываем предыдущий, чтобы не наслаивались
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const g = ctx.createGain();
+    g.gain.value = volume;
+    src.connect(g); g.connect(ctx.destination);
+    src.start();
+    _coinSrc = src;
+  };
+  if (_coinBuf) { playBuf(_coinBuf); return; }
+  try {
+    const bin = atob(COIN_B64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    ctx.decodeAudioData(arr.buffer, (buf) => { _coinBuf = buf; playBuf(buf); }, () => {});
+  } catch (e) {}
+}
+
+// ═══ Звук переворота подсказки: «Вжух» (шумовой свип, открытие вверх / закрытие вниз) ═══
+let _flipSoundEnabled = true;  // синхронизируется с тогглом 🔊 в App
+let _noiseBuf = null;
+function getNoiseBuf(ctx) {
+  if (!_noiseBuf) {
+    _noiseBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.6), ctx.sampleRate);
+    const d = _noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  return _noiseBuf;
+}
+function playFlipSound(open) {
+  if (!_flipSoundEnabled) return;
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  const t = ctx.currentTime + 0.01;
+  const v = 0.08;
+  const src = ctx.createBufferSource();
+  src.buffer = getNoiseBuf(ctx);
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass'; bp.Q.value = 1.6;
+  const f1 = open ? 350 : 1400, f2 = open ? 1600 : 500;
+  bp.frequency.setValueAtTime(f1, t);
+  bp.frequency.exponentialRampToValueAtTime(f2, t + 0.28);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(v, t + 0.10);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
+  src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+  src.start(t); src.stop(t + 0.45);
+}
+
+function getAudioCtx() {
+  if (typeof window === 'undefined') return null;
+  if (!_audioCtx) {
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch (e) { return null; }
+  }
+  // На некоторых браузерах нужно «разбудить» контекст после действия пользователя
+  if (_audioCtx.state === 'suspended') {
+    _audioCtx.resume().catch(() => {});
+  }
+  return _audioCtx;
+}
+function playSound(frequencies, duration = 0.4, volume = 0.05) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  // Общий gain для всех осцилляторов с мягкой огибающей (attack + release)
+  const masterGain = ctx.createGain();
+  masterGain.gain.setValueAtTime(0, now);
+  masterGain.gain.linearRampToValueAtTime(volume, now + 0.02); // быстрый attack 20ms
+  masterGain.gain.exponentialRampToValueAtTime(0.0001, now + duration); // плавное затухание
+  masterGain.connect(ctx.destination);
+
+  frequencies.forEach((freq) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    osc.connect(masterGain);
+    osc.start(now);
+    osc.stop(now + duration + 0.05);
+  });
+}
+
+// ═══ useWheelRef: callback ref для нативного wheel event с { passive: false } ═══
+// React onWheel - passive, preventDefault там не работает. Этот хук решает проблему:
+// подписываемся через addEventListener вручную, и страница не скроллится при крутке колеса
+// над слайдером.
+function useWheelRef(onDelta) {
+  const cbRef = useRef(onDelta);
+  useEffect(() => { cbRef.current = onDelta; });
+  return useMemo(() => {
+    let currentEl = null;
+    let currentHandler = null;
+    return (el) => {
+      if (currentEl && currentHandler) {
+        currentEl.removeEventListener('wheel', currentHandler);
+      }
+      currentEl = el;
+      if (!el) return;
+      currentHandler = (e) => {
+        e.preventDefault();
+        if (cbRef.current) cbRef.current(e.deltaY);
+      };
+      el.addEventListener('wheel', currentHandler, { passive: false });
+    };
+  }, []);
+}
+
+function useAnimatedNumber(value, duration = 600) {
+  const [display, setDisplay] = useState(value);
+  const prevRef = useRef(value);
+  const frameRef = useRef(null);
+  useEffect(() => {
+    if (frameRef.current) cancelAnimationFrame(frameRef.current);
+    const startValue = prevRef.current;
+    const endValue = value;
+    if (startValue === endValue || isNaN(endValue) || !isFinite(endValue)) {
+      setDisplay(endValue); prevRef.current = endValue; return;
+    }
+    const startTime = performance.now();
+    const tick = (now) => {
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const current = startValue + (endValue - startValue) * eased;
+      setDisplay(current);
+      if (t < 1) frameRef.current = requestAnimationFrame(tick);
+      else { setDisplay(endValue); prevRef.current = endValue; }
+    };
+    frameRef.current = requestAnimationFrame(tick);
+    return () => { if (frameRef.current) cancelAnimationFrame(frameRef.current); };
+  }, [value, duration]);
+  return display;
+}
+
+function getCurrentPhase(phases, day) {
+  let p = phases[0];
+  for (const phase of phases) {
+    if (day >= phase.startDay) p = phase;
+    else break;
+  }
+  return p;
+}
+
+function simulate({ depositStart, autoMode, monthlyRateMin, monthlyRateMax, fixedRate, phases, seed = 42, maxDays = MAX_DAYS, monthlyTopUp = 0, investLimit = Infinity }) {
+  if (depositStart <= 0) {
+    return {
+      returnedBody: false, daysToReturnBody: null, monthsToReturnBody: null,
+      returnedDeposit: false, daysToReturnDeposit: null, monthsToReturnDeposit: null,
+      doubledDeposit: false, daysToDoubleDeposit: null, monthsToDoubleDeposit: null,
+      doubled: false, daysToDouble: null, monthsToDouble: null,
+      finalPaymentToWallet: 0, finalDepoBeforeDouble: 0, totalCapital: 0,
+      targetWallet: 0, progressPct: 0, bonusOverDouble: 0,
+      weeklyIncomePhase2: 0, monthlyIncomePhase2: 0, paymentInPhase2: 0,
+      paymentAtYear1: 0, paymentAtYear2: 0, paymentAtYear3: 0,
+      history: [{ month: 0, totalCapital: 0, paymentToWallet: 0, depoCurrent: 0 }],
+      dailyHistory: [],
+      investedTotal: 0, totalTopUps: 0, topUpStoppedDay: null, monthsTopUpStop: null,
+    };
+  }
+  const random = mulberry32(seed);
+  let depoCurrent = depositStart;
+  let paymentToWallet = 0;
+  let claimPool = 0;      // claim копится до еженедельной выплаты
+  let compoundPool = 0;   // compound копится до порога реинвеста
+  const MIN_REINVEST = 2; // правило автоматического договора: реинвест от 2 USDT
+  let weekStartDepo = depositStart;
+  const dailyHistory = [];
+  let investedTotal = depositStart;  // СВОИ деньги: старт + все пополнения (лимит NFT считаем по ним)
+  let totalTopUps = 0;
+  let topUpStoppedDay = null;        // день, когда достигнут лимит пополнений
+  let weekTopUpAcc = 0;              // пополнения текущей недели (для истории)
+  let returnedBody = false; let daysToReturnBody = null;
+  let returnedDeposit = false; let daysToReturnDeposit = null;
+  let doubledDeposit = false; let daysToDoubleDeposit = null;
+  let doubled = false; let daysToDouble = null;
+  let finalDoubledDepo = depositStart;
+  const history = [{ day: 0, month: 0, paymentToWallet: 0, depoCurrent: depositStart, totalCapital: depositStart, progressPct: 0, invested: depositStart }];
+
+  const phase2StartDay = phases.length > 1 ? phases[1].startDay : 0;
+  let paymentAtPhase2Start = 0;
+  let phase2CapturedStart = false;
+  let lastDayActive = 0;
+
+  for (let day = 1; day <= maxDays; day++) {
+    let earnToday = 0;
+    let reinvestedToday = 0;
+    let paidToday = 0;
+    let dayTopUp = 0;
+    if (!doubled) {
+      // Ежемесячное пополнение из своих средств: пока ТЕЛО (депозит + реинвест) ниже лимита NFT
+      if (monthlyTopUp > 0 && day % 30 === 0 && depoCurrent < investLimit) {
+        dayTopUp = Math.min(monthlyTopUp, investLimit - depoCurrent);
+        depoCurrent += dayTopUp;
+        investedTotal += dayTopUp;
+        totalTopUps += dayTopUp;
+        weekTopUpAcc += dayTopUp;
+      }
+      const monthlyRate = autoMode ? monthlyRateMin + random() * (monthlyRateMax - monthlyRateMin) : fixedRate;
+      const dailyRate = monthlyRate / 100 / 30;
+      const phase = getCurrentPhase(phases, day);
+      earnToday = depoCurrent * dailyRate;
+      claimPool += earnToday * (phase.claimPct / 100);
+      compoundPool += earnToday * (phase.compoundPct / 100);
+      // Ежедневный реинвест: срабатывает при накоплении от 2 USDT (правило автоматического договора)
+      if (compoundPool >= MIN_REINVEST) {
+        reinvestedToday = compoundPool;
+        depoCurrent += compoundPool;
+        compoundPool = 0;
+      }
+      // Фиксируем день, когда тело достигло лимита NFT (следующие пополнения не пройдут)
+      if (monthlyTopUp > 0 && topUpStoppedDay === null && depoCurrent >= investLimit - 0.005) topUpStoppedDay = day;
+      lastDayActive = day;
+    }
+    if (day % 7 === 0) {
+      if (!doubled) {
+        const beforePayment = paymentToWallet;
+        const beforeDepo = weekStartDepo;
+        // Еженедельная выплата claim (по понедельникам)
+        paymentToWallet += claimPool;
+        claimPool = 0;
+        // Возврат тела: payment догнал текущее тело (динамика, для механики)
+        if (!returnedBody && paymentToWallet >= depoCurrent) {
+          returnedBody = true; daysToReturnBody = day;
+        }
+        // Возврат ВЛОЖЕНИЯ: payment догнал стартовый депозит (фиксированная точка, для прогресс-бара)
+        if (!returnedDeposit && paymentToWallet >= investedTotal) {
+          returnedDeposit = true; daysToReturnDeposit = day;
+        }
+        // Удвоение ВЛОЖЕНИЯ: payment догнал 2× своих вложений (старт + пополнения)
+        if (!doubledDeposit && paymentToWallet >= 2 * investedTotal) {
+          doubledDeposit = true; daysToDoubleDeposit = day;
+        }
+        // Удвоение продукта: payment догнал 2× текущего тела (для завершения FinFlow)
+        if (paymentToWallet >= 2 * depoCurrent) {
+          paymentToWallet = 2 * depoCurrent;  // clamp до точной цели
+          doubled = true; daysToDouble = day; finalDoubledDepo = depoCurrent;
+          // Пересчёт фиксированных точек после clamp (на случай если clamp произошёл точно на этой неделе)
+          if (!returnedDeposit && paymentToWallet >= investedTotal) {
+            returnedDeposit = true; daysToReturnDeposit = day;
+          }
+          if (!doubledDeposit && paymentToWallet >= 2 * investedTotal) {
+            doubledDeposit = true; daysToDoubleDeposit = day;
+          }
+        }
+        // Захват payment в начале фазы 2
+        if (!phase2CapturedStart && day >= phase2StartDay) {
+          paymentAtPhase2Start = beforePayment;
+          phase2CapturedStart = true;
+        }
+        // Эффективные дельты (с учётом clamp)
+        const effClaim = paymentToWallet - beforePayment;
+        const effCompound = Math.max(0, depoCurrent - beforeDepo - weekTopUpAcc);
+        history.push({
+          day, month: day / 30,
+          paymentToWallet,
+          depoCurrent,
+          weekEarn: effClaim + effCompound,
+          weekClaim: effClaim,
+          weekCompound: effCompound,
+          totalCapital: doubled ? paymentToWallet : (paymentToWallet + depoCurrent),
+          progressPct: investedTotal > 0 ? (paymentToWallet / investedTotal) * 100 : 0,
+          invested: investedTotal,
+          weekTopUp: weekTopUpAcc,
+        });
+        paidToday = paymentToWallet - beforePayment;
+        weekStartDepo = depoCurrent;
+        weekTopUpAcc = 0;
+      }
+    }
+    if (earnToday > 0 || paidToday > 0 || dayTopUp > 0) {
+      dailyHistory.push({
+        day,
+        depoEnd: depoCurrent,
+        earn: earnToday,
+        claim: paidToday,
+        compound: reinvestedToday,
+        topUp: dayTopUp,
+        paymentTotal: paymentToWallet,
+        capital: doubled ? paymentToWallet : (paymentToWallet + depoCurrent + compoundPool),
+      });
+    }
+    if (doubled) break;
+  }
+
+  const endDay = doubled ? daysToDouble : lastDayActive;
+  const phase2EndDay = Math.min(endDay, MAX_DAYS);
+  // Если Фаза 2 не активировалась (удвоение случилось в Фазе 1) - считаем средний weekly по всей симуляции
+  const windowStartDay = phase2CapturedStart ? phase2StartDay : 0;
+  const windowStartPayment = phase2CapturedStart ? paymentAtPhase2Start : 0;
+  const daysInPhase2 = Math.max(7, phase2EndDay - windowStartDay);
+  const paymentInPhase2 = paymentToWallet - windowStartPayment;
+  const weeklyIncomePhase2 = paymentInPhase2 / (daysInPhase2 / 7);
+  const monthlyIncomePhase2 = weeklyIncomePhase2 * (30 / 7);
+
+  function paymentAtDay(targetDay) {
+    let best = 0;
+    for (const h of history) {
+      if (h.day <= targetDay) best = h.paymentToWallet;
+      else break;
+    }
+    return best;
+  }
+  const paymentAtYear1 = paymentAtDay(365);
+  const paymentAtYear2 = paymentAtDay(730);
+  const paymentAtYear3 = paymentAtDay(1095);
+
+  const finalDepo = doubled ? finalDoubledDepo : depoCurrent;
+  const bonusOverDouble = Math.max(0, paymentToWallet - 2 * investedTotal);
+  return {
+    returnedBody, daysToReturnBody,
+    monthsToReturnBody: daysToReturnBody ? daysToReturnBody / 30 : null,
+    returnedDeposit, daysToReturnDeposit,
+    monthsToReturnDeposit: daysToReturnDeposit ? daysToReturnDeposit / 30 : null,
+    doubledDeposit, daysToDoubleDeposit,
+    monthsToDoubleDeposit: daysToDoubleDeposit ? daysToDoubleDeposit / 30 : null,
+    doubled, daysToDouble,
+    monthsToDouble: daysToDouble ? daysToDouble / 30 : null,
+    finalPaymentToWallet: paymentToWallet,
+    finalDepoBeforeDouble: finalDepo,
+    totalCapital: doubled ? paymentToWallet : (paymentToWallet + depoCurrent),
+    targetWallet: 2 * finalDepo,
+    bonusOverDouble,
+    // progressPct относительно СВОИХ вложений (старт + пополнения), БЕЗ cap
+    progressPct: investedTotal > 0 ? (paymentToWallet / investedTotal) * 100 : 0,
+    weeklyIncomePhase2, monthlyIncomePhase2, paymentInPhase2,
+    paymentAtYear1, paymentAtYear2, paymentAtYear3,
+    phase2StartDay, phase2EndDay,
+    history,
+    dailyHistory,
+    investedTotal, totalTopUps, topUpStoppedDay,
+    monthsTopUpStop: topUpStoppedDay ? topUpStoppedDay / 30 : null,
+  };
+}
+
+const fmt = (n) => {
+  if (!isFinite(n) || isNaN(n)) return '0';
+  return Math.round(n).toLocaleString('en-US').replace(/,/g, ' ');
+};
+const fmtPct = (n) => isFinite(n) ? n.toFixed(1) : '0.0';
+
+function AnimNumber({ value, format = fmt, suffix = '' }) {
+  const display = useAnimatedNumber(value);
+  return <span className="anim-value">{format(display)}{suffix}</span>;
+}
+
+// ═══ Подсказки-перевёртыши: кружок ⓘ + переворот блока «спиной» ═══
+const IP = { margin: '0 0 9px', padding: 0 };  // абзац подсказки
+const IB = { color: C.text, fontWeight: '700' };  // выделение
+const INFO = {
+  nft: { title: 'NFT-уровень - что это?', body: (<React.Fragment>
+    <p style={IP}><b style={IB}>NFT</b> это ваш актив, который закрепляет за вами часть платформы RWA NFTFi и предоставляет вам возможность использовать все ресурсы и инструменты платформы.</p>
+    <p style={IP}><b style={IB}>Цена NFT</b> - разовая плата за актив, которая содержит в себе разные возможности и привилегии.</p>
+    <p style={IP}><b style={{ color: C.orange, fontWeight: '700' }}>FinFlow</b> - инструмент который удваивает любую сумму, направленную вами на его покупку.</p>
+    <p style={IP}>Как пользоваться: выберите уровень доступа в виде NFT, который планируете купить, и впишите сумму покупки FinFlow. Если сумма выше лимита вашего актива - калькулятор сам подскажет, какой уровень нужен.</p>
+  </React.Fragment>) },
+  rate: { title: 'Доходность - что это?', body: (<React.Fragment>
+    <p style={IP}>Сколько процентов в месяц зарабатывают ваши деньги.</p>
+    <p style={IP}><b style={IB}>Авто (11-16%)</b> - как в жизни: каждый день платформа даёт чуть больше или чуть меньше, в этих границах. Советуем считать именно так.</p>
+    <p style={IP}><b style={IB}>Фиксированная</b> - один и тот же процент каждый день. Удобно прикинуть: «а что, если стабильно 13%?»</p>
+    <p style={IP}>Важно: это границы реальной работы платформы, а не обещание. Итог зависит от рынка.</p>
+  </React.Fragment>) },
+  split: { title: 'Куда идёт прибыль?', body: (<React.Fragment>
+    <p style={IP}>Каждый день FinFlow приносит доход. В этом блоке вы решаете, куда он идёт.</p>
+    <p style={IP}><b style={{ color: C.blue, fontWeight: '700' }}>На кошелёк</b> - деньги приходят вам раз в неделю. Их можно выводить и направлять в свою жизнь.</p>
+    <p style={IP}><b style={{ color: C.green, fontWeight: '700' }}>В реинвест</b> - деньги добавляются к базовой сумме FinFlow. Завтра доход считается уже с большей суммы - и так каждый день, как снежный ком.</p>
+    <p style={IP}><b style={IB}>2 фазы</b> - режим где сначала разгоняете базовую сумму (всё в реинвест), потом переключаетесь на вывод.</p>
+    <p style={IP}><b style={IB}>➕ Пополняю ежемесячно</b> - добавляете свои деньги каждый месяц, база растёт ещё быстрее. Когда упрётесь в потолок NFT уровня, калькулятор предупредит и остановит пополнения.</p>
+  </React.Fragment>) },
+  income: { title: 'Ваш пассивный доход', body: (<React.Fragment>
+    <p style={IP}>Деньги, которые будут приходить вам на кошелёк - без работы, просто по вашей стратегии.</p>
+    <p style={IP}><b style={IB}>В неделю</b> - средняя еженедельная выплата. <b style={IB}>В месяц</b> - сколько накапает за месяц. Дальше - суммы к концу каждого года.</p>
+    <p style={IP}>Рядом с годовыми суммами показан <b style={IB}>% годовых</b> - то же самое в привычных «банковских» процентах.</p>
+    <p style={IP}>Цифры пересчитываются на лету: подвигайте ползунки слева и сравните.</p>
+  </React.Fragment>) },
+  // подсказка графика собирается динамически в App (срок зависит от сценария) - см. chartInfo
+  compare: { title: 'Три пути - сравните', body: (<React.Fragment>
+    <p style={IP}>Три сценария рядом, чтобы было с чем сравнивать.</p>
+    <p style={IP}><b style={{ color: C.blue, fontWeight: '700' }}>Только claim</b> - вся прибыль сразу на кошелёк. Живые деньги быстро, но итог скромнее.</p>
+    <p style={IP}><b style={{ color: C.orange, fontWeight: '700' }}>Ваш FinFlow</b> - то, что вы настроили слева. Ваша золотая середина.</p>
+    <p style={IP}><b style={{ color: C.green, fontWeight: '700' }}>Только реинвест</b> - ничего не выводить, всё в рост. Живых денег по пути нет, зато итог самый крупный.</p>
+    <p style={IP}>Это не «что лучше», а «что вам ближе»: скорость, баланс или максимум.</p>
+  </React.Fragment>) },
+  detail: { title: 'Таблица по шагам', body: (<React.Fragment>
+    <p style={IP}>Весь путь расписан по шагам - как выписка из банка, только на годы вперёд. Выбирайте: по дням, по неделям или по месяцам.</p>
+    <p style={IP}><b style={IB}>Тело</b> - рабочая сумма, которая приносит доход. <b style={{ color: C.blue, fontWeight: '700' }}>На кошелёк</b> - что вам выплатили. <b style={{ color: C.green, fontWeight: '700' }}>В реинвест</b> - что добавилось к телу. <b style={{ color: C.orange, fontWeight: '700' }}>Капитал</b> - всё ваше вместе: тело + выплаты.</p>
+    <p style={IP}>Точка «·» в реинвесте - сумма ещё копится: платформа реинвестирует только от 2 USDT за раз.</p>
+    <p style={IP}>Если включено пополнение - в строке месяца будет оранжевая пометка «+сумма»: это ваши добавленные деньги.</p>
+  </React.Fragment>) },
+};
+
+function InfoBtn({ onClick }) {
+  return (
+    <span
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      title="Что это? Нажмите - блок перевернётся подсказкой"
+      style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        width: '16px', height: '16px', borderRadius: '50%',
+        border: '1px solid ' + C.borderStrong, color: C.textMuted,
+        fontSize: '10px', fontWeight: '700', lineHeight: 1, fontStyle: 'italic',
+        marginLeft: '7px', cursor: 'pointer', verticalAlign: 'middle',
+        textTransform: 'none', letterSpacing: 0, flex: '0 0 auto',
+        transition: 'color .2s, border-color .2s',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.color = C.orange; e.currentTarget.style.borderColor = C.orange; }}
+      onMouseLeave={(e) => { e.currentTarget.style.color = C.textMuted; e.currentTarget.style.borderColor = C.borderStrong; }}
+    >i</span>
+  );
+}
+
+function FlipShell({ flipped, setFlipped, info, children }) {
+  const flipFirstRef = useRef(true);
+  useEffect(() => {
+    if (flipFirstRef.current) { flipFirstRef.current = false; return; }
+    playFlipSound(flipped);
+  }, [flipped]);
+  return (
+    <div style={{ perspective: '1400px' }}>
+      <div style={{
+        position: 'relative',
+        transformStyle: 'preserve-3d', WebkitTransformStyle: 'preserve-3d',
+        transition: 'transform 0.55s cubic-bezier(0.35, 0.1, 0.25, 1)',
+        transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+      }}>
+        <div style={{
+          backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+          pointerEvents: flipped ? 'none' : 'auto',
+        }}>
+          {children}
+        </div>
+        <div
+          onClick={() => setFlipped(false)}
+          className="card"
+          style={{
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+            transform: 'rotateY(180deg)',
+            backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+            border: '1px solid rgba(249, 115, 22, 0.45)',
+            padding: '14px 18px', overflowY: 'auto', cursor: 'pointer',
+            pointerEvents: flipped ? 'auto' : 'none',
+          }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', marginBottom: '9px' }}>
+            <span className="section-label" style={{ color: C.orange, textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: '700' }}>💡 {info.title}</span>
+            <span className="cell-sub" style={{ color: C.textMuted, whiteSpace: 'nowrap' }}>закрыть ↩</span>
+          </div>
+          <div className="slider-label" style={{ color: C.textSec, lineHeight: 1.7 }}>{info.body}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Section({ title, children, action, primary, info }) {
+  const [flipped, setFlipped] = useState(false);
+  const card = (
+    <div className={'card' + (primary ? ' is-primary' : '')} style={{ padding: '14px 16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px', gap: '8px', flexWrap: 'wrap' }}>
+        <div className="section-label" style={{ color: primary ? C.orange : C.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: '700' }}>
+          {title}
+          {info && <InfoBtn onClick={() => setFlipped(true)} />}
+        </div>
+        {action}
+      </div>
+      {children}
+    </div>
+  );
+  if (!info) return card;
+  return <FlipShell flipped={flipped} setFlipped={setFlipped} info={info}>{card}</FlipShell>;
+}
+
+// Ячейка дохода для Hero блока - value передаём числом, формат внутри
+function Cell({ label, value, sub, accent, years, effectiveDeposit }) {
+  // % годовых вычисляется из ТЕКУЩЕГО value (animated) - синхронно с анимацией суммы
+  const apy = (years && years > 0 && effectiveDeposit > 0 && value > 0)
+    ? (value / years / effectiveDeposit) * 100 : 0;
+  return (
+    <div style={{ flex: '1 1 0', textAlign: 'center', padding: '4px 6px', minWidth: '80px' }}>
+      <div className="cell-label" style={{ color: C.textMuted, textTransform: 'uppercase', fontWeight: '600', marginBottom: '5px' }}>
+        {label}
+      </div>
+      <div className="cell-value" style={{ color: accent, fontWeight: '700', lineHeight: '1.1' }}>
+        {fmt(value)}<span className="cell-sub" style={{ color: C.textMuted, fontWeight: '500', marginLeft: '3px' }}>$</span>
+        {apy > 0 && (
+          <React.Fragment>
+            <span className="cell-apy-sep" style={{ color: C.textMuted, fontWeight: '500' }}>/</span>
+            <span className="cell-apy" style={{ color: C.green }}>{fmt(apy)}% год</span>
+          </React.Fragment>
+        )}
+      </div>
+      {sub && <div className="cell-sub" style={{ color: C.textMuted, marginTop: '4px' }}>{sub}</div>}
+    </div>
+  );
+}
+
+// Упрощённая карточка сценария: название + главная цифра + срок + поток
+function ScenarioCard({ title, subtitle, accent, scenario, deposit, highlighted, isCurrent, currentMonthlyRate }) {
+  // Единая структура для всех 3 карточек:
+  // - Выведено на кошелёк = finalPaymentToWallet
+  // - Работает в FinFlow = compound-часть тела (depoCurrent - depositStart)
+  //   Для завершённого 100% claim это 0 (тело не росло)
+  //   Для смешанной стратегии это накопленный compound
+  //   Для 0% claim это весь прирост тела
+  // - Чистая прибыль = (Выведено + Работает) - depositStart
+  //   ИЛИ для compound-only: потенциал в месяц (тело × ставка)
+
+  const walletAmount = scenario.finalPaymentToWallet || 0;
+  // Если FinFlow завершён (doubled): тело "поглощено" выплатами, работает = 0.
+  // Если продолжается: работает = compound-часть тела (depo - deposit)
+  const workingInFinflow = scenario.doubled ? 0 : Math.max(0, (scenario.finalDepoBeforeDouble || 0) - deposit);
+  const netProfit = Math.max(0, walletAmount - deposit);
+
+  // Для compound-only: показываем потенциал месячного дохода вместо чистой прибыли
+  const isCompoundOnly = walletAmount < 1;
+  const totalBody = deposit + workingInFinflow; // полное тело (2700 + compound)
+  const monthlyPotential = isCompoundOnly ? (totalBody * currentMonthlyRate / 100) : 0;
+
+  // Главная цифра карточки (заголовок)
+  const cap = isCompoundOnly ? workingInFinflow : walletAmount;
+  const animCap = useAnimatedNumber(cap);
+  const animMonthsD = useAnimatedNumber(scenario.monthsToDouble || 0);
+  const animWallet = useAnimatedNumber(walletAmount);
+  const animWorking = useAnimatedNumber(workingInFinflow);
+  const animNetProfit = useAnimatedNumber(netProfit);
+  const animPotential = useAnimatedNumber(monthlyPotential);
+
+  const avgWeekly = scenario.weeklyIncomePhase2;
+  const animWeekly = useAnimatedNumber(avgWeekly);
+
+  return (
+    <div className={'scenario-card' + (highlighted ? ' highlighted' : '')}>
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+        {highlighted && <span className="star-badge">★ ВАШ</span>}
+        <span className="scenario-title" style={{ fontWeight: '700', color: accent, textTransform: 'uppercase' }}>{title}</span>
+      </div>
+      <div className="scenario-sub" style={{ color: C.textMuted, marginTop: '-4px' }}>{subtitle}</div>
+
+      <div style={{ marginTop: '6px' }}>
+        <div className="scenario-main" style={{ color: C.text, fontWeight: '800' }}>
+          <span style={{ color: C.green }}>+</span> <span>{fmt(animCap)}</span>
+          <span className="cell-sub" style={{ color: C.textMuted, marginLeft: '6px', fontWeight: '500' }}>USDT</span>
+        </div>
+        <div className="scenario-meta" style={{ color: C.textSec, marginTop: '4px' }}>
+          {scenario.doubled
+            ? <span>за <span style={{ color: C.text, fontWeight: '600' }}>{Math.round(animMonthsD)} мес</span></span>
+            : <span>за <span style={{ color: C.text, fontWeight: '600' }}>3 года</span></span>}
+          {isCompoundOnly
+            ? <span> · <span style={{ color: C.textMuted, fontWeight: '500' }}>тело растёт</span></span>
+            : (avgWeekly > 0.5
+              ? <span> · ≈ <span style={{ color: C.text, fontWeight: '600' }}>{fmt(animWeekly)}</span> в неделю</span>
+              : <span> · поток на кошелёк <span style={{ color: C.textMuted, fontWeight: '500' }}>0</span></span>)}
+        </div>
+      </div>
+
+      {/* Золотая рамка с детализацией */}
+      <div style={{
+        marginTop: '12px',
+        padding: '10px 12px',
+        border: '0.5px solid #F4B942',
+        borderRadius: '8px',
+        background: 'rgba(244, 185, 66, 0.04)',
+        boxShadow: '0 0 12px rgba(244, 185, 66, 0.08)',
+        fontSize: '13px',
+        display: 'flex', flexDirection: 'column', gap: '6px',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <span style={{ color: C.textSec }}>Выведено на кошелёк</span>
+          <span style={{ color: C.text, fontWeight: '700', fontVariantNumeric: 'tabular-nums' }}>{fmt(animWallet)} $</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <span style={{ color: C.textSec }}>Работает в FinFlow</span>
+          <span style={{ color: C.text, fontWeight: '700', fontVariantNumeric: 'tabular-nums' }}>{fmt(animWorking)} $</span>
+        </div>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
+          borderTop: '1px solid rgba(244, 185, 66, 0.2)', paddingTop: '6px', marginTop: '2px',
+        }}>
+          {isCompoundOnly ? (
+            <React.Fragment>
+              <span style={{ color: '#F4B942', fontWeight: '600' }}>Потенциальный ежемесячный доход</span>
+              <span style={{ color: '#F4B942', fontWeight: '800', fontVariantNumeric: 'tabular-nums' }}>≈ {fmt(animPotential)} $</span>
+            </React.Fragment>
+          ) : (
+            <React.Fragment>
+              <span style={{ color: '#F4B942', fontWeight: '600' }}>Зафиксированная прибыль</span>
+              <span style={{ color: '#F4B942', fontWeight: '800', fontVariantNumeric: 'tabular-nums' }}>+{fmt(animNetProfit)} $</span>
+            </React.Fragment>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Агрегация еженедельной истории в месячные строки
+function aggregateMonthly(history) {
+  const months = new Map();
+  for (let i = 1; i < history.length; i++) {
+    const h = history[i];
+    if (!h.day) continue;
+    const m = Math.ceil(h.day / 30);
+    if (!months.has(m)) {
+      months.set(m, {
+        idx: m,
+        claim: 0, compound: 0, earn: 0,
+        depoEnd: h.depoCurrent, paymentTotal: h.paymentToWallet,
+      });
+    }
+    const mo = months.get(m);
+    mo.topUp = (mo.topUp || 0) + (h.weekTopUp || 0);
+    mo.claim += h.weekClaim || 0;
+    mo.compound += h.weekCompound || 0;
+    mo.earn += h.weekEarn || 0;
+    mo.depoEnd = h.depoCurrent;
+    mo.paymentTotal = h.paymentToWallet;
+  }
+  return Array.from(months.values());
+}
+
+// Таблица детализации - раскрывающийся аккордеон
+function DetailTable({ scenario, useTwoPhases, phase1Months }) {
+  const [showTable, setShowTable] = useState(false);
+  const [viewMode, setViewMode] = useState('months');
+  const [infoFlipped, setInfoFlipped] = useState(false);
+  const wasCollapsedRef = useRef(false);
+  // Если аккордеон свёрнут: сначала разворачиваем, потом переворачиваем. Закрытие в обратном порядке
+  const openInfo = () => {
+    if (!showTable) {
+      wasCollapsedRef.current = true;
+      setShowTable(true);
+      setTimeout(() => setInfoFlipped(true), 320);
+    } else {
+      wasCollapsedRef.current = false;
+      setInfoFlipped(true);
+    }
+  };
+  const closeInfo = () => {
+    setInfoFlipped(false);
+    if (wasCollapsedRef.current) {
+      wasCollapsedRef.current = false;
+      setTimeout(() => setShowTable(false), 580);
+    }
+  };
+
+  const dailyRows = useMemo(() => (scenario.dailyHistory || []).map(d => ({
+    idx: d.day,
+    depoEnd: d.depoEnd,
+    earn: d.earn,
+    claim: d.claim,
+    compound: d.compound,
+    paymentTotal: d.paymentTotal,
+    capital: d.capital,
+    topUp: d.topUp || 0,
+  })), [scenario]);
+
+  const weeklyRows = useMemo(() => scenario.history.slice(1).map((h, idx) => ({
+    idx: idx + 1,
+    depoEnd: h.depoCurrent,
+    earn: h.weekEarn || 0,
+    claim: h.weekClaim || 0,
+    compound: h.weekCompound || 0,
+    paymentTotal: h.paymentToWallet,
+    capital: h.depoCurrent + h.paymentToWallet,
+    day: h.day,
+    topUp: h.weekTopUp || 0,
+  })), [scenario]);
+
+  const monthlyRows = useMemo(() => {
+    // Пополнения по месяцам берём из ДНЕВНОЙ истории (день 30 = месяц 1, день 60 = месяц 2...).
+    // Через недельную агрегацию на стыке месяцев два пополнения склеивались в +200
+    const topUpByMonth = new Map();
+    (scenario.dailyHistory || []).forEach(d => {
+      if (d.topUp > 0) {
+        const m = Math.ceil(d.day / 30);
+        topUpByMonth.set(m, (topUpByMonth.get(m) || 0) + d.topUp);
+      }
+    });
+    return aggregateMonthly(scenario.history).map(m => ({
+      idx: m.idx,
+      depoEnd: m.depoEnd,
+      earn: m.earn,
+      claim: m.claim,
+      compound: m.compound,
+      paymentTotal: m.paymentTotal,
+      capital: m.depoEnd + m.paymentTotal,
+      topUp: topUpByMonth.get(m.idx) || 0,
+    }));
+  }, [scenario]);
+
+  const rows = viewMode === 'days' ? dailyRows : (viewMode === 'weeks' ? weeklyRows : monthlyRows);
+  // В режиме дней суммы до 1000 показываем с копейками: начисления и реинвесты не бывают круглыми
+  const fmtCell = viewMode === 'days'
+    ? ((n) => (!isFinite(n) || isNaN(n)) ? '0' : (Math.abs(n) >= 1000 ? fmt(n) : (Math.round(n * 100) / 100).toFixed(2)))
+    : fmt;
+  const periodLabel = viewMode === 'days' ? 'День' : (viewMode === 'weeks' ? 'Нед.' : 'Мес.');
+  const totalPeriods = rows.length;
+
+  // Итоги для футера
+  const totals = useMemo(() => {
+    const totalClaim = rows.reduce((s, r) => s + r.claim, 0);
+    const totalCompound = rows.reduce((s, r) => s + r.compound, 0);
+    const totalEarn = rows.reduce((s, r) => s + r.earn, 0);
+    const lastRow = rows[rows.length - 1];
+    return {
+      totalClaim, totalCompound, totalEarn,
+      finalDepo: lastRow?.depoEnd || 0,
+      finalPayment: lastRow?.paymentTotal || 0,
+      finalCapital: lastRow?.capital || 0,
+    };
+  }, [rows]);
+
+  // Точка перехода Фаза 2 (для подсветки первой строки Фазы 2)
+  // Для недель: первая неделя где day >= phase2StartDay (например phase1=12мес → day=360 → week 52)
+  // Для месяцев: первый полный месяц Фазы 2 (например phase1=12мес → месяц 13)
+  const phase2BoundaryWeek = useTwoPhases ? Math.ceil((phase1Months * 30 + 1) / 7) : null;
+  const phase2BoundaryMonth = useTwoPhases ? phase1Months + 1 : null;
+  const phase2BoundaryDay = useTwoPhases ? phase1Months * 30 + 1 : null;
+
+  return (
+    <FlipShell flipped={infoFlipped} setFlipped={(v) => { if (!v) closeInfo(); }} info={INFO.detail}>
+    <div>
+      <button
+        onClick={() => setShowTable(!showTable)}
+        style={{
+          width: '100%', padding: '12px 16px',
+          background: C.card, border: '1px solid ' + C.border, borderRadius: '12px',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          cursor: 'pointer', transition: 'border-color 0.2s ease',
+          color: C.text,
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.borderColor = C.borderStrong}
+        onMouseLeave={(e) => e.currentTarget.style.borderColor = C.border}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{
+            width: '32px', height: '32px', borderRadius: '8px',
+            background: 'rgba(249, 115, 22, 0.14)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: C.orange, fontWeight: '700', fontSize: '14px',
+          }}>↻</div>
+          <div style={{ textAlign: 'left' }}>
+            <div className="slider-label" style={{ color: C.text, fontWeight: '600' }}>
+              Детализация выплат
+              <InfoBtn onClick={openInfo} />
+            </div>
+            <div className="cell-sub" style={{ color: C.textMuted, marginTop: '2px' }}>
+              {scenario.doubled
+                ? `Полный путь до удвоения · ${Math.round(scenario.monthsToDouble)} мес`
+                : `За 3 года (FinFlow продолжается)`}
+            </div>
+          </div>
+        </div>
+        <span style={{ color: C.textSec, fontSize: '14px', transition: 'transform 0.3s', display: 'inline-block', transform: showTable ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
+      </button>
+
+      {showTable && (
+        <div style={{
+          marginTop: '8px', borderRadius: '12px', overflow: 'hidden',
+          background: C.card, border: '1px solid ' + C.border,
+        }}>
+          {/* Шапка с переключателем */}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '12px 16px', borderBottom: '1px solid ' + C.border, flexWrap: 'wrap', gap: '8px',
+          }}>
+            <div className="cell-sub" style={{ color: C.textMuted }}>
+              {viewMode === 'days'
+                ? `Каждая строка: день (всего ${totalPeriods})`
+                : (viewMode === 'weeks'
+                  ? `Каждая строка: выплата (всего ${totalPeriods})`
+                  : `Состояние на конец каждого месяца (всего ${totalPeriods})`)}
+            </div>
+            <div style={{ display: 'flex', gap: '4px', background: C.bgInput, padding: '3px', borderRadius: '8px', border: '1px solid ' + C.border }}>
+              <button onClick={() => setViewMode('days')}
+                className="mode-btn-text"
+                style={{
+                  padding: '5px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700',
+                  background: viewMode === 'days' ? C.orange : 'transparent',
+                  color: viewMode === 'days' ? '#fff' : C.textSec,
+                  border: 'none',
+                }}>По дням</button>
+              <button onClick={() => setViewMode('weeks')}
+                className="mode-btn-text"
+                style={{
+                  padding: '5px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700',
+                  background: viewMode === 'weeks' ? C.orange : 'transparent',
+                  color: viewMode === 'weeks' ? '#fff' : C.textSec,
+                  border: 'none',
+                }}>По неделям</button>
+              <button onClick={() => setViewMode('months')}
+                className="mode-btn-text"
+                style={{
+                  padding: '5px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700',
+                  background: viewMode === 'months' ? C.orange : 'transparent',
+                  color: viewMode === 'months' ? '#fff' : C.textSec,
+                  border: 'none',
+                }}>По месяцам</button>
+            </div>
+          </div>
+
+          {/* Таблица */}
+          <div style={{ overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+                <tr style={{ background: '#181C25', borderBottom: '1px solid ' + C.border }}>
+                  <th style={{ textAlign: 'left', padding: '10px 12px', fontSize: '10px', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '700' }}>{periodLabel}</th>
+                  <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '10px', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '700' }}>Тело</th>
+                  <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '10px', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '700' }}>Заработано</th>
+                  <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '10px', color: C.blue, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '700' }}>На кошелёк</th>
+                  <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '10px', color: C.green, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '700' }}>В реинвест</th>
+                  <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '10px', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '700' }}>Получено всего</th>
+                  <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '10px', color: C.orange, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '700' }}>Капитал</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, idx) => {
+                  const isPhase2Boundary = useTwoPhases && (
+                    (viewMode === 'days' && row.idx === phase2BoundaryDay) ||
+                    (viewMode === 'weeks' && row.idx === phase2BoundaryWeek) ||
+                    (viewMode === 'months' && row.idx === phase2BoundaryMonth)
+                  );
+                  return (
+                    <tr key={row.idx} style={{
+                      background: idx % 2 === 0 ? 'rgba(20, 24, 32, 0.4)' : 'transparent',
+                      borderBottom: '1px solid rgba(38, 42, 51, 0.5)',
+                      borderTop: isPhase2Boundary ? '2px solid ' + C.purple : 'none',
+                    }}>
+                      <td style={{ padding: '8px 12px', color: C.textSec, fontWeight: '600' }}>
+                        {row.idx}
+                        {isPhase2Boundary && <span className="cell-sub" style={{ color: C.purple, marginLeft: '6px', fontWeight: '700' }}>· Ф2</span>}
+                        {row.topUp > 0 && <span className="cell-sub" style={{ color: C.orange, marginLeft: '6px', fontWeight: '700' }}>+{fmtCell(row.topUp)}</span>}
+                      </td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right', color: C.text }}>{fmtCell(row.depoEnd)}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right', color: C.textSec }}>+{fmtCell(row.earn)}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right', color: row.claim > 0 ? C.blue : C.textMuted, fontWeight: row.claim > 0 ? '600' : '400' }}>
+                        {row.claim > 0 ? '+' + fmtCell(row.claim) : '·'}
+                      </td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right', color: row.compound > 0 ? C.green : C.textMuted, fontWeight: row.compound > 0 ? '600' : '400' }}>
+                        {row.compound > 0 ? '+' + fmtCell(row.compound) : '·'}
+                      </td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right', color: C.text, fontWeight: '600' }}>{fmtCell(row.paymentTotal)}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right', color: C.orange, fontWeight: '700' }}>{fmtCell(row.capital)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot style={{ position: 'sticky', bottom: 0 }}>
+                <tr style={{ background: '#181C25', borderTop: '2px solid ' + C.border }}>
+                  <td style={{ padding: '10px 12px', color: C.text, fontWeight: '800', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Итого</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', color: C.text, fontWeight: '700' }}>{fmtCell(totals.finalDepo)}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', color: C.text, fontWeight: '700' }}>+{fmtCell(totals.totalEarn)}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', color: C.blue, fontWeight: '700' }}>+{fmtCell(totals.totalClaim)}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', color: C.green, fontWeight: '700' }}>+{fmtCell(totals.totalCompound)}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', color: C.text, fontWeight: '700' }}>{fmtCell(totals.finalPayment)}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', color: C.orange, fontWeight: '800' }}>{fmtCell(totals.finalCapital)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          {/* Footer с пояснениями */}
+          <div style={{
+            padding: '10px 16px', borderTop: '1px solid ' + C.border,
+            background: 'rgba(20, 24, 32, 0.4)',
+          }}>
+            <div className="cell-sub" style={{ color: C.textMuted, display: 'flex', flexWrap: 'wrap', gap: '10px', lineHeight: '1.5' }}>
+              <span><strong style={{ color: C.textSec }}>Тело</strong>: рабочая сумма (растёт при реинвесте)</span>
+              {(scenario.totalTopUps || 0) > 0 && (
+                <>
+                  <span>·</span>
+                  <span><strong style={{ color: C.orange }}>+N</strong>: ваше пополнение из своих средств</span>
+                </>
+              )}
+              {viewMode === 'days' && (
+                <>
+                  <span>·</span>
+                  <span><strong style={{ color: C.green }}>·</strong> в реинвесте: сумма копится до порога 2 USDT (правило автоматического договора)</span>
+                </>
+              )}
+              <span>·</span>
+              <span><strong style={{ color: C.textSec }}>Капитал</strong>: тело + полученные выплаты</span>
+              {useTwoPhases && (
+                <>
+                  <span>·</span>
+                  <span><strong style={{ color: C.purple }}>Ф2</strong>: момент перехода в Фазу 2</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+    </FlipShell>
+  );
+}
+
+// ═══ Кастомный Tooltip для графика динамики капитала ═══
+function ChartTooltip({ active, payload, C, fmt }) {
+  if (!active || !payload || !payload.length) return null;
+  const d = payload[0].payload;
+  if (!d) return null;
+  const row = (color, label, weekVal, totalVal, isSingle) => (
+    <React.Fragment>
+      <span style={{ color, fontSize: '13px', lineHeight: 1 }}>●</span>
+      <span style={{ color: C.textSec, whiteSpace: 'nowrap' }}>{label}</span>
+      <span style={{ color: C.text, fontWeight: '600', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+        {isSingle
+          ? fmt(totalVal)
+          : <React.Fragment>
+              +{fmt(weekVal)}
+              <span style={{ color: C.textMuted, fontWeight: '500' }}> / Σ {fmt(totalVal)}</span>
+            </React.Fragment>
+        }
+      </span>
+    </React.Fragment>
+  );
+  return (
+    <div style={{
+      background: 'rgba(15, 19, 26, 0.96)',
+      backdropFilter: 'blur(8px)',
+      WebkitBackdropFilter: 'blur(8px)',
+      border: '1px solid ' + C.borderStrong,
+      borderRadius: '10px',
+      padding: '10px 12px',
+      fontSize: '12px',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+      minWidth: '220px',
+    }}>
+      <div style={{
+        color: C.textMuted, fontSize: '10px', textTransform: 'uppercase',
+        letterSpacing: '0.5px', fontWeight: '700', marginBottom: '8px',
+        borderBottom: '1px solid ' + C.border, paddingBottom: '6px',
+      }}>
+        Месяц {Math.round(d.month)} · Неделя {d.weekNum}
+      </div>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'auto 1fr auto',
+        gap: '6px 12px',
+        alignItems: 'center',
+      }}>
+        {row(C.orange, 'Заработано', d.weekEarn, d.earned, false)}
+        {row(C.blue,   'На кошелёк', d.weekClaim, d.wallet, false)}
+        {row(C.green,  'В реинвест', d.weekCompound, d.reinvest, false)}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [nftIndex, setNftIndex] = useState(5);
+  const [depositAmount, setDepositAmount] = useState('2700');
+  const [autoMode, setAutoMode] = useState(true);
+  const [fixedRate, setFixedRate] = useState(16);
+
+  const [useTwoPhases, setUseTwoPhases] = useState(false);
+  const [singleClaimPct, setSingleClaimPct] = useState(80);
+  const [phase1ClaimPct, setPhase1ClaimPct] = useState(0);
+  const [phase1Months, setPhase1Months] = useState(6);
+  const [phase2ClaimPct, setPhase2ClaimPct] = useState(50);
+
+  // ─── Ежемесячное пополнение из своих средств ───
+  const [useTopUp, setUseTopUp] = useState(false);
+  const [topUpAmount, setTopUpAmount] = useState('30');
+
+  // ─── Flip-подсказки правой колонки ───
+  const [flipIncome, setFlipIncome] = useState(false);
+  const [flipChart, setFlipChart] = useState(false);
+  const [flipCompare, setFlipCompare] = useState(false);
+
+  // ─── Звук ───
+  const [soundEnabled, setSoundEnabled] = useState(true);
+
+  // Адаптивный шаг тиков: на ≥1280px - шаг 2, иначе шаг 6
+  const [isLargeScreen, setIsLargeScreen] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches
+  );
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(min-width: 1280px)');
+    const handler = (e) => setIsLargeScreen(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  const [isXLScreen, setIsXLScreen] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(min-width: 1536px)').matches
+  );
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(min-width: 1536px)');
+    const handler = (e) => setIsXLScreen(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  // ─── Callback refs для слайдеров (колесо мыши через native event) ───
+  const fixedRateWheelRef = useWheelRef((dy) => {
+    const d = dy < 0 ? 0.5 : -0.5;
+    setFixedRate(p => Math.max(11, Math.min(16, +(p + d).toFixed(1))));
+  });
+  const singleClaimWheelRef = useWheelRef((dy) => {
+    const d = dy < 0 ? 1 : -1;
+    setSingleClaimPct(p => Math.max(0, Math.min(100, p + d)));
+  });
+  const phase1ClaimWheelRef = useWheelRef((dy) => {
+    const d = dy < 0 ? 1 : -1;
+    setPhase1ClaimPct(p => Math.max(0, Math.min(100, p + d)));
+  });
+  const phase1MonthsWheelRef = useWheelRef((dy) => {
+    const d = dy < 0 ? 1 : -1;
+    setPhase1Months(p => Math.max(1, Math.min(36, p + d)));
+  });
+  const phase2ClaimWheelRef = useWheelRef((dy) => {
+    const d = dy < 0 ? 1 : -1;
+    setPhase2ClaimPct(p => Math.max(0, Math.min(100, p + d)));
+  });
+
+  const deposit = parseFloat(depositAmount) || 0;
+  const selectedNft = nftIndex >= 0 ? NFT_TIERS[nftIndex] : null;
+  const isOverLimit = selectedNft && deposit > selectedNft.limit;
+  const isUnderMin = deposit > 0 && deposit < MIN_DEPOSIT;
+  const requiredNftIndex = isOverLimit ? NFT_TIERS.findIndex(t => t.limit >= deposit) : -1;
+  const effectiveDeposit = isOverLimit ? selectedNft.limit : (isUnderMin ? MIN_DEPOSIT : deposit);
+  const topUpValue = useTopUp ? Math.max(0, parseFloat(topUpAmount) || 0) : 0;
+  const investLimit = selectedNft ? selectedNft.limit : Infinity;
+  const nextTierIndex = NFT_TIERS.findIndex(t => t.limit > investLimit);
+
+  const phases = useMemo(() => {
+    if (useTwoPhases) {
+      return [
+        { startDay: 0, claimPct: phase1ClaimPct, compoundPct: 100 - phase1ClaimPct },
+        { startDay: phase1Months * 30 + 1, claimPct: phase2ClaimPct, compoundPct: 100 - phase2ClaimPct },
+      ];
+    }
+    return [{ startDay: 0, claimPct: singleClaimPct, compoundPct: 100 - singleClaimPct }];
+  }, [useTwoPhases, singleClaimPct, phase1ClaimPct, phase1Months, phase2ClaimPct]);
+
+  const userScenario = useMemo(() => simulate({
+    depositStart: effectiveDeposit, autoMode, monthlyRateMin: 11, monthlyRateMax: 16, fixedRate,
+    phases, seed: 42, monthlyTopUp: topUpValue, investLimit,
+  }), [effectiveDeposit, autoMode, fixedRate, phases, topUpValue, investLimit]);
+
+  const claimOnly = useMemo(() => simulate({
+    depositStart: effectiveDeposit, autoMode, monthlyRateMin: 11, monthlyRateMax: 16, fixedRate,
+    phases: [{ startDay: 0, claimPct: 100, compoundPct: 0 }], seed: 42, monthlyTopUp: topUpValue, investLimit,
+  }), [effectiveDeposit, autoMode, fixedRate, topUpValue, investLimit]);
+
+  const compoundOnly = useMemo(() => simulate({
+    depositStart: effectiveDeposit, autoMode, monthlyRateMin: 11, monthlyRateMax: 16, fixedRate,
+    phases: [{ startDay: 0, claimPct: 0, compoundPct: 100 }], seed: 42, monthlyTopUp: topUpValue, investLimit,
+  }), [effectiveDeposit, autoMode, fixedRate, topUpValue, investLimit]);
+
+  // ─── Звук монеток при пересчёте цифр ───
+  const soundEnabledRef = useRef(soundEnabled);
+  useEffect(() => { soundEnabledRef.current = soundEnabled; _flipSoundEnabled = soundEnabled; }, [soundEnabled]);
+  const coinFirstRef = useRef(true);
+  useEffect(() => {
+    if (coinFirstRef.current) { coinFirstRef.current = false; return; }  // не играем при загрузке
+    const timer = setTimeout(() => {
+      if (soundEnabledRef.current) playCoinSound();
+    }, 250);  // дебаунс: слайдер отпустили - монетки сыграли один раз
+    return () => clearTimeout(timer);
+  }, [userScenario]);
+
+  // Подсказка графика: срок в тексте совпадает с ячейкой «К финишу» и реальным горизонтом графика
+  const chartInfo = useMemo(() => {
+    const fin = userScenario.doubled ? Math.round(userScenario.monthsToDouble) : null;
+    return {
+      title: 'Как читать график',
+      body: (<React.Fragment>
+        <p style={IP}>Ваш путь по времени: слева - старт, справа - {fin ? `завершение вашего FinFlow (${fin} мес)` : 'через 3 года'}.</p>
+        <p style={IP}><b style={{ color: C.orange, fontWeight: '700' }}>Оранжевый пунктир</b> - всё, что заработала ваша стратегия.</p>
+        <p style={IP}><b style={{ color: C.blue, fontWeight: '700' }}>Синяя линия</b> - сколько из этого пришло вам на кошелёк.</p>
+        <p style={IP}><b style={{ color: C.green, fontWeight: '700' }}>Зелёная линия</b> - сколько работает в реинвесте (прирост тела).</p>
+        <p style={IP}>Наведите курсор или палец на график - увидите точные цифры в любом месяце. Чем круче линия вверх - тем быстрее растут деньги.</p>
+      </React.Fragment>),
+    };
+  }, [userScenario]);
+
+  const chartData = useMemo(() => {
+    const horizonMonths = userScenario.doubled
+      ? Math.min(userScenario.monthsToDouble * 1.2, 36)
+      : 36;
+    const data = [];
+    for (let i = 0; i < userScenario.history.length; i++) {
+      const h = userScenario.history[i];
+      const monthFloat = h.day / 30;
+      if (monthFloat > horizonMonths) break;
+      const wallet = h.paymentToWallet || 0;
+      const depo = h.depoCurrent !== undefined ? h.depoCurrent : effectiveDeposit;
+      const inv = h.invested !== undefined ? h.invested : effectiveDeposit;
+      const reinvest = Math.max(0, depo - inv);
+      data.push({
+        month: monthFloat,
+        weekNum: Math.round(h.day / 7),
+        // 3 линии графика (все стартуют с 0)
+        earned: wallet + reinvest,
+        wallet: wallet,
+        reinvest: reinvest,
+        // Информационное поле для Tooltip (не линия на графике)
+        body: depo,
+        // дельты текущей недели (для tooltip)
+        weekEarn: h.weekEarn || 0,
+        weekClaim: h.weekClaim || 0,
+        weekCompound: h.weekCompound || 0,
+      });
+    }
+    return data;
+  }, [userScenario, effectiveDeposit]);
+
+  // ──── Анимированные значения для UI ────
+  // Ячейки
+  const animWeekly = useAnimatedNumber(userScenario.weeklyIncomePhase2);
+  const animMonthly = useAnimatedNumber(userScenario.monthlyIncomePhase2);
+  const animYear1 = useAnimatedNumber(userScenario.paymentAtYear1);
+  const animYear2 = useAnimatedNumber(userScenario.paymentAtYear2);
+  const animYear3 = useAnimatedNumber(userScenario.paymentAtYear3);
+  const animFinishPayment = useAnimatedNumber(userScenario.finalPaymentToWallet);
+
+  // Progress (новые метрики для UI прогресс-бара)
+  const animProgress = useAnimatedNumber(userScenario.progressPct);
+  const animMonthsRD = useAnimatedNumber(userScenario.monthsToReturnDeposit || 0);
+  const animMonthsDD = useAnimatedNumber(userScenario.monthsToDoubleDeposit || 0);
+  const animBonus = useAnimatedNumber(userScenario.bonusOverDouble);
+  // Legacy для других мест в UI (карточки, аккордеон)
+  const animMonthsRB = useAnimatedNumber(userScenario.monthsToReturnBody || 0);
+  const animMonthsD = useAnimatedNumber(userScenario.monthsToDouble || 0);
+  const animDepoCurrent = useAnimatedNumber(userScenario.finalDepoBeforeDouble);
+  const animTarget = useAnimatedNumber(userScenario.targetWallet);
+
+  // ──── Динамические ячейки для Hero блока ────
+  const finishMonths = userScenario.doubled ? Math.round(userScenario.monthsToDouble) : null;
+  const cells = [
+    { label: 'В неделю', value: animWeekly, accent: C.blue, sub: 'в среднем' },
+    { label: 'В месяц', value: animMonthly, accent: C.green, sub: '≈ 4.3 нед' },
+  ];
+  if (finishMonths === null || finishMonths > 12) {
+    cells.push({ label: 'За 1 год', value: animYear1, accent: C.purple, sub: 'к концу 12 мес', years: 1 });
+  }
+  if (finishMonths === null || finishMonths > 24) {
+    cells.push({ label: 'За 2 года', value: animYear2, accent: C.orangeBright, sub: 'к концу 24 мес', years: 2 });
+  }
+  if (finishMonths !== null) {
+    cells.push({ label: `К финишу (${finishMonths} мес)`, value: animFinishPayment, accent: C.orange, sub: 'FinFlow завершён', years: finishMonths / 12 });
+  } else {
+    cells.push({ label: 'За 3 года', value: animYear3, accent: C.orange, sub: 'к концу 36 мес', years: 3 });
+  }
+
+  // ВНИМАНИЕ: selectNft вызывается только при РУЧНОМ клике на NFT-карточку.
+  // Автоматическая установка (через onAmountChange) использует setNftIndex напрямую - без звука.
+  const selectNft = (i) => {
+    setNftIndex(i);
+    setDepositAmount(String(NFT_TIERS[i].limit));
+    if (soundEnabled && NFT_TIERS[i].freq) {
+      playSound([NFT_TIERS[i].freq], 0.35, 0.05);
+    }
+  };
+
+  const onAmountChange = (e) => {
+    let val = e.target.value.replace(/[^0-9.]/g, '');
+    const parts = val.split('.');
+    if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+    setDepositAmount(val);
+    const n = parseFloat(val);
+    const idx = NFT_TIERS.findIndex(t => t.limit === n);
+    if (idx >= 0) setNftIndex(idx);
+  };
+
+  return (
+    <div className="container-main">
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '16px', flexWrap: 'wrap' }}>
+          <div className="ff-title" style={{
+            fontWeight: '800',
+            background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+          }}>FinFlow</div>
+          <div className="ff-subtitle" style={{ color: C.textSec, fontWeight: '500' }}>Калькулятор доходности</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="header-meta" style={{ color: C.textMuted, textAlign: 'right' }}>
+            Институциональные технологии<br/>алгоритмического трейдинга
+          </div>
+          <button
+            onClick={() => setSoundEnabled(s => !s)}
+            title={soundEnabled ? 'Звук вкл' : 'Звук выкл'}
+            style={{
+              width: '32px', height: '32px',
+              background: 'transparent',
+              border: '1px solid ' + C.border,
+              borderRadius: '8px',
+              color: soundEnabled ? C.orange : C.textMuted,
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '14px', lineHeight: 1,
+              transition: 'color 0.3s, border-color 0.3s, background 0.3s',
+              flexShrink: 0,
+            }}
+          >{soundEnabled ? '🔊' : '🔇'}</button>
+        </div>
+      </header>
+
+      <div className="grid gap-3 xl:gap-4" id="main-grid" style={{ gridTemplateColumns: '1fr' }}>
+
+        {/* ─── LEFT: SETTINGS ─── */}
+        <div className="flex flex-col gap-2 xl:gap-3">
+          <Section
+            title="① NFT-уровень"
+            info={INFO.nft}
+            primary
+            action={selectedNft && (
+              <span className="selected-nft-info" style={{ color: C.textMuted }}>
+                <span style={{ color: C.orange, fontWeight: '700' }}>{selectedNft.name}</span>
+                {' · цена '}
+                <span style={{ color: C.text, fontWeight: '600' }}>{fmt(selectedNft.price)}</span>
+                {' · лимит '}
+                <span style={{ color: C.text, fontWeight: '600' }}>{fmt(selectedNft.limit)}</span>
+                {' · уровни '}
+                <span style={{ color: C.text, fontWeight: '600' }}>{selectedNft.levels}</span>
+              </span>
+            )}>
+            <div className="grid grid-cols-5 gap-2" style={{ marginBottom: '12px' }}>
+              {NFT_TIERS.map((tier, i) => (
+                <button key={i}
+                  className={'nft-btn ' + (nftIndex === i ? 'active' : '')}
+                  onClick={() => selectNft(i)}>
+                  <div className="nft-name">{tier.name}</div>
+                  <div className="nft-limit">{tier.limit >= 1000 ? (tier.limit / 1000) + 'K' : tier.limit}</div>
+                  <div className="nft-price">${fmt(tier.price)}</div>
+                </button>
+              ))}
+            </div>
+            <label className="section-label" style={{
+              color: C.textMuted, display: 'block', marginBottom: '6px',
+              textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '600',
+            }}>
+              Сумма входа (USDT)
+            </label>
+            <input
+              type="text" inputMode="numeric"
+              value={depositAmount} onChange={onAmountChange}
+              className={'deposit-input' + (isOverLimit ? ' over-limit' : '')}
+              style={{
+                width: '100%', padding: '12px 16px',
+                background: C.bgInput,
+                border: '1px solid ' + (isOverLimit || isUnderMin ? C.red : C.border),
+                borderRadius: '10px',
+                color: isOverLimit || isUnderMin ? C.red : C.text,
+                fontWeight: '800', outline: 'none', fontFamily: 'inherit',
+              }}
+            />
+            {isUnderMin && (
+              <div style={{
+                marginTop: '10px', padding: '10px 12px',
+                background: C.redBg, border: '1px solid ' + C.red, borderRadius: '8px',
+              }}>
+                <div className="warn-text" style={{ color: C.red }}>
+                  Минимальная сумма входа в FinFlow: <strong>{MIN_DEPOSIT} USDT</strong>. Можно начать с {MIN_DEPOSIT}.
+                </div>
+              </div>
+            )}
+            {isOverLimit && (
+              <div style={{
+                marginTop: '10px', padding: '10px 12px',
+                background: C.redBg, border: '1px solid ' + C.red, borderRadius: '8px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: '10px', flexWrap: 'wrap',
+              }}>
+                <div className="warn-text" style={{ color: C.red, flex: '1 1 220px' }}>
+                  Для <strong>{selectedNft.name}</strong> максимум {fmt(selectedNft.limit)} USDT.
+                  {requiredNftIndex >= 0 && (
+                    <span> Нужен <strong style={{ color: C.orange }}>{NFT_TIERS[requiredNftIndex].name}</strong> или выше.</span>
+                  )}
+                </div>
+                {requiredNftIndex >= 0 && (
+                  <button className="upgrade-btn warn-text" onClick={() => selectNft(requiredNftIndex)}>
+                    Перейти на {NFT_TIERS[requiredNftIndex].name} →
+                  </button>
+                )}
+              </div>
+            )}
+          </Section>
+
+          <Section title="② Доходность" info={INFO.rate}>
+            <div className="flex gap-2" style={{ marginBottom: '12px' }}>
+              <button onClick={() => setAutoMode(true)}
+                className={'mode-btn mode-btn-text'}
+                style={{
+                  flex: 1, padding: '9px',
+                  background: autoMode ? C.orange : 'transparent',
+                  color: autoMode ? '#fff' : C.text,
+                  border: '1px solid ' + (autoMode ? C.orange : C.border),
+                  borderRadius: '8px', fontWeight: '700', cursor: 'pointer',
+                }}>Авто (11-16%)</button>
+              <button onClick={() => setAutoMode(false)}
+                className={'mode-btn mode-btn-text'}
+                style={{
+                  flex: 1, padding: '9px',
+                  background: !autoMode ? C.orange : 'transparent',
+                  color: !autoMode ? '#fff' : C.text,
+                  border: '1px solid ' + (!autoMode ? C.orange : C.border),
+                  borderRadius: '8px', fontWeight: '700', cursor: 'pointer',
+                }}>Фиксированная</button>
+            </div>
+            {autoMode ? (
+              <div className="slider-label" style={{ color: C.textMuted, lineHeight: '1.5' }}>
+                Случайные колебания в день в диапазоне <span style={{ color: C.orange, fontWeight: '700' }}>11-16% / мес</span>
+              </div>
+            ) : (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
+                  <span className="slider-label" style={{ color: C.textSec }}>11%</span>
+                  <span className="slider-value" style={{ color: C.orange, fontWeight: '800' }}>{fixedRate}% / мес</span>
+                  <span className="slider-label" style={{ color: C.textSec }}>16%</span>
+                </div>
+                <input type="range" min="11" max="16" step="0.5" value={fixedRate}
+                  onChange={(e) => setFixedRate(parseFloat(e.target.value))}
+                  ref={fixedRateWheelRef} />
+              </div>
+            )}
+          </Section>
+
+          <Section
+            title="③ Распределение прибыли"
+            info={INFO.split}
+            action={(
+              <div style={{ display: 'flex', gap: '4px', background: C.bgInput, padding: '3px', borderRadius: '8px', border: '1px solid ' + C.border }}>
+                <button onClick={() => setUseTwoPhases(false)}
+                  className="mode-btn-text"
+                  style={{
+                    padding: '5px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700',
+                    background: !useTwoPhases ? C.orange : 'transparent',
+                    color: !useTwoPhases ? '#fff' : C.textSec,
+                    border: 'none',
+                  }}>1 фаза</button>
+                <button onClick={() => setUseTwoPhases(true)}
+                  className="mode-btn-text"
+                  style={{
+                    padding: '5px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700',
+                    background: useTwoPhases ? C.orange : 'transparent',
+                    color: useTwoPhases ? '#fff' : C.textSec,
+                    border: 'none',
+                  }}>2 фазы</button>
+              </div>
+            )}>
+
+            {!useTwoPhases ? (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
+                  <span className="slider-label" style={{ color: C.blue, fontWeight: '600' }}>На кошелёк (Claim)</span>
+                  <span className="slider-value" style={{ color: C.blue, fontWeight: '800' }}>{singleClaimPct}%</span>
+                </div>
+                <div style={{ position: 'relative', marginBottom: '14px' }}>
+                  <input type="range" min="0" max="100" step="1" value={singleClaimPct}
+                    onChange={(e) => setSingleClaimPct(parseInt(e.target.value))}
+                    ref={singleClaimWheelRef}
+                    className="blue-thumb" style={{ marginBottom: 0 }} />
+                  {[10, 20, 30, 40, 50, 60, 70, 80, 90].map(pct => (
+                    <span key={pct} style={{
+                      position: 'absolute', left: `${pct}%`, top: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '1.5px', height: '8px', borderRadius: '1px',
+                      background: 'rgba(229, 231, 235, 0.3)',
+                      pointerEvents: 'none', zIndex: 1, display: 'block',
+                    }} />
+                  ))}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
+                  <span className="slider-label" style={{ color: C.green, fontWeight: '600' }}>В реинвест (Compound)</span>
+                  <span className="slider-value" style={{ color: C.green, fontWeight: '800' }}>{100 - singleClaimPct}%</span>
+                </div>
+                <div style={{ height: '5px', borderRadius: '3px', background: C.bgInput, position: 'relative', overflow: 'hidden', border: '1px solid ' + C.border }}>
+                  <div className="progress-bar-fill" style={{
+                    position: 'absolute', left: 0, top: 0, height: '100%',
+                    width: (100 - singleClaimPct) + '%', background: 'linear-gradient(90deg, ' + C.greenDark + ', ' + C.green + ')',
+                  }} />
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="phase-box phase-1">
+                  <div className="phase-title" style={{ color: C.purple, marginBottom: '8px' }}>
+                    Фаза 1 - разгон тела ({phase1Months} мес)
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
+                    <span className="slider-label" style={{ color: C.textSec }}>На кошелёк</span>
+                    <span className="slider-label" style={{ color: C.text, fontWeight: '700' }}>{phase1ClaimPct}% / {100 - phase1ClaimPct}% реинвест</span>
+                  </div>
+                  <div style={{ position: 'relative', marginBottom: '10px' }}>
+                    <input type="range" min="0" max="100" step="1" value={phase1ClaimPct}
+                      onChange={(e) => setPhase1ClaimPct(parseInt(e.target.value))}
+                      ref={phase1ClaimWheelRef}
+                      className="purple-thumb" style={{ marginBottom: 0 }} />
+                    {[10, 20, 30, 40, 50, 60, 70, 80, 90].map(pct => (
+                      <span key={pct} style={{
+                        position: 'absolute', left: `${pct}%`, top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '1.5px', height: '8px', borderRadius: '1px',
+                        background: 'rgba(229, 231, 235, 0.3)',
+                        pointerEvents: 'none', zIndex: 1, display: 'block',
+                      }} />
+                    ))}
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
+                    <span className="slider-label" style={{ color: C.textSec }}>Длительность</span>
+                    <span className="slider-label" style={{ color: C.text, fontWeight: '700' }}>{phase1Months} мес</span>
+                  </div>
+                  <input type="range" min="1" max="36" step="1" value={phase1Months}
+                    onChange={(e) => setPhase1Months(parseInt(e.target.value))}
+                    ref={phase1MonthsWheelRef}
+                    className="purple-thumb" />
+                </div>
+
+                <div className="phase-box phase-2">
+                  <div className="phase-title" style={{ color: C.green, marginBottom: '8px' }}>
+                    Фаза 2 - фиксация прибыли
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
+                    <span className="slider-label" style={{ color: C.textSec }}>На кошелёк</span>
+                    <span className="slider-label" style={{ color: C.text, fontWeight: '700' }}>{phase2ClaimPct}% / {100 - phase2ClaimPct}% реинвест</span>
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <input type="range" min="0" max="100" step="1" value={phase2ClaimPct}
+                      onChange={(e) => setPhase2ClaimPct(parseInt(e.target.value))}
+                      ref={phase2ClaimWheelRef}
+                      className="blue-thumb" />
+                    {[10, 20, 30, 40, 50, 60, 70, 80, 90].map(pct => (
+                      <span key={pct} style={{
+                        position: 'absolute', left: `${pct}%`, top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '1.5px', height: '8px', borderRadius: '1px',
+                        background: 'rgba(229, 231, 235, 0.3)',
+                        pointerEvents: 'none', zIndex: 1, display: 'block',
+                      }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* ➕ Ежемесячное пополнение из своих средств */}
+            <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid ' + C.border }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                <span className="slider-label" style={{ color: C.text, fontWeight: '700' }}>➕ Пополняю ежемесячно</span>
+                <button
+                  onClick={() => setUseTopUp(!useTopUp)}
+                  aria-label="Ежемесячное пополнение"
+                  style={{
+                    width: '42px', height: '24px', borderRadius: '12px',
+                    border: '1px solid ' + (useTopUp ? C.orange : C.border),
+                    background: useTopUp ? C.orange : C.bgInput,
+                    cursor: 'pointer', position: 'relative', padding: 0,
+                    transition: 'background .2s, border-color .2s',
+                  }}>
+                  <span style={{
+                    position: 'absolute', top: '2px', left: useTopUp ? '20px' : '2px',
+                    width: '18px', height: '18px', borderRadius: '50%', background: '#fff',
+                    transition: 'left .2s', display: 'block',
+                  }} />
+                </button>
+              </div>
+              {useTopUp && (
+                <div style={{ marginTop: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <input
+                      type="text" inputMode="numeric" value={topUpAmount}
+                      onChange={(e) => setTopUpAmount(e.target.value.replace(/[^0-9.]/g, ''))}
+                      style={{
+                        width: '90px', padding: '8px 10px', background: C.bgInput, color: C.text,
+                        border: '1px solid ' + C.borderStrong, borderRadius: '8px',
+                        fontWeight: '700', fontSize: '14px', textAlign: 'center',
+                      }} />
+                    <span className="slider-label" style={{ color: C.textSec, lineHeight: 1.4 }}>USDT в месяц - из своих средств, добавляются в тело</span>
+                  </div>
+                  {topUpValue > 0 && selectedNft && effectiveDeposit >= investLimit && (
+                    <div style={{ marginTop: '10px', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.5)', background: 'rgba(239, 68, 68, 0.08)' }}>
+                      <div className="slider-label" style={{ color: C.red, fontWeight: '600', lineHeight: 1.5 }}>
+                        Сумма покупки FinFlow уже на лимите уровня {selectedNft.name} ({fmt(investLimit)} USDT), пополнения работать не будут.
+                      </div>
+                      {nextTierIndex >= 0 && (
+                        <button onClick={() => setNftIndex(nextTierIndex)}
+                          style={{ marginTop: '8px', padding: '7px 12px', background: C.orange, color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}>
+                          Перейти на {NFT_TIERS[nextTierIndex].name} (лимит {fmt(NFT_TIERS[nextTierIndex].limit)}) →
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {topUpValue > 0 && selectedNft && effectiveDeposit < investLimit && userScenario.topUpStoppedDay && (
+                    <div style={{ marginTop: '10px', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(249, 115, 22, 0.45)', background: 'rgba(249, 115, 22, 0.07)' }}>
+                      <div className="slider-label" style={{ color: C.orangeBright, fontWeight: '600', lineHeight: 1.5 }}>
+                        ⚠️ Через {Math.ceil(userScenario.topUpStoppedDay / 30)} мес тело (пополнения + реинвест) достигнет лимита уровня {selectedNft.name} ({fmt(investLimit)} USDT), и пополнения остановятся. Реинвест продолжит работать. Момент отмечен на графике.
+                      </div>
+                      <div className="cell-sub" style={{ color: C.textMuted, marginTop: '6px' }}>
+                        Всего своих вложите: {fmt(userScenario.investedTotal)} USDT (старт {fmt(effectiveDeposit)} + пополнения {fmt(userScenario.totalTopUps)})
+                      </div>
+                      {nextTierIndex >= 0 && (
+                        <button onClick={() => setNftIndex(nextTierIndex)}
+                          style={{ marginTop: '8px', padding: '7px 12px', background: 'transparent', color: C.orange, border: '1px solid ' + C.orange, borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}>
+                          Хочу больше: {NFT_TIERS[nextTierIndex].name} (лимит {fmt(NFT_TIERS[nextTierIndex].limit)}) →
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {topUpValue > 0 && !userScenario.topUpStoppedDay && effectiveDeposit < investLimit && (
+                    <div className="cell-sub" style={{ color: C.textMuted, marginTop: '8px', lineHeight: 1.5 }}>
+                      За 3 года добавите своих: {fmt(userScenario.totalTopUps)} USDT.
+                      {selectedNft && isFinite(investLimit) ? ` Тело до лимита ${selectedNft.name} не дорастёт: ${fmt(userScenario.finalDepoBeforeDouble)} из ${fmt(investLimit)} USDT.` : ''}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="slider-label" style={{ color: C.textMuted, marginTop: '10px', lineHeight: '1.5' }}>
+              Реинвест происходит ежедневно при накоплении от <span style={{ color: C.green, fontWeight: '700' }}>2 USDT</span> - правило автоматического договора. Выплаты на кошелёк - еженедельно.
+            </div>
+          </Section>
+        </div>
+
+        {/* ─── RIGHT: RESULTS ─── */}
+        <div className="flex flex-col gap-2 xl:gap-3">
+
+          {/* ПАССИВНЫЙ ДОХОД - компактный блок с динамическими ячейками */}
+          <FlipShell flipped={flipIncome} setFlipped={setFlipIncome} info={INFO.income}>
+          <div className="card" style={{ padding: '14px 18px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px', gap: '8px', flexWrap: 'wrap' }}>
+              <span className="section-label" style={{ color: C.green, textTransform: 'uppercase', letterSpacing: '0.7px', fontWeight: '700' }}>
+                Пассивный доход {useTwoPhases ? '· в Фазе 2' : ''}
+                <InfoBtn onClick={() => setFlipIncome(true)} />
+              </span>
+              <span className="cell-sub" style={{ color: C.textMuted }}>
+                {useTwoPhases ? 'когда начнёшь выводить' : 'сколько капает регулярно'}
+              </span>
+            </div>
+
+            {/* Динамические ячейки */}
+            <div style={{
+              display: 'flex', gap: '4px',
+              borderTop: '1px solid ' + C.border, paddingTop: '12px',
+              alignItems: 'stretch', flexWrap: 'wrap',
+            }}>
+              {cells.map((cell, i) => (
+                <React.Fragment key={cell.label}>
+                  {i > 0 && <div style={{ width: '1px', background: C.border, flex: '0 0 1px' }} />}
+                  <Cell
+                    label={cell.label}
+                    value={cell.value}
+                    sub={cell.sub}
+                    accent={cell.accent}
+                    years={cell.years}
+                    effectiveDeposit={userScenario.investedTotal || effectiveDeposit}
+                  />
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+          </FlipShell>
+
+          {/* ГРАФИК */}
+          <FlipShell flipped={flipChart} setFlipped={setFlipChart} info={chartInfo}>
+          <div className="card chart-container" style={{ padding: '12px 14px 8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
+              <span className="section-label" style={{ color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.7px', fontWeight: '600' }}>
+                Динамика капитала
+                <InfoBtn onClick={() => setFlipChart(true)} />
+              </span>
+              <span className="cell-sub" style={{ color: C.textMuted }}>как растёт ваш капитал</span>
+            </div>
+            <ResponsiveContainer width="100%" height={isXLScreen ? 284 : (isLargeScreen ? 224 : 154)}>
+              <LineChart data={chartData} margin={{ top: 10, right: 12, left: 8, bottom: 6 }}>
+                <CartesianGrid strokeDasharray="2 4" stroke={C.border} />
+                <XAxis
+                  dataKey="month" type="number" domain={['dataMin', 'dataMax']}
+                  tickFormatter={(v) => Math.round(v) + 'м'}
+                  stroke={C.textMuted} style={{ fontSize: '11px' }}
+                  ticks={chartData.length > 0 ? generateTicks(chartData[chartData.length - 1].month, isLargeScreen) : [0]}
+                  interval={0}
+                />
+                <YAxis
+                  tickFormatter={(v) => v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 0 : 1) + 'K' : Math.round(v)}
+                  stroke={C.textMuted} style={{ fontSize: '11px' }}
+                />
+                <Tooltip content={<ChartTooltip C={C} fmt={fmt} />} cursor={{ stroke: C.textMuted, strokeWidth: 1, strokeDasharray: '3 3' }} />
+                {useTwoPhases && (
+                  <ReferenceLine x={phase1Months} stroke={C.purple} strokeDasharray="4 4" strokeOpacity={0.6}
+                    label={{ value: 'Фаза 2', fill: C.purple, fontSize: 10, position: 'top' }} />
+                )}
+                {useTopUp && topUpValue > 0 && userScenario.topUpStoppedDay && (
+                  <ReferenceLine x={userScenario.topUpStoppedDay / 30} stroke={C.orangeBright} strokeDasharray="4 4" strokeOpacity={0.7}
+                    label={{ value: 'лимит NFT', fill: C.orangeBright, fontSize: 10, position: 'top' }} />
+                )}
+                <Line type="monotone" dataKey="earned" name="Заработано" stroke={C.orange} strokeWidth={2.5} strokeDasharray="8 4" dot={false}
+                  isAnimationActive={true} animationDuration={1400} animationEasing="ease-out" />
+                <Line type="monotone" dataKey="wallet" name="Кошелёк" stroke={C.blue} strokeWidth={2} dot={false}
+                  isAnimationActive={true} animationDuration={1400} animationEasing="ease-out" animationBegin={150} />
+                <Line type="monotone" dataKey="reinvest" name="Реинвест" stroke={C.green} strokeWidth={2} dot={false}
+                  isAnimationActive={true} animationDuration={1400} animationEasing="ease-out" animationBegin={300} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} iconSize={10} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          </FlipShell>
+
+          {/* СЦЕНАРИИ - переделанные в простой формат */}
+          <FlipShell flipped={flipCompare} setFlipped={setFlipCompare} info={INFO.compare}>
+          <div>
+            <div className="section-label" style={{ color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.7px', fontWeight: '600', marginBottom: '8px', padding: '0 4px' }}>
+              Сравнение стратегий
+              <InfoBtn onClick={() => setFlipCompare(true)} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 xl:gap-4">
+              <ScenarioCard
+                title="Только claim"
+                subtitle="100% выплат, без реинвеста"
+                accent={C.blue}
+                scenario={claimOnly}
+                deposit={claimOnly.investedTotal || effectiveDeposit}
+                currentMonthlyRate={autoMode ? 13.5 : fixedRate}
+              />
+              <ScenarioCard
+                title="Ваш FinFlow"
+                subtitle={useTwoPhases
+                  ? `2 фазы: ${phase1ClaimPct}/${100-phase1ClaimPct} → ${phase2ClaimPct}/${100-phase2ClaimPct}`
+                  : `Распределение ${singleClaimPct}/${100-singleClaimPct}`}
+                accent={C.orange}
+                scenario={userScenario}
+                deposit={userScenario.investedTotal || effectiveDeposit}
+                currentMonthlyRate={autoMode ? 13.5 : fixedRate}
+                highlighted
+              />
+              <ScenarioCard
+                title="Только реинвест"
+                subtitle="100% compound, тело растёт"
+                accent={C.green}
+                scenario={compoundOnly}
+                deposit={compoundOnly.investedTotal || effectiveDeposit}
+                currentMonthlyRate={autoMode ? 13.5 : fixedRate}
+              />
+            </div>
+          </div>
+          </FlipShell>
+
+          {/* ДЕТАЛИЗАЦИЯ - аккордеон с таблицей */}
+          <DetailTable
+            scenario={userScenario}
+            useTwoPhases={useTwoPhases}
+            phase1Months={phase1Months}
+          />
+
+        </div>
+      </div>
+
+      <div style={{ marginTop: '18px', textAlign: 'center', lineHeight: '1.6' }} className="cell-sub">
+        <div style={{ color: C.textMuted }}>
+          Расчёт носит информационный характер. Результаты симулированы на консервативных допущениях.
+        </div>
+        <div style={{ color: C.textMuted, marginTop: '4px' }}>
+          Общий пул FinFlow ограничен <span style={{ color: C.orange, fontWeight: '600' }}>5 000 000 USDT</span> - после набора покупки недоступны.
+          Чем выше уровень NFT - тем больше доступных инструментов на платформе.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function generateTicks(maxMonth, large) {
+  if (maxMonth <= 6) return [0, 1, 2, 3, 4, 5, 6];
+  if (maxMonth <= 12) return [0, 2, 4, 6, 8, 10, 12];
+  if (large) {
+    // Большой экран: шаг 2 везде
+    const ticks = [];
+    const stop = Math.ceil(maxMonth);
+    for (let m = 0; m <= stop; m += 2) ticks.push(m);
+    return ticks;
+  }
+  // Маленький/средний экран: шаг 6 (или 12 на длинном горизонте)
+  if (maxMonth <= 24) return [0, 6, 12, 18, 24];
+  if (maxMonth <= 36) return [0, 6, 12, 18, 24, 30, 36];
+  return [0, 12, 24, 36, 48, 60];
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+
+function setupResponsiveGrid() {
+  const updateGrid = () => {
+    const gridEl = document.getElementById('main-grid');
+    if (!gridEl) return;
+    if (window.innerWidth >= 1024) {
+      gridEl.style.gridTemplateColumns = 'minmax(360px, 30%) 1fr';
+    } else {
+      gridEl.style.gridTemplateColumns = '1fr';
+    }
+  };
+  updateGrid();
+  window.addEventListener('resize', updateGrid);
+  setTimeout(updateGrid, 100);
+  setTimeout(updateGrid, 500);
+}
+setupResponsiveGrid();
+</script>
+</body>
+</html>

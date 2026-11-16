@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RWA NFT — Презентация</title>
+<script src="shared/i18n.js"></script>
+<script src="shared/mobile.js"></script>
+<script src="shared/voice/voice-arrows.js"></script>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="apple-touch-icon" href="favicon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #08080c;
+    --ink: #f5f5f7;
+    --gold: #d4a857;
+    --gold-2: #f0c674;
+    --gold-glow: rgba(212, 168, 87, 0.4);
+    --display: 'Unbounded', system-ui, sans-serif;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    font-family: var(--display);
+  }
+
+  .stage {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .slide-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: var(--bg);
+    opacity: 0;
+    transition: opacity 0.8s var(--ease);
+  }
+
+  .slide-frame.active {
+    opacity: 1;
+    z-index: 2;
+  }
+
+  .slide-frame.previous {
+    opacity: 0;
+    z-index: 1;
+  }
+
+  .deck-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.06);
+    z-index: 100;
+  }
+  .deck-progress-bar {
+    height: 100%;
+    background: var(--gold);
+    transition: width 0.6s var(--ease);
+    box-shadow: 0 0 12px var(--gold-glow);
+    width: 0%;
+  }
+
+  .loader {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+    opacity: 1;
+    transition: opacity 0.8s var(--ease);
+  }
+  .loader.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .loader-text {
+    font-family: var(--display);
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-2);
+  }
+  .loader-bar {
+    width: 200px;
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+    overflow: hidden;
+    position: relative;
+  }
+  .loader-bar::after {
+    content: '';
+    position: absolute;
+    left: -30%;
+    top: 0;
+    bottom: 0;
+    width: 30%;
+    background: var(--gold);
+    box-shadow: 0 0 10px var(--gold-glow);
+    animation: loaderSlide 1.5s ease-in-out infinite;
+  }
+  @keyframes loaderSlide {
+    0% { left: -30%; }
+    100% { left: 100%; }
+  }
+
+  /* ===== Скрытая навигация по углам (паттерн Pulse, перекрас в золото) ===== */
+  .corner-btn {
+    position: fixed; z-index: 300;
+    width: 30px; height: 30px; padding: 0;
+    background: none; border: none; outline: none; cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    opacity: 0.32; transition: opacity 0.5s var(--ease), transform 0.7s var(--ease);
+  }
+  .corner-btn:hover, .corner-btn:active { opacity: 1; }
+  .corner-btn svg { display: block; width: 100%; height: 100%; }
+  #navToggle { right: 46px; bottom: 44px; animation: nav-breathe 3.5s ease-in-out infinite; }
+  #navToggle:hover { animation: none; }
+  #navToggle.open { transform: rotate(180deg); opacity: 0.9; animation: none; }
+  #fsToggle { left: 46px; top: 44px; }
+  #fsToggle .fs-off, #fsToggle .fs-on { transition: opacity 0.3s; }
+  #fsToggle .fs-on { opacity: 0; position: absolute; inset: 0; }
+  #fsToggle.act .fs-off { opacity: 0; }
+  #fsToggle.act .fs-on { opacity: 1; }
+  #homeBtn { left: 46px; bottom: 44px; }
+  @keyframes nav-breathe {
+    0%, 100% { opacity: 0.28; }
+    50% { opacity: 0.6; }
+  }
+  #navPanel {
+    position: fixed; right: 36px; bottom: 84px; z-index: 299;
+    display: flex; flex-direction: column; gap: 7px; align-items: center;
+    pointer-events: none;
+  }
+  #navPanel.open { pointer-events: auto; }
+  .nav-item {
+    width: 38px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(8, 8, 12, 0.75);
+    border: 1px solid rgba(212, 168, 87, 0.25); border-radius: 9px;
+    font-family: var(--display); font-size: 12px; font-weight: 400;
+    color: rgba(245, 245, 247, 0.6); cursor: pointer; padding: 0;
+    opacity: 0; transform: translateY(12px);
+    transition: opacity 0.45s var(--ease), transform 0.45s var(--ease),
+                border-color 0.3s, color 0.3s, box-shadow 0.3s;
+    transition-delay: var(--nd, 0s);
+    backdrop-filter: blur(8px);
+  }
+  #navPanel.open .nav-item { opacity: 1; transform: translateY(0); }
+  .nav-item:hover { border-color: rgba(240, 198, 116, 0.65); color: var(--ink); }
+  .nav-item.cur {
+    border-color: var(--gold-2); color: var(--gold-2);
+    box-shadow: 0 0 16px rgba(212, 168, 87, 0.3);
+  }
+  .nav-item svg { display: block; }
+
+  /* ===== Выбор языка (правый верхний угол) ===== */
+  #langBtn {
+    position: fixed; right: 46px; top: 44px; z-index: 300;
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 11px; cursor: pointer;
+    background: rgba(8, 8, 12, 0.55);
+    border: 1px solid rgba(212, 168, 87, 0.25); border-radius: 10px;
+    opacity: 0.45; transition: opacity 0.3s, border-color 0.3s;
+    backdrop-filter: blur(8px);
+  }
+  #langBtn:hover, #langBtn.open { opacity: 1; border-color: rgba(240, 198, 116, 0.6); }
+  #langBtn .lb-flag { width: 22px; height: 15px; border-radius: 2px; overflow: hidden; display: block; }
+  #langBtn .lb-flag svg { display: block; width: 100%; height: 100%; }
+  #langBtn .lb-code {
+    font-family: var(--display); font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--gold-2);
+  }
+  #langBtn .lb-chev { width: 10px; height: 7px; transition: transform 0.35s var(--ease); }
+  #langBtn.open .lb-chev { transform: rotate(180deg); }
+
+  #langPanel {
+    position: fixed; right: 46px; top: 88px; z-index: 299;
+    width: 190px; max-height: 62vh; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 2px; padding: 6px;
+    background: rgba(8, 8, 12, 0.94);
+    border: 1px solid rgba(212, 168, 87, 0.3); border-radius: 12px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(14px);
+    opacity: 0; transform: translateY(-10px); pointer-events: none;
+    transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+  }
+  #langPanel.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  #langPanel::-webkit-scrollbar { width: 5px; }
+  #langPanel::-webkit-scrollbar-thumb { background: rgba(212, 168, 87, 0.4); border-radius: 3px; }
+  .lang-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 8px 10px; border-radius: 8px; cursor: pointer;
+    font-family: var(--body); font-size: 14px; font-weight: 500;
+    color: rgba(245, 245, 247, 0.75);
+    transition: background 0.25s, color 0.25s;
+  }
+  .lang-item:hover { background: rgba(212, 168, 87, 0.12); color: var(--ink); }
+  .lang-item .li-flag { width: 24px; height: 16px; flex: none; border-radius: 2px; overflow: hidden; }
+  .lang-item .li-flag svg { display: block; width: 100%; height: 100%; }
+  .lang-item .li-check { margin-left: auto; color: var(--gold-2); opacity: 0; font-size: 13px; }
+  .lang-item.cur { color: var(--gold-2); }
+  .lang-item.cur .li-check { opacity: 1; }
+
+  /* ===== ТЕЛЕФОН: угловые элементы компактнее и не спорят с модалами =====
+     Слайд внутри кадра масштабируется, а эта панель живёт в реальных
+     пикселях экрана. Поэтому на телефоне уменьшаем её отдельно и
+     уводим выбор языка влево: справа сверху находится крестик модала. */
+  /* Телефон определяем по короткой стороне, а не только по ширине: в альбоме
+     современный телефон шире 900 px, и мобильные стили молча не включались. */
+  @media (pointer: coarse) and (max-width: 900px),
+         (pointer: coarse) and (max-height: 560px) {
+    .corner-btn { width: 24px; height: 24px; opacity: 0.55; }
+    #fsToggle  { left: 12px; top: 12px; }    /* полный экран остаётся: он нужен людям */
+    #homeBtn   { left: 12px; bottom: 12px; }
+    #navToggle { right: 12px; bottom: 12px; }
+    #navPanel  { right: 8px; bottom: 44px; gap: 5px; }
+    .nav-item  { width: 30px; height: 27px; font-size: 10px; }
+
+    /* Язык встаёт над кнопкой «домой» в левом нижнем углу: только флаг,
+       без кода и шеврона. Панель раскрывается вверх сеткой флагов. */
+    #langBtn {
+      left: 12px; right: auto; top: auto; bottom: 44px;
+      padding: 3px; gap: 0; border-radius: 6px; opacity: 0.6;
+    }
+    #langBtn .lb-flag { width: 22px; height: 15px; }
+    #langBtn .lb-code, #langBtn .lb-chev { display: none; }
+
+    #langPanel {
+      left: 12px; right: auto; top: auto; bottom: 78px;
+      display: grid; grid-template-columns: repeat(4, 26px);
+      width: auto; max-height: 58vh; padding: 6px; gap: 5px; border-radius: 10px;
+      transform: translateY(10px);
+    }
+    #langPanel.open { transform: translateY(0); }
+    .lang-item {
+      padding: 0; gap: 0; border-radius: 4px;
+      width: 26px; height: 18px; overflow: hidden;
+      border: 1px solid transparent;
+    }
+    .lang-item .li-name, .lang-item .li-check { display: none; }
+    .lang-item .li-flag { width: 100%; height: 100%; border-radius: 3px; }
+    .lang-item.cur { border-color: var(--gold-2); background: none; }
+  }
+
+  /* ===== Полноэкранное окно поверх всего (для телефонов) ===== */
+  #screenModal {
+    position: fixed; inset: 0; z-index: 10000; background: var(--bg);
+    opacity: 0; pointer-events: none; transition: opacity 0.35s var(--ease);
+  }
+  #screenModal.open { opacity: 1; pointer-events: auto; }
+  #screenModal iframe { width: 100%; height: 100%; border: 0; display: block; }
+  #screenClose {
+    position: absolute; top: 10px; right: 10px; z-index: 2;
+    width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(8,8,12,0.8); border: 1px solid rgba(212,168,87,0.5);
+    color: var(--gold-2); font-size: 15px; line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+  }
+</style>
+<link rel="stylesheet" href="shared/voice/voice.css">
+</head>
+<body>
+
+<div class="loader" id="loader">
+  <div class="loader-text">Загрузка</div>
+  <div class="loader-bar"></div>
+</div>
+
+<div class="deck-progress">
+  <div class="deck-progress-bar" id="deckProgressBar"></div>
+</div>
+
+<div class="stage">
+  <iframe class="slide-frame active" id="frameA" src="about:blank"></iframe>
+  <iframe class="slide-frame" id="frameB" src="about:blank"></iframe>
+</div>
+
+<div id="langBtn" title="Язык / Language">
+  <span class="lb-flag" id="lbFlag"></span>
+  <span class="lb-code" id="lbCode">RU</span>
+  <svg class="lb-chev" viewBox="0 0 12 8" fill="none">
+    <path d="M1 1.5 L6 6 L11 1.5" stroke="#f0c674" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</div>
+<div id="langPanel"></div>
+
+<div id="screenModal">
+  <div id="screenClose">&#10005;</div>
+  <iframe id="screenFrame" src="about:blank" title="Экран"></iframe>
+</div>
+
+<button id="navToggle" class="corner-btn" aria-label="Навигация">
+  <svg viewBox="0 0 30 30" fill="none">
+    <path d="M8 18 L15 11 L22 18" stroke="#f0c674" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M8 24 L15 17 L22 24" stroke="#f0c674" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  </svg>
+</button>
+<button id="fsToggle" class="corner-btn" aria-label="Полный экран">
+  <svg class="fs-off" viewBox="0 0 30 30" fill="none">
+    <path d="M11 6 H6 V11 M19 6 H24 V11 M11 24 H6 V19 M19 24 H24 V19" stroke="#f0c674" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <svg class="fs-on" viewBox="0 0 30 30" fill="none">
+    <path d="M6 11 H11 V6 M24 11 H19 V6 M6 19 H11 V24 M24 19 H19 V24" stroke="#f0c674" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+<button id="homeBtn" class="corner-btn" aria-label="В начало">
+  <svg viewBox="0 0 30 30" fill="none">
+    <path d="M7 14 L15 7 L23 14 M9.5 12.5 V22 H13 V17 H17 V22 H20.5 V12.5" stroke="#f0c674" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+<div id="navPanel"></div>
+<div id="voiceRoot"></div>
+
+<script>
+  const SLIDES = [
+    'slides/slide_01_imagine.html',
+    'slides/slide_02_bridge.html',
+    'slides/slide_06_system.html',
+    'slides/slide_14_choose_nft.html',
+    /* скрыто для минимальной колоды:
+    'slides/slide_13_entry.html',
+    'slides/slide_04_inside.html',
+    'slides/slide_07_partnership.html',
+    'slides/slide_07b_marketing_calc.html',
+    'slides/slide_07c_simple_calc.html',
+    'slides/slide_09_ranks.html',
+    'slides/slide_10_vip.html',
+    'slides/slide_11_now.html',
+    'slides/slide_12_final.html', */
+    // следующие слайды будут добавлены по мере создания
+  ];
+
+  const TOTAL_SLIDES = SLIDES.length;
+
+  let currentIndex = 0;
+  let activeFrame = 'A';
+  let isTransitioning = false;
+  /* Поколение перехода: всё, что пришло от прошлой навигации (load, guard,
+     отложенные шаги), сверяет свой номер и не имеет права менять состояние. */
+  let navSeq = 0;
+
+  const frameA = document.getElementById('frameA');
+  const frameB = document.getElementById('frameB');
+  const progressBar = document.getElementById('deckProgressBar');
+  const loader = document.getElementById('loader');
+
+
+  /* ===== МОБИЛЬНЫЙ РЕЖИМ: виртуальный экран 1600x900 =====
+     Слайды свёрстаны под широкий экран. Вместо переверстки каждого
+     мы даём кадру настоящий «десктопный» размер и вписываем его
+     в телефон масштабом. Так работает reveal.js и другие движки.
+     Экраны с собственной вертикальной вёрсткой (выбор NFT, калькуляторы)
+     масштабированию не подлежат: им отдаём реальный экран телефона. */
+  /* экраны со своей вертикальной вёрсткой: любой калькулятор и карусель NFT */
+  const NATIVE_MOBILE = /slide_14|slide_08|slide_07[a-z]?|calc|calculator/i;
+  const CANVAS_W = 1600;
+
+  function isPhone() {
+    return window.matchMedia('(pointer: coarse)').matches &&
+           Math.min(window.innerWidth, window.innerHeight) <= 560;
+  }
+
+  /* Холст подстраивается под пропорции телефона: ширина всегда 1600, а высота
+     считается от соотношения сторон экрана. Так чёрных полей нет вообще и ничего
+     не срезается — слайд просто получает чуть меньше вертикали.
+     Нижняя граница 700: ниже композиции начинают тесниться. */
+  const CANVAS_H_BASE = 900, CANVAS_H_MIN = 700;
+  function canvasHeight() {
+    const w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h) return CANVAS_H_BASE;
+    const byAspect = Math.round(CANVAS_W * h / w);
+    return Math.max(CANVAS_H_MIN, Math.min(CANVAS_H_BASE, byAspect));
+  }
+  function canvasScale() {
+    return Math.min(window.innerWidth / CANVAS_W, window.innerHeight / canvasHeight());
+  }
+  function canvasTransform(s) {
+    const ch = canvasHeight();
+    return 'translate(' + ((window.innerWidth - CANVAS_W * s) / 2) + 'px,' +
+                          ((window.innerHeight - ch * s) / 2) + 'px) scale(' + s + ')';
+  }
+
+  function layoutFrames() {
+    const src = SLIDES[currentIndex] || '';
+    const nativeOk = NATIVE_MOBILE.test(src);   /* есть вертикальная вёрстка */
+    const phone = isPhone();
+    const portrait = window.innerHeight > window.innerWidth;
+
+    /* Портрет: экраны со своей вёрсткой работают как есть, остальные просят повернуть.
+       Альбом: всем даём виртуальный широкий экран, там всё встаёт как на десктопе. */
+    const usePortrait = phone && portrait && nativeOk;
+    const useCanvas = phone && !usePortrait;
+    /* Пока открыто окно поверх слайда, подсказкой распоряжается оно.
+       Иначе любой resize (а на телефоне его даёт даже адресная строка при скролле)
+       перебивал бы решение окна и накрывал калькулятор просьбой повернуть телефон. */
+    const sm = document.getElementById('screenModal');
+    if (!(sm && sm.classList.contains('open'))) {
+      if (window.setMobileReady) window.setMobileReady(!(phone && portrait && !nativeOk));
+    }
+
+    [frameA, frameB].forEach(f => {
+      if (useCanvas) {
+        const s = canvasScale();
+        f.style.width = CANVAS_W + 'px';
+        f.style.height = canvasHeight() + 'px';
+        f.style.transformOrigin = 'top left';
+        f.style.transform = canvasTransform(s);
+      } else {
+        f.style.width = ''; f.style.height = '';
+        f.style.transform = ''; f.style.transformOrigin = '';
+      }
+    });
+  }
+  window.addEventListener('resize', () => { layoutFrames(); [frameA, frameB].forEach(pushEnv); });
+  window.addEventListener('orientationchange', () => setTimeout(layoutFrames, 150));
+
+
+  /* ===== Полноэкранные окна на телефоне =====
+     Калькуляторы и вложенные слайды на телефоне открываем не внутри
+     масштабированного кадра, а поверх всего в реальном размере экрана.
+     Только так работает их собственная вертикальная вёрстка. */
+  const screenModal = document.getElementById('screenModal');
+  const screenFrame = document.getElementById('screenFrame');
+  let screenCloseTimer = null;
+
+  /* ===== Доверенные сообщения слайдов =====
+     Колода принимает навигацию только от живого активного кадра (или его
+     реально вложенного кадра на том же origin) и только для известных
+     маршрутов презентации. Неактивный кадр, чужой origin, подделанный
+     source и внешние/data:/javascript: адреса отбрасываются до того, как
+     что-либо произойдёт. Список экранов сверяется тестом с тем, что
+     слайды действительно просят открыть. */
+  const SCREEN_ROUTES = [
+    'calc/finflow_calculator_lite.html',
+    'slides/slide_04_inside.html',
+    'slides/slide_07c_simple_calc.html',
+    'slides/slide_08_finflow.html',
+    'slides/slide_09_ranks.html',
+    'slides/slide_10_vip.html',
+  ];
+
+  /* Каталог колоды: '/rwa-nft/' на GitHub Pages, '/' на локальном сервере. */
+  function deckBasePath() {
+    try { return new URL('.', location.href).pathname || '/'; } catch (e) { return '/'; }
+  }
+
+  /* Маршрут внутри каталога колоды или null. Никаких '..', '\\' и чужих
+     префиксов: '/rwa-nft/../slides/...' сюда уже не проходит. */
+  function deckRoute(pathname, base) {
+    if (typeof pathname !== 'string' || typeof base !== 'string' || base.charAt(0) !== '/') return null;
+    if (pathname.indexOf(base) !== 0) return null;
+    const rel = pathname.slice(base.length);
+    if (!rel || rel.charAt(0) === '/' || rel.indexOf('\\') !== -1) return null;
+    if (rel.split('/').indexOf('..') !== -1) return null;
+    return rel;
+  }
+
+  /* Единственный адрес, который разрешено смонтировать поверх слайда. */
+  function safeScreenUrl(raw) {
+    if (typeof raw !== 'string' || !raw || raw.length > 512) return null;
+    if (raw !== raw.trim()) return null;
+    if (/[\u0000-\u001f\u007f\\]/.test(raw)) return null;
+    let url;
+    try { url = new URL(raw, location.href); } catch (e) { return null; }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    if (url.origin !== location.origin) return null;
+    if (url.username || url.password) return null;
+    if (url.search || url.hash) return null;
+    const rel = deckRoute(url.pathname, deckBasePath());
+    if (!rel || SCREEN_ROUTES.indexOf(rel) === -1) return null;
+    return url.href;
+  }
+
+  /* Реальный маршрут окна-отправителя. Читаем живое окно, а не payload. */
+  function senderRoute(win) {
+    if (!win) return null;
+    let loc;
+    try { loc = win.location; } catch (e) { return null; }
+    if (!loc) return null;
+    const proto = loc.protocol;
+    if (proto !== 'http:' && proto !== 'https:' && proto !== 'file:') return null;
+    try {
+      if (proto === 'file:' ? location.protocol !== 'file:' : loc.origin !== location.origin) return null;
+      const rel = deckRoute(loc.pathname, deckBasePath());
+      if (!rel) return null;
+      if (SLIDES.indexOf(rel) === -1 && SCREEN_ROUTES.indexOf(rel) === -1) return null;
+      return rel;
+    } catch (e) { return null; }
+  }
+
+  /* Активный кадр и его настоящие вложенные кадры (модалы супер-слайда). */
+  function isActiveFrameWindow(win) {
+    if (!win) return false;
+    const active = getActiveFrame();
+    if (!active || !active.contentWindow) return false;
+    if (win === active.contentWindow) return true;
+    const queue = [{ frame: active, depth: 0 }];
+    while (queue.length) {
+      const item = queue.shift();
+      if (item.depth >= 2) continue;
+      let doc = null;
+      try { doc = item.frame.contentDocument; } catch (e) { doc = null; }
+      if (!doc || typeof doc.querySelectorAll !== 'function') continue;
+      let frames = [];
+      try { frames = doc.querySelectorAll('iframe'); } catch (e) { frames = []; }
+      for (let i = 0; i < frames.length && i < 16; i++) {
+        const child = frames[i];
+        if (!child) continue;
+        if (child.contentWindow === win) return true;
+        queue.push({ frame: child, depth: item.depth + 1 });
+      }
+    }
+    return false;
+  }
+
+  function isTrustedSlideEvent(e) {
+    if (!e || !e.data || typeof e.data !== 'object') return false;
+    if (e.data.source !== 'slide') return false;
+    /* Верхнее окно и подделанный source отправителя не являются слайдом. */
+    if (!e.source || e.source === window) return false;
+    try { if (e.origin !== location.origin) return false; } catch (err) { return false; }
+    if (!isActiveFrameWindow(e.source)) return false;
+    return !!senderRoute(e.source);
+  }
+
+  function openScreen(url) {
+    if (screenCloseTimer !== null) clearTimeout(screenCloseTimer);
+    screenCloseTimer = null;
+    if (window.RwaVoice) window.RwaVoice.stop('screen');
+    screenFrame.src = url;
+    screenModal.classList.add('open');
+    layoutScreenFrame(url);
+    try { screenFrame.contentWindow.postMessage(
+      { source: 'deck', type: 'set-lang', lang: I18N.current }, '*'); } catch (e) {}
+  }
+
+  /* Экран поверх всего: калькуляторам отдаём реальный размер телефона,
+     а широким слайдам (математика, ранги, VIP) — тот же виртуальный
+     экран 1600x900, иначе их композиция сминается. */
+  let screenUrl = '';
+  function layoutScreenFrame(url) {
+    if (url) screenUrl = url;
+    const nativeOk = NATIVE_MOBILE.test(screenUrl);
+    const phone = isPhone();
+    const portrait = window.innerHeight > window.innerWidth;
+    /* Экраны со своей вертикальной вёрсткой работают в портрете как есть.
+       Широкие (математика, ранги, VIP) в портрете ужимаются до нечитаемого,
+       поэтому там честнее попросить повернуть телефон. */
+    const needRotate = phone && portrait && !nativeOk;
+    if (window.setMobileReady) window.setMobileReady(!needRotate);
+    if (window.setRotateHintOverScreen) window.setRotateHintOverScreen(needRotate);
+    /* Виртуальный экран нужен всегда, кроме одного случая: телефон в портрете
+       с экраном, у которого есть своя вертикальная вёрстка. В альбоме даже
+       калькулятору отдаём 1600x900, иначе по высоте телефона он обрезается. */
+    if (phone && !(portrait && nativeOk)) {
+      const sc = canvasScale();
+      screenFrame.style.width = CANVAS_W + 'px';
+      screenFrame.style.height = canvasHeight() + 'px';
+      screenFrame.style.transformOrigin = 'top left';
+      screenFrame.style.transform = canvasTransform(sc);
+    } else {
+      screenFrame.style.width = ''; screenFrame.style.height = '';
+      screenFrame.style.transform = ''; screenFrame.style.transformOrigin = '';
+    }
+  }
+  window.addEventListener('resize', () => {
+    if (screenModal.classList.contains('open')) layoutScreenFrame();
+  });
+
+  function closeScreen() {
+    if (window.RwaVoice) window.RwaVoice.stop('screen');
+    if (window.setRotateHintOverScreen) window.setRotateHintOverScreen(false);
+    screenModal.classList.remove('open');
+    if (screenCloseTimer !== null) clearTimeout(screenCloseTimer);
+    screenCloseTimer = setTimeout(() => {
+      screenCloseTimer = null;
+      if (!screenModal.classList.contains('open')) screenFrame.src = 'about:blank';
+    }, 300);
+    layoutFrames();   /* вернуть подсказку, если слайд её требует */
+  }
+  document.getElementById('screenClose').addEventListener('click', closeScreen);
+  window.onRotateHintClose = closeScreen;   /* крестик внутри подсказки о повороте */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && screenModal.classList.contains('open')) closeScreen();
+  });
+  screenFrame.addEventListener('load', () => {
+    try { screenFrame.contentWindow.postMessage(
+      { source: 'deck', type: 'set-lang', lang: I18N.current }, '*'); } catch (e) {}
+  });
+
+  /* слайд просит открыть экран поверх (только на телефоне).
+     Окно поверх заказывает единственный законный отправитель — сам активный
+     системный слайд, и только известный внутренний маршрут презентации. */
+  window.addEventListener('message', (e) => {
+    const m = e.data;
+    if (!m || typeof m !== 'object' || m.source !== 'slide') return;
+    if (m.type !== 'open-screen') return;
+    if (!isTrustedSlideEvent(e)) return;
+    if (!isPhone()) return;
+    if (senderRoute(e.source) !== SLIDES[currentIndex]) return;
+    const safe = safeScreenUrl(m.url);
+    if (!safe) return;
+    openScreen(safe);
+  });
+
+  /* сообщаем слайду, что он на телефоне: тогда он отдаёт окна наверх */
+  function pushEnv(frame) {
+    try {
+      frame.contentWindow.postMessage(
+        { source: 'deck', type: 'env', phone: isPhone() }, '*');
+    } catch (e) {}
+  }
+
+  /* язык в свежезагруженный слайд */
+  function pushLang(frame) {
+    try {
+      frame.contentWindow.postMessage(
+        { source: 'deck', type: 'set-lang', lang: I18N.current }, '*');
+    } catch (e) {}
+  }
+
+  function loadInitial() {
+    frameA.src = SLIDES[0];
+    layoutFrames();
+    frameA.addEventListener('load', () => {
+      pushLang(frameA);
+      pushEnv(frameA);
+      if (window.RwaVoice) window.RwaVoice.onSlideChanged(SLIDES[0]);
+      layoutFrames();
+      setTimeout(() => loader.classList.add('hidden'), 300);
+    }, { once: true });
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const pct = ((currentIndex + 1) / TOTAL_SLIDES) * 100;
+    progressBar.style.width = pct + '%';
+  }
+
+  function getActiveFrame() {
+    return activeFrame === 'A' ? frameA : frameB;
+  }
+  function getInactiveFrame() {
+    return activeFrame === 'A' ? frameB : frameA;
+  }
+
+  /* ===== Фокус после смены слайда =====
+     Chrome оставляет фокус на элементе исходящего кадра, даже когда тот
+     уезжает в about:blank. Тогда стрелки падают в пустой документ и колода
+     «умирает» до клика. Перед очисткой кадра возвращаем фокус документу
+     колоды (новый слайд его получит сам при следующем клике). */
+  function frameHasFocus(frame) {
+    if (!frame) return false;
+    if (document.activeElement === frame) return true;
+    try {
+      const doc = frame.contentDocument;
+      if (doc && typeof doc.hasFocus === 'function' && doc.hasFocus()) return true;
+    } catch (e) {}
+    return false;
+  }
+
+  function releaseFrameFocus(frame) {
+    if (!frameHasFocus(frame)) return;
+    try { if (typeof frame.blur === 'function') frame.blur(); } catch (e) {}
+    try {
+      if (document.body) {
+        document.body.tabIndex = -1;
+        document.body.focus({ preventScroll: true });
+      }
+    } catch (e) {}
+  }
+
+  function goToSlide(index, direction) {
+    if (index < 0 || index >= SLIDES.length || isTransitioning) return;
+    if (window.RwaVoice) window.RwaVoice.stop('navigation');
+
+    isTransitioning = true;
+    const seq = ++navSeq;
+    const inactive = getInactiveFrame();
+    const active = getActiveFrame();
+    const target = SLIDES[index];
+    let guard = null;
+
+    function clearGuard() {
+      if (guard !== null) { clearTimeout(guard); guard = null; }
+    }
+
+    /* Один обработчик на кадр, назначается ДО src: повторная навигация
+       заменяет прошлый, а не копит слушателей, которые потом сработают
+       дважды на одной загрузке. */
+    function onLoaded() {
+      /* about:blank тоже присылает load. Это не документ слайда: ждём
+         настоящую загрузку, обработчик остаётся на месте. */
+      let loadedPath = null;
+      let wantPath = null;
+      try {
+        loadedPath = inactive.contentWindow.location.pathname || '';
+        wantPath = new URL(target, location.href).pathname;
+      } catch (e) { loadedPath = null; }
+      if (loadedPath === null || loadedPath === '' || loadedPath === 'blank') return;
+      if (inactive.onload === onLoaded) inactive.onload = null;
+      if (seq !== navSeq) return;                  /* переход уже отменён новым */
+      clearGuard();
+
+      /* Загрузился не тот маршрут (оборванная/чужая навигация): не отдаём
+         ему экран и не оставляем колоду запертой. */
+      if (loadedPath !== wantPath) { isTransitioning = false; return; }
+
+      pushLang(inactive);
+      pushEnv(inactive);
+      layoutFrames();
+      setTimeout(() => {
+        if (seq !== navSeq) return;
+        active.classList.remove('active');
+        active.classList.add('previous');
+        inactive.classList.remove('previous');
+        inactive.classList.add('active');
+
+        activeFrame = (activeFrame === 'A') ? 'B' : 'A';
+        currentIndex = index;
+        updateProgress();
+
+        /* Переход мог быть начат изнутри слайда: фокус в исходящем кадре. */
+        releaseFrameFocus(active);
+        if (window.RwaVoice) window.RwaVoice.onSlideChanged(target);
+        layoutFrames();
+
+        /* Шаг «назад» просим уже у активного кадра: иначе его step-changed
+           приходил от ещё не видимого слайда и терялся, а верхний уровень
+           показывал первый шаг вместо последнего. */
+        if (direction === 'backward') {
+          try {
+            inactive.contentWindow.postMessage({ source: 'deck', type: 'goto-last-step' }, '*');
+          } catch (e) {}
+        }
+
+        setTimeout(() => {
+          if (seq !== navSeq) return;
+          if (inactive.onload === onLoaded) inactive.onload = null;
+          /* Перед about:blank окончательно снимаем фокус с уходящего кадра:
+             иначе клавиатура остаётся внутри пустого документа. */
+          releaseFrameFocus(active);
+          /* Пустая строка в src означает «загрузить текущий документ»,
+             то есть в скрытый кадр заезжала ещё одна копия всей презентации
+             со своими таймерами и своим iframe. После нескольких переходов
+             телефон захлёбывался. Освобождать кадр нужно about:blank. */
+          active.src = 'about:blank';
+          isTransitioning = false;
+        }, 800);
+      }, 50);
+    }
+
+    inactive.onload = onLoaded;
+    guard = setTimeout(() => {
+      guard = null;
+      if (seq !== navSeq) return;
+      if (inactive.onload === onLoaded) inactive.onload = null;
+      isTransitioning = false;
+    }, 6000);
+
+    inactive.src = target;
+  }
+
+  window.addEventListener('message', (e) => {
+    const msg = e.data;
+    if (!msg || msg.source !== 'slide') return;
+    /* Сначала отбираем только те сообщения, которые колода исполняет:
+       step-changed и прочие сигналы не повод обходить дерево кадров. */
+    const type = msg.type;
+    if (type !== 'slide-end-forward' && type !== 'slide-end-backward') return;
+    /* Навигацию заказывает только живой активный кадр на своём origin. */
+    if (!isTrustedSlideEvent(e)) return;
+
+    /* пока открыто окно поверх всего, колода не листается */
+    if (screenModal.classList.contains('open')) return;
+
+    if (type === 'slide-end-forward') {
+      if (currentIndex < SLIDES.length - 1) {
+        goToSlide(currentIndex + 1, 'forward');
+      }
+    } else if (currentIndex > 0) {
+      goToSlide(currentIndex - 1, 'backward');
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target !== document.body && e.target !== document.documentElement) return;
+  });
+
+  /* ===== Скрытая навигация по углам ===== */
+  (function() {
+    const toggle = document.getElementById('navToggle');
+    const panel = document.getElementById('navPanel');
+    const calcIcon = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="1.5" width="12" height="13" rx="2.5" stroke="currentColor" stroke-width="1.2"/><line x1="4.6" y1="5" x2="11.4" y2="5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="5.4" cy="8.3" r="0.9" fill="currentColor"/><circle cx="8" cy="8.3" r="0.9" fill="currentColor"/><circle cx="10.6" cy="8.3" r="0.9" fill="currentColor"/><circle cx="5.4" cy="11.3" r="0.9" fill="currentColor"/><circle cx="8" cy="11.3" r="0.9" fill="currentColor"/><circle cx="10.6" cy="11.3" r="0.9" fill="currentColor"/></svg>';
+
+    SLIDES.forEach((path, i) => {
+      const b = document.createElement('button');
+      b.className = 'nav-item';
+      b.style.setProperty('--nd', (i * 0.03).toFixed(2) + 's');
+      b.innerHTML = path.includes('calc') ? calcIcon : String(i + 1);
+      b.addEventListener('click', () => {
+        if (i !== currentIndex) goToSlide(i, 'forward');
+        closeNav();
+      });
+      panel.appendChild(b);
+    });
+
+    function updateNav() {
+      panel.querySelectorAll('.nav-item').forEach((b, i) => b.classList.toggle('cur', i === currentIndex));
+    }
+    function closeNav() { toggle.classList.remove('open'); panel.classList.remove('open'); }
+
+    toggle.addEventListener('click', () => {
+      const open = !panel.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      panel.classList.toggle('open', open);
+      updateNav();
+    });
+
+    /* Подсветка текущего слайда при каждом переходе */
+    const _upd = updateProgress;
+    updateProgress = function() { _upd(); updateNav(); };
+
+    const fs = document.getElementById('fsToggle');
+    fs.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      fs.classList.toggle('act', !!document.fullscreenElement);
+    });
+
+    /* ===== Выбор языка ===== */
+    (function () {
+      const btn = document.getElementById('langBtn');
+      const panel = document.getElementById('langPanel');
+      const lbFlag = document.getElementById('lbFlag');
+      const lbCode = document.getElementById('lbCode');
+
+      function paintButton() {
+        const l = I18N.langs.find(x => x.code === I18N.current) || I18N.langs[0];
+        lbFlag.innerHTML = l.flag;
+        lbCode.textContent = l.code.toUpperCase();
+        panel.querySelectorAll('.lang-item').forEach(it => {
+          it.classList.toggle('cur', it.dataset.code === I18N.current);
+        });
+      }
+
+      I18N.langs.forEach(l => {
+        const it = document.createElement('div');
+        it.className = 'lang-item';
+        it.dataset.code = l.code;
+        it.title = l.name;   /* на телефоне подпись скрыта, остаётся флаг */
+        it.innerHTML = '<span class="li-flag">' + l.flag + '</span>' +
+                       '<span class="li-name">' + l.name + '</span>' +
+                       '<span class="li-check">&#10003;</span>';
+        it.addEventListener('click', e => {
+          e.stopPropagation();
+          I18N.setLang(l.code);           /* переведёт лаунчер и все iframe */
+          paintButton();
+          close();
+        });
+        panel.appendChild(it);
+      });
+
+      function open() { btn.classList.add('open'); panel.classList.add('open'); }
+      function close() { btn.classList.remove('open'); panel.classList.remove('open'); }
+
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        panel.classList.contains('open') ? close() : open();
+      });
+      document.addEventListener('click', close);
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+
+      paintButton();
+    })();
+
+    document.getElementById('homeBtn').addEventListener('click', () => {
+      if (currentIndex !== 0) goToSlide(0, 'forward');
+      closeNav();
+    });
+  })();
+
+  /* ===== Стрелки с верхнего уровня =====
+     Фокус может быть на лаунчере (выбор языка, угловые кнопки, панель
+     озвучки), а не внутри кадра слайда. Ключ передаётся в живой документ
+     слайда тем же ArrowRight/ArrowLeft, поэтому шаги и края слайда решает
+     один владелец — сам слайд. Поля ввода и contenteditable не трогаем. */
+  (function installArrowKeys() {
+    if (!window.VoiceArrows) return;
+    const arrows = window.VoiceArrows.createArrowNavigator({
+      getFrame: () => getActiveFrame(),
+      isBlocked: () => screenModal.classList.contains('open'),
+      onEdge: (direction) => {
+        if (direction === 'next') {
+          if (currentIndex < TOTAL_SLIDES - 1) { goToSlide(currentIndex + 1, 'forward'); return true; }
+          return false;
+        }
+        if (currentIndex > 0) { goToSlide(currentIndex - 1, 'backward'); return true; }
+        return false;
+      },
+    });
+    document.addEventListener('keydown', (e) => { arrows.handle(e, e); });
+  })();
+
+  loadInitial();
+</script>
+<script src="shared/voice/voice-protocol.js"></script>
+<script src="shared/voice/voice-preference.js"></script>
+<script src="shared/voice/voice-core.js"></script>
+<script src="shared/voice/voice-slides.js"></script>
+<script src="shared/voice/voice-deck.js"></script>
+<script src="shared/voice/voice-route.js"></script>
+<script src="shared/voice/voice-ui-model.js"></script>
+<script src="shared/voice/voice-ui.js"></script>
+<script src="shared/voice/voice-scenario.js"></script>
+<script src="shared/voice/voice-autoplay.js"></script>
+<script src="shared/voice/voice-boot.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+name: RWA NFT artifact quality
+on:
+  push:
+    branches: [rwa-nft-release]
+    paths: ['rwa-nft/**', '.github/workflows/rwa-nft-quality.yml', '.github/scripts/check-rwa-nft.mjs']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Check compiled Astro presentation and every MP3
+        run: node .github/scripts/check-rwa-nft.mjs

@@ -1,0 +1,1845 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "pronunciation": {
+      "ru": {
+        "RWA NFT": "Эрвиэй энэфти",
+        "FinFlow": "Финфлоу",
+        "DA": "ди эй",
+        "USDT": "ю эс ди ти",
+        "status": "approved-by-user"
+      },
+      "en": {
+        "status": "user-approved-sample-convention",
+        "policy": "spell terms as in the real approved Charon EN sample: R-W-A N-F-T, D-A, U-S-D-T; FinFlow stays a word; do not invent another spelling"
+      }
+    },
+    "triggerContract": {
+      "shape": {
+        "type": "step | action | container",
+        "actionId": "required only for type=action"
+      },
+      "defaultRule": "one default segment per inventory step; grouped stepIds allowed",
+      "actionRule": "action-only audio never counts as default step coverage",
+      "containerRule": "deck.slides and deck.school are containers, not content screens"
+    },
+    "knownActionIds": {
+      "inventory": [
+        "cal.lite.s01.a01",
+        "cal.lite.s01.a02",
+        "cal.lite.s01.a03",
+        "cal.lite.s01.a04",
+        "cal.lite.s01.a05",
+        "deck.school.s00.a01",
+        "deck.slides.s00.a01",
+        "deck.slides.s00.a02",
+        "s01.imagine.s01.a01",
+        "s01.imagine.s02.a01",
+        "s02.bridge.s01.a01",
+        "s02.bridge.s03.a01",
+        "s04.inside.s01.a01",
+        "s06.system.s01.a01",
+        "s06.system.s02.a01",
+        "s06.system.s02.a02",
+        "s06.system.s02.a03",
+        "s06.system.s05.a01",
+        "s06.system.s06.a01",
+        "s06.system.s07.a01",
+        "s07c.market.s01.a01",
+        "s07c.market.s01.a02",
+        "s08.finflow.s01.a01",
+        "s08.finflow.s01.a02",
+        "s08.finflow.s02.a01",
+        "s08.finflow.s04.a01",
+        "s08.finflow.s04.a02",
+        "s09.ranks.s01.a01",
+        "s10.vip.s01.a01",
+        "s14.choose.s02.a01",
+        "s14.choose.s02.a02",
+        "s14.choose.s02.a03",
+        "sc1.machine.s01.a01",
+        "sc2.mech.s01.a01",
+        "sc3.sell.s01.a01",
+        "sc4.levels.s01.a01",
+        "sc5.cycle.s01.a01",
+        "sc6.now.s01.a01"
+      ],
+      "controllerOnly": [
+        "finflow.formulas.card-1",
+        "finflow.formulas.card-2",
+        "finflow.formulas.card-3",
+        "finflow.formulas.card-4",
+        "finflow.formulas.card-5",
+        "finflow.formulas.card-6",
+        "finflow.formulas.close",
+        "finflow.formulas.next",
+        "finflow.formulas.prev"
+      ],
+      "rule": "action trigger actionId must be one of these"
+    },
+    "scope": {
+      "contentScreens": [
+        "s01.imagine",
+        "s02.bridge",
+        "s06.system",
+        "s14.choose",
+        "s08.finflow",
+        "s07c.market",
+        "cal.lite",
+        "s09.ranks",
+        "s10.vip",
+        "s04.inside",
+        "sc1.machine",
+        "sc2.mech",
+        "sc3.sell",
+        "sc4.levels",
+        "sc5.cycle",
+        "sc6.now"
+      ],
+      "containers": [
+        "deck.slides",
+        "deck.school"
+      ],
+      "counts": {
+        "screens": 18,
+        "content": 16,
+        "containers": 2,
+        "inventorySteps": 106,
+        "inventoryActions": 38,
+        "segments": 86,
+        "defaultSegments": 76,
+        "actionSegments": 10,
+        "formulaContexts": 6
+      },
+      "school": "six screens reachable by direct URL only; included in scope; not linked from index, route not changed"
+    },
+    "version": "production-speaker-1.1",
+    "status": "ready",
+    "sourceScenarioSha256": "13ec20720d831fef59726ff1c0b1284aba17cb65930415b4cdec4c1d2273f533",
+    "textHash": "sha256:5d445679e7827164e7e40a4a0018bf42b8ab931e1ef9e6701c514c40148b3f2b",
+    "configHash": "sha256:6724563945e8a199903088839b1ff4bf7263ab4883f43326237a1dccad02a586",
+    "massGenerationAuthorized": true,
+    "voice": {
+      "provider": "kie",
+      "model": "google/gemini-3-8-flash-tts",
+      "voice": "Charon",
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "userConfirmed": true,
+      "settingsByLanguage": {
+        "ru": {
+          "temperature": 1,
+          "style": "Speak in Russian as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading."
+        },
+        "en": {
+          "temperature": 1,
+          "style": "Speak in English as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading."
+        }
+      }
+    },
+    "playback": {
+      "policy": "Narration is on by default. The browser may require the first real gesture. Every distinct animation step restarts its explanation, including shared audio. Language changes replay the current explanation. Formula close returns to the underlying explanation. Narration never advances slides."
+    },
+    "chars": {
+      "display": {
+        "ru": 11628,
+        "en": 12119
+      },
+      "tts": {
+        "ru": 11769,
+        "en": 12194
+      }
+    },
+    "publishedAt": "2026-11-16T07:46:02.539228+00:00",
+    "publication": {
+      "releaseId": "r13ec20720d83-8c7b771ef6",
+      "manifestSha256": "3fce07f9246f1707f362f86810ade1109d2f51fc1beea1a92700ae33f6e328d5",
+      "canonicalScenarioSha256": "13ec20720d831fef59726ff1c0b1284aba17cb65930415b4cdec4c1d2273f533"
+    },
+    "durationMeasured": {
+      "seconds": {
+        "ru": 818.64,
+        "en": 832.24
+      },
+      "method": "ffprobe; each MP3 fully decoded"
+    }
+  },
+  "segments": [
+    {
+      "segmentId": "s01.imagine.s01",
+      "slideId": "s01.imagine",
+      "stepIds": [
+        "s01.imagine.s01"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Представьте отель у моря. Вы приезжаете отдыхать, а его владелец получает доход от гостей.",
+        "en": "Picture a hotel by the sea. You come for a holiday, while its owner earns income from the guests."
+      },
+      "tts": {
+        "ru": "Представьте отель у моря. Вы приезжаете отдыхать, а его владелец получает доход от гостей.",
+        "en": "Picture a hotel by the sea. You come for a holiday, while its owner earns income from the guests."
+      }
+    },
+    {
+      "segmentId": "s01.imagine.s02",
+      "slideId": "s01.imagine",
+      "stepIds": [
+        "s01.imagine.s02"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "У такого актива может быть несколько владельцев. Каждый получает свою долю дохода. Теперь представьте, что одна из этих долей принадлежит вам.",
+        "en": "An asset like this can have several owners, each receiving a share of its income. Now imagine that one of those shares belongs to you."
+      },
+      "tts": {
+        "ru": "У такого актива может быть несколько владельцев. Каждый получает свою долю дохода. Теперь представьте, что одна из этих долей принадлежит вам.",
+        "en": "An asset like this can have several owners, each receiving a share of its income. Now imagine that one of those shares belongs to you."
+      }
+    },
+    {
+      "segmentId": "s01.imagine.s03",
+      "slideId": "s01.imagine",
+      "stepIds": [
+        "s01.imagine.s03"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "RWA NFT связывает цифровую долю с реальным активом. Вы становитесь его совладельцем и получаете доход, который приходится на вашу долю.",
+        "en": "RWA NFT connects a digital share to a real asset. You become a co-owner and receive the income attributable to your share."
+      },
+      "tts": {
+        "ru": "Эрвиэй энэфти связывает цифровую долю с реальным активом. Вы становитесь его совладельцем и получаете доход, который приходится на вашу долю.",
+        "en": "R-W-A N-F-T connects a digital share to a real asset. You become a co-owner and receive the income attributable to your share."
+      }
+    },
+    {
+      "segmentId": "s02.bridge.s01",
+      "slideId": "s02.bridge",
+      "stepIds": [
+        "s02.bridge.s01"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Раньше для доступа к таким активам требовался крупный капитал. Основными участниками были банки, фонды и состоятельные частные инвесторы.",
+        "en": "Access to assets like these used to require substantial capital. The main participants were banks, funds and wealthy private investors."
+      },
+      "tts": {
+        "ru": "Раньше для доступа к таким активам требовался крупный капитал. Основными участниками были банки, фонды и состоятельные частные инвесторы.",
+        "en": "Access to assets like these used to require substantial capital. The main participants were banks, funds and wealthy private investors."
+      }
+    },
+    {
+      "segmentId": "s02.bridge.s02",
+      "slideId": "s02.bridge",
+      "stepIds": [
+        "s02.bridge.s02"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Для одного процента этот рынок был открыт. Для остальных высокий порог входа оставлял активы за закрытыми дверями банков, фондов и крупного частного капитала.",
+        "en": "This market was open to one percent. For everyone else, the high entry threshold kept those assets behind the closed doors of banks, funds and large private investors."
+      },
+      "tts": {
+        "ru": "Для одного процента этот рынок был открыт. Для остальных высокий порог входа оставлял активы за закрытыми дверями банков, фондов и крупного частного капитала.",
+        "en": "This market was open to one percent. For everyone else, the high entry threshold kept those assets behind the closed doors of banks, funds and large private investors."
+      }
+    },
+    {
+      "segmentId": "s02.bridge.s03",
+      "slideId": "s02.bridge",
+      "stepIds": [
+        "s02.bridge.s03"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Теперь порог входа снижается. Доступ к тем же активам открывается для более широкого круга участников.",
+        "en": "Now the entry threshold is coming down. Access to the same assets is opening to a wider group of participants."
+      },
+      "tts": {
+        "ru": "Теперь порог входа снижается. Доступ к тем же активам открывается для более широкого круга участников.",
+        "en": "Now the entry threshold is coming down. Access to the same assets is opening to a wider group of participants."
+      }
+    },
+    {
+      "segmentId": "s02.bridge.s04",
+      "slideId": "s02.bridge",
+      "stepIds": [
+        "s02.bridge.s04"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Сто процентов: доступ есть у каждого. Это и есть сдвиг, который предлагает RWA NFT: рынок, где участие определяется не размером капитала.",
+        "en": "One hundred percent: access for everyone. That is the shift RWA NFT offers: a market where participation is not decided by the size of your capital."
+      },
+      "tts": {
+        "ru": "Сто процентов: доступ есть у каждого. Это и есть сдвиг, который предлагает Эрвиэй энэфти: рынок, где участие определяется не размером капитала.",
+        "en": "One hundred percent: access for everyone. That is the shift R-W-A N-F-T offers: a market where participation is not decided by the size of your capital."
+      }
+    },
+    {
+      "segmentId": "s02.bridge.s05",
+      "slideId": "s02.bridge",
+      "stepIds": [
+        "s02.bridge.s05"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "RWA NFT снимает ограничение по размеру капитала. За этим стоит целая система инструментов.",
+        "en": "RWA NFT removes the capital-size limit. Behind it stands a whole system of tools."
+      },
+      "tts": {
+        "ru": "Эрвиэй энэфти снимает ограничение по размеру капитала. За этим стоит целая система инструментов.",
+        "en": "R-W-A N-F-T removes the capital-size limit. Behind it stands a whole system of tools."
+      }
+    },
+    {
+      "segmentId": "s06.system.s01",
+      "slideId": "s06.system",
+      "stepIds": [
+        "s06.system.s01"
+      ],
+      "actionId": "s06.system.s01.a01",
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "NFT стоит в основе системы: шесть источников дохода вокруг и два выхода, банковская карта и DeFi. Разберём каждый.",
+        "en": "The NFT sits at the base of the system: six income streams around it and two exits, a bank card and DeFi. We take each one."
+      },
+      "tts": {
+        "ru": "энэфти стоит в основе системы: шесть источников дохода вокруг и два выхода, банковская карта и DeFi. Разберём каждый.",
+        "en": "The N-F-T sits at the base of the system: six income streams around it and two exits, a bank card and DeFi. We take each one."
+      }
+    },
+    {
+      "segmentId": "s06.system.s02",
+      "slideId": "s06.system",
+      "stepIds": [
+        "s06.system.s02"
+      ],
+      "actionId": "s06.system.s02.a01",
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Первый поток ведёт в FinPro и FinFlow: здесь можно разобрать механику и сразу рассчитать доход.",
+        "en": "The first stream leads to FinPro and FinFlow: here you can study the mechanics and calculate your income right away."
+      },
+      "tts": {
+        "ru": "Первый поток ведёт в FinPro и Финфлоу: здесь можно разобрать механику и сразу рассчитать доход.",
+        "en": "The first stream leads to FinPro and FinFlow: here you can study the mechanics and calculate your income right away."
+      }
+    },
+    {
+      "segmentId": "s06.system.s03",
+      "slideId": "s06.system",
+      "stepIds": [
+        "s06.system.s03"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Второй поток даёт растущий актив DA. Он рассчитан на рост стоимости, а его механику подробно разбирает школа.",
+        "en": "The second stream brings DA, a growing asset. It is built to increase in value, and the school explains its mechanics in detail."
+      },
+      "tts": {
+        "ru": "Второй поток даёт растущий актив ди эй. Он рассчитан на рост стоимости, а его механику подробно разбирает школа.",
+        "en": "The second stream brings D-A, a growing asset. It is built to increase in value, and the school explains its mechanics in detail."
+      }
+    },
+    {
+      "segmentId": "s06.system.s04",
+      "slideId": "s06.system",
+      "stepIds": [
+        "s06.system.s04"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Третий поток открывает доступ к реальным активам RWA. Они были закрыты для небольших сумм и теперь становятся доступны.",
+        "en": "The third stream opens RWA: real assets that used to be closed to smaller amounts."
+      },
+      "tts": {
+        "ru": "Третий поток открывает доступ к реальным активам эрвиэй. Они были закрыты для небольших сумм и теперь становятся доступны.",
+        "en": "The third stream opens R-W-A: real assets that used to be closed to smaller amounts."
+      }
+    },
+    {
+      "segmentId": "s06.system.s05",
+      "slideId": "s06.system",
+      "stepIds": [
+        "s06.system.s05"
+      ],
+      "actionId": "s06.system.s05.a01",
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Четвёртый поток добавляет партнёрскую программу: доход за приглашённых и калькулятор маркетинга.",
+        "en": "The fourth stream adds the partner program: income from referrals and a marketing calculator."
+      },
+      "tts": {
+        "ru": "Четвёртый поток добавляет партнёрскую программу: доход за приглашённых и калькулятор маркетинга.",
+        "en": "The fourth stream adds the partner program: income from referrals and a marketing calculator."
+      }
+    },
+    {
+      "segmentId": "s06.system.s06",
+      "slideId": "s06.system",
+      "stepIds": [
+        "s06.system.s06"
+      ],
+      "actionId": "s06.system.s06.a01",
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Пятый поток открывает карьеру: восемь ступеней с понятными условиями по обороту и личному объёму, от Beginner до CEO.",
+        "en": "The fifth stream opens the career track: eight levels with clear requirements for turnover and personal volume, from Beginner to CEO."
+      },
+      "tts": {
+        "ru": "Пятый поток открывает карьеру: восемь ступеней с понятными условиями по обороту и личному объёму, от Beginner до CEO.",
+        "en": "The fifth stream opens the career track: eight levels with clear requirements for turnover and personal volume, from Beginner to CEO."
+      }
+    },
+    {
+      "segmentId": "s06.system.s07",
+      "slideId": "s06.system",
+      "stepIds": [
+        "s06.system.s07"
+      ],
+      "actionId": "s06.system.s07.a01",
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Шестой поток ведёт в VIP Club: двести NFT в мире, и десять процентов дохода компании распределяется между их владельцами.",
+        "en": "The sixth stream leads to the VIP Club: two hundred NFTs worldwide, and ten percent of company income is shared among their owners."
+      },
+      "tts": {
+        "ru": "Шестой поток ведёт в VIP Club: двести энэфти в мире, и десять процентов дохода компании распределяется между их владельцами.",
+        "en": "The sixth stream leads to the VIP Club: two hundred N-F-Ts worldwide, and ten percent of company income is shared among their owners."
+      }
+    },
+    {
+      "segmentId": "s06.system.s08",
+      "slideId": "s06.system",
+      "stepIds": [
+        "s06.system.s08"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Дальше выходы: доход можно выводить на банковскую карту или держать в DeFi.",
+        "en": "Then the exits: withdraw income to a bank card or keep it in DeFi."
+      },
+      "tts": {
+        "ru": "Дальше выходы: доход можно выводить на банковскую карту или держать в DeFi.",
+        "en": "Then the exits: withdraw income to a bank card or keep it in DeFi."
+      }
+    },
+    {
+      "segmentId": "s06.system.s09",
+      "slideId": "s06.system",
+      "stepIds": [
+        "s06.system.s09"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Доход превращается в конкретные вещи: стиль, гаджеты, развлечения. В примере на них уходит до полутора миллионов долларов.",
+        "en": "Income turns into concrete things: style, gadgets, entertainment. In the example, spending on them reaches one and a half million dollars."
+      },
+      "tts": {
+        "ru": "Доход превращается в конкретные вещи: стиль, гаджеты, развлечения. В примере на них уходит до полутора миллионов долларов.",
+        "en": "Income turns into concrete things: style, gadgets, entertainment. In the example, spending on them reaches one and a half million dollars."
+      }
+    },
+    {
+      "segmentId": "s06.system.s10",
+      "slideId": "s06.system",
+      "stepIds": [
+        "s06.system.s10"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Путешествия, авто и недвижимость завершают картину. В том же примере общий счёт доходит до трёх миллионов долларов.",
+        "en": "Travel, cars, and real estate complete the picture. In the same example the total reaches three million dollars."
+      },
+      "tts": {
+        "ru": "Путешествия, авто и недвижимость завершают картину. В том же примере общий счёт доходит до трёх миллионов долларов.",
+        "en": "Travel, cars, and real estate complete the picture. In the same example the total reaches three million dollars."
+      }
+    },
+    {
+      "segmentId": "s06.system.s11",
+      "slideId": "s06.system",
+      "stepIds": [
+        "s06.system.s11"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Купили один раз, получаете десятилетиями. В основе этой модели актив, который продолжает работать после покупки.",
+        "en": "Buy once, earn for decades. Behind that model is an asset that keeps working after the purchase."
+      },
+      "tts": {
+        "ru": "Купили один раз, получаете десятилетиями. В основе этой модели актив, который продолжает работать после покупки.",
+        "en": "Buy once, earn for decades. Behind that model is an asset that keeps working after the purchase."
+      }
+    },
+    {
+      "segmentId": "s14.choose.s01",
+      "slideId": "s14.choose",
+      "stepIds": [
+        "s14.choose.s01"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Осталось выбрать уровень. Их десять, от GENESIS за двадцать восемь USDT до INFINITY за двадцать четыре тысячи USDT.",
+        "en": "One choice remains: the level. There are ten, from GENESIS at twenty-eight USDT to INFINITY at twenty-four thousand USDT."
+      },
+      "tts": {
+        "ru": "Осталось выбрать уровень. Их десять, от GENESIS за двадцать восемь ю эс ди ти до INFINITY за двадцать четыре тысячи ю эс ди ти.",
+        "en": "One choice remains: the level. There are ten, from GENESIS at twenty-eight U-S-D-T to INFINITY at twenty-four thousand U-S-D-T."
+      }
+    },
+    {
+      "segmentId": "s14.choose.s02",
+      "slideId": "s14.choose",
+      "stepIds": [
+        "s14.choose.s02"
+      ],
+      "actionId": "s14.choose.s02.a01",
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Чем выше уровень, тем выше потенциал: от сорока до ста двадцати процентов в год и выше по финансовым продуктам и от ста пятидесяти до трёхсот процентов в год и выше по росту DA. Выберите уровень и сравните условия под свою сумму.",
+        "en": "The higher the level, the higher the potential: forty to one hundred twenty percent a year or more on financial products, and one hundred fifty to three hundred percent a year or more in DA growth. Choose a level and compare the terms for your amount."
+      },
+      "tts": {
+        "ru": "Чем выше уровень, тем выше потенциал: от сорока до ста двадцати процентов в год и выше по финансовым продуктам и от ста пятидесяти до трёхсот процентов в год и выше по росту ди эй. Выберите уровень и сравните условия под свою сумму.",
+        "en": "The higher the level, the higher the potential: forty to one hundred twenty percent a year or more on financial products, and one hundred fifty to three hundred percent a year or more in D-A growth. Choose a level and compare the terms for your amount."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.s01",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s01"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Теперь сам FinFlow. В основе лежит рыночная нейтральность: алгоритм открывает две встречные сделки на равную сумму, одна на покупку, другая на продажу, и движение цены не решает исход.",
+        "en": "Now FinFlow itself. At its core is market neutrality: the algorithm opens two opposite trades of equal size, one to buy and one to sell, so the direction of the price does not decide the outcome."
+      },
+      "tts": {
+        "ru": "Теперь сам Финфлоу. В основе лежит рыночная нейтральность: алгоритм открывает две встречные сделки на равную сумму, одна на покупку, другая на продажу, и движение цены не решает исход.",
+        "en": "Now FinFlow itself. At its core is market neutrality: the algorithm opens two opposite trades of equal size, one to buy and one to sell, so the direction of the price does not decide the outcome."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.s02",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s02"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Доход создаёт плата за баланс. Стороны рынка почти никогда не равны, и каждые восемь часов биржа переводит плату от большей стороны к меньшей. Три платежа в сутки, тысяча девяносто пять в год.",
+        "en": "Income comes from the balance fee. The two sides of the market are almost never equal, so every eight hours the exchange moves a payment from the larger side to the smaller one. Three payments a day, one thousand ninety-five a year."
+      },
+      "tts": {
+        "ru": "Доход создаёт плата за баланс. Стороны рынка почти никогда не равны, и каждые восемь часов биржа переводит плату от большей стороны к меньшей. Три платежа в сутки, тысяча девяносто пять в год.",
+        "en": "Income comes from the balance fee. The two sides of the market are almost never equal, so every eight hours the exchange moves a payment from the larger side to the smaller one. Three payments a day, one thousand ninety-five a year."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.s03",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s03"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Второй источник работает на возврате цены к среднему. Когда цена отрывается от своего обычного уровня, алгоритм открывает сделку и закрывает её на возврате, не угадывая направление рынка.",
+        "en": "The second source works on mean reversion. When the price stretches away from its usual level, the algorithm opens a trade and closes it on the return, without guessing the market direction."
+      },
+      "tts": {
+        "ru": "Второй источник работает на возврате цены к среднему. Когда цена отрывается от своего обычного уровня, алгоритм открывает сделку и закрывает её на возврате, не угадывая направление рынка.",
+        "en": "The second source works on mean reversion. When the price stretches away from its usual level, the algorithm opens a trade and closes it on the return, without guessing the market direction."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.s04",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s04"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Третий принцип в распределении объёма: сумма делится на тысячу небольших операций, разнесённых по времени и цене, поэтому одна неудачная сделка не решает судьбу счёта.",
+        "en": "The third principle is position slicing: the amount is split into a thousand small trades spread across time and price, so one bad trade does not decide the fate of the account."
+      },
+      "tts": {
+        "ru": "Третий принцип в распределении объёма: сумма делится на тысячу небольших операций, разнесённых по времени и цене, поэтому одна неудачная сделка не решает судьбу счёта.",
+        "en": "The third principle is position slicing: the amount is split into a thousand small trades spread across time and price, so one bad trade does not decide the fate of the account."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.s05",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s05"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Три источника работают вместе: плата за баланс даёт основу, возврат к среднему добавляет, а дробление объёма ограничивает риск одной операции. Это целевая модель, и результат зависит от рынка.",
+        "en": "Three sources work together: the balance fee provides the base, mean reversion adds, and slicing limits the risk of any single trade. This is the target model, and the result depends on the market."
+      },
+      "tts": {
+        "ru": "Три источника работают вместе: плата за баланс даёт основу, возврат к среднему добавляет, а дробление объёма ограничивает риск одной операции. Это целевая модель, и результат зависит от рынка.",
+        "en": "Three sources work together: the balance fee provides the base, mean reversion adds, and slicing limits the risk of any single trade. This is the target model, and the result depends on the market."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.s02.a01",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s02"
+      ],
+      "actionId": "s08.finflow.s02.a01",
+      "trigger": {
+        "type": "action",
+        "actionId": "s08.finflow.s02.a01"
+      },
+      "display": {
+        "ru": "Посмотрите на встречные сделки в движении. Одна нога растёт вместе с рынком, вторая идёт ровно наоборот, а итог остаётся на месте.",
+        "en": "Watch the paired trades move. One leg rises with the market, the other moves the opposite way, and the total stays in place."
+      },
+      "tts": {
+        "ru": "Посмотрите на встречные сделки в движении. Одна нога растёт вместе с рынком, вторая идёт ровно наоборот, а итог остаётся на месте.",
+        "en": "Watch the paired trades move. One leg rises with the market, the other moves the opposite way, and the total stays in place."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.s04.a01",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s04"
+      ],
+      "actionId": "s08.finflow.s04.a01",
+      "trigger": {
+        "type": "action",
+        "actionId": "s08.finflow.s04.a01"
+      },
+      "display": {
+        "ru": "Уберите часть операций. Даже заметная доля сбоев задевает лишь малую часть общего объёма.",
+        "en": "Take some trades out. Even a visible share of failures touches only a small part of the total volume."
+      },
+      "tts": {
+        "ru": "Уберите часть операций. Даже заметная доля сбоев задевает лишь малую часть общего объёма.",
+        "en": "Take some trades out. Even a visible share of failures touches only a small part of the total volume."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.s04.a02",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s04"
+      ],
+      "actionId": "s08.finflow.s04.a02",
+      "trigger": {
+        "type": "action",
+        "actionId": "s08.finflow.s04.a02"
+      },
+      "display": {
+        "ru": "Возвращаем всё на место. Тысяча операций снова в работе, и объём распределён по всему счёту.",
+        "en": "Put everything back. A thousand trades are working again, with the volume spread across the account."
+      },
+      "tts": {
+        "ru": "Возвращаем всё на место. Тысяча операций снова в работе, и объём распределён по всему счёту.",
+        "en": "Put everything back. A thousand trades are working again, with the volume spread across the account."
+      }
+    },
+    {
+      "segmentId": "s07c.market.s01",
+      "slideId": "s07c.market",
+      "stepIds": [
+        "s07c.market.s01"
+      ],
+      "actionId": "s07c.market.s01.a01",
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Маркетинг в цифрах показывает, как доход растёт по линиям структуры и сколько приносит каждый уровень. Всё посчитано по модели платформы, чтобы у вас был ориентир для плана.",
+        "en": "The marketing numbers show how income grows across the lines of a structure and how much each level brings. Everything is calculated from the platform model, so you have a reference for your own plan."
+      },
+      "tts": {
+        "ru": "Маркетинг в цифрах показывает, как доход растёт по линиям структуры и сколько приносит каждый уровень. Всё посчитано по модели платформы, чтобы у вас был ориентир для плана.",
+        "en": "The marketing numbers show how income grows across the lines of a structure and how much each level brings. Everything is calculated from the platform model, so you have a reference for your own plan."
+      }
+    },
+    {
+      "segmentId": "cal.lite.s01",
+      "slideId": "cal.lite",
+      "stepIds": [
+        "cal.lite.s01"
+      ],
+      "actionId": "cal.lite.s01.a01",
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Калькулятор FinFlow считает вашу сумму от двадцати пяти до семидесяти тысяч USDT. Уровень подставляется автоматически, а в основе расчёта диапазон от одиннадцати до шестнадцати процентов в месяц. Диапазон зависит от рынка, поэтому считайте на своей сумме и своём горизонте.",
+        "en": "The FinFlow calculator works with amounts from twenty-five to seventy thousand USDT. The level fills in automatically, and the calculation runs on a range of eleven to sixteen percent a month. The range depends on the market, so run the numbers on your own amount and horizon."
+      },
+      "tts": {
+        "ru": "Калькулятор Финфлоу считает вашу сумму от двадцати пяти до семидесяти тысяч ю эс ди ти. Уровень подставляется автоматически, а в основе расчёта диапазон от одиннадцати до шестнадцати процентов в месяц. Диапазон зависит от рынка, поэтому считайте на своей сумме и своём горизонте.",
+        "en": "The FinFlow calculator works with amounts from twenty-five to seventy thousand U-S-D-T. The level fills in automatically, and the calculation runs on a range of eleven to sixteen percent a month. The range depends on the market, so run the numbers on your own amount and horizon."
+      }
+    },
+    {
+      "segmentId": "cal.lite.s01.a03",
+      "slideId": "cal.lite",
+      "stepIds": [
+        "cal.lite.s01"
+      ],
+      "actionId": "cal.lite.s01.a03",
+      "trigger": {
+        "type": "action",
+        "actionId": "cal.lite.s01.a03"
+      },
+      "display": {
+        "ru": "С ежемесячным пополнением и реинвестом калькулятор показывает, как растёт сумма. По умолчанию она упирается в лимит уровня, две тысячи семьсот USDT.",
+        "en": "With a monthly top-up and reinvest, the calculator shows how the amount grows. By default it stops at the level cap, two thousand seven hundred USDT."
+      },
+      "tts": {
+        "ru": "С ежемесячным пополнением и реинвестом калькулятор показывает, как растёт сумма. По умолчанию она упирается в лимит уровня, две тысячи семьсот ю эс ди ти.",
+        "en": "With a monthly top-up and reinvest, the calculator shows how the amount grows. By default it stops at the level cap, two thousand seven hundred U-S-D-T."
+      }
+    },
+    {
+      "segmentId": "s09.ranks.s01",
+      "slideId": "s09.ranks",
+      "stepIds": [
+        "s09.ranks.s01",
+        "s09.ranks.s02"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Карьера проходит восемь ступеней, от Beginner до CEO. Первая ступень даёт бонус пятьсот долларов или NFT, при обороте пятьдесят тысяч и личном объёме десять тысяч.",
+        "en": "The career track runs through eight levels, from Beginner to CEO. The first level pays a five hundred dollar bonus or an NFT, at fifty thousand in turnover and ten thousand in personal volume."
+      },
+      "tts": {
+        "ru": "Карьера проходит восемь ступеней, от Beginner до CEO. Первая ступень даёт бонус пятьсот долларов или энэфти, при обороте пятьдесят тысяч и личном объёме десять тысяч.",
+        "en": "The career track runs through eight levels, from Beginner to CEO. The first level pays a five hundred dollar bonus or an N-F-T, at fifty thousand in turnover and ten thousand in personal volume."
+      }
+    },
+    {
+      "segmentId": "s09.ranks.s02",
+      "slideId": "s09.ranks",
+      "stepIds": [
+        "s09.ranks.s03",
+        "s09.ranks.s04"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Partner приносит тысячу долларов или iPhone и требует двух партнёров уровня Beginner. Manager даёт две тысячи или MacBook при обороте двести пятьдесят тысяч.",
+        "en": "Partner brings one thousand dollars or an iPhone and requires two Beginner-level partners. Manager pays two thousand or a MacBook at two hundred fifty thousand in turnover."
+      },
+      "tts": {
+        "ru": "Partner приносит тысячу долларов или iPhone и требует двух партнёров уровня Beginner. Manager даёт две тысячи или MacBook при обороте двести пятьдесят тысяч.",
+        "en": "Partner brings one thousand dollars or an iPhone and requires two Beginner-level partners. Manager pays two thousand or a MacBook at two hundred fifty thousand in turnover."
+      }
+    },
+    {
+      "segmentId": "s09.ranks.s03",
+      "slideId": "s09.ranks",
+      "stepIds": [
+        "s09.ranks.s05",
+        "s09.ranks.s06",
+        "s09.ranks.s07"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Дальше Leader с четырьмя тысячами или путешествием, Senior Leader с восемью тысячами или VERTU, Director с двадцатью тысячами или Rolex. Оборот на этих ступенях доходит до трёх миллионов.",
+        "en": "Then comes Leader with four thousand or a trip, Senior Leader with eight thousand or a VERTU, Director with twenty thousand or a Rolex. Turnover at these levels reaches three million."
+      },
+      "tts": {
+        "ru": "Дальше Leader с четырьмя тысячами или путешествием, Senior Leader с восемью тысячами или VERTU, Director с двадцатью тысячами или Rolex. Оборот на этих ступенях доходит до трёх миллионов.",
+        "en": "Then comes Leader with four thousand or a trip, Senior Leader with eight thousand or a VERTU, Director with twenty thousand or a Rolex. Turnover at these levels reaches three million."
+      }
+    },
+    {
+      "segmentId": "s09.ranks.s04",
+      "slideId": "s09.ranks",
+      "stepIds": [
+        "s09.ranks.s08",
+        "s09.ranks.s09"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "На верхних ступенях Vice President даёт сотню тысяч или квартиру, а CEO сто семьдесят пять тысяч или Range Rover. Эта ступень завершает карьерную лестницу.",
+        "en": "At the top, Vice President pays one hundred thousand or an apartment, and CEO one hundred seventy-five thousand or a Range Rover. That level completes the career ladder."
+      },
+      "tts": {
+        "ru": "На верхних ступенях Vice President даёт сотню тысяч или квартиру, а CEO сто семьдесят пять тысяч или Range Rover. Эта ступень завершает карьерную лестницу.",
+        "en": "At the top, Vice President pays one hundred thousand or an apartment, and CEO one hundred seventy-five thousand or a Range Rover. That level completes the career ladder."
+      }
+    },
+    {
+      "segmentId": "s10.vip.s01",
+      "slideId": "s10.vip",
+      "stepIds": [
+        "s10.vip.s01",
+        "s10.vip.s02"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Выше карьерных рангов стоит VIP Limited Edition: двести NFT на весь мир, сто VIP и сто Ambassador. Их владельцы получают десять процентов от дохода компании.",
+        "en": "Above the career ranks sits VIP Limited Edition: two hundred NFTs worldwide, one hundred VIP and one hundred Ambassador. Their owners receive ten percent of company income."
+      },
+      "tts": {
+        "ru": "Выше карьерных рангов стоит VIP Limited Edition: двести энэфти на весь мир, сто VIP и сто Ambassador. Их владельцы получают десять процентов от дохода компании.",
+        "en": "Above the career ranks sits VIP Limited Edition: two hundred N-F-Ts worldwide, one hundred VIP and one hundred Ambassador. Their owners receive ten percent of company income."
+      }
+    },
+    {
+      "segmentId": "s10.vip.s02",
+      "slideId": "s10.vip",
+      "stepIds": [
+        "s10.vip.s03",
+        "s10.vip.s04"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Размер выплаты зависит от дохода компании, поэтому он меняется вместе с бизнесом. Чем сильнее платформа зарабатывает, тем больше получает каждый владелец.",
+        "en": "The payout depends on company income, so it moves with the business. The more the platform earns, the more each owner receives."
+      },
+      "tts": {
+        "ru": "Размер выплаты зависит от дохода компании, поэтому он меняется вместе с бизнесом. Чем сильнее платформа зарабатывает, тем больше получает каждый владелец.",
+        "en": "The payout depends on company income, so it moves with the business. The more the platform earns, the more each owner receives."
+      }
+    },
+    {
+      "segmentId": "s04.inside.s01",
+      "slideId": "s04.inside",
+      "stepIds": [
+        "s04.inside.s01"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "В вашем NFT объединены права и возможности владельца цифрового актива. Начнём с того, как он приносит доход.",
+        "en": "Your NFT brings together the rights and opportunities of owning a digital asset. Let us start with how it generates income."
+      },
+      "tts": {
+        "ru": "В вашем энэфти объединены права и возможности владельца цифрового актива. Начнём с того, как он приносит доход.",
+        "en": "Your N-F-T brings together the rights and opportunities of owning a digital asset. Let us start with how it generates income."
+      }
+    },
+    {
+      "segmentId": "s04.inside.s02",
+      "slideId": "s04.inside",
+      "stepIds": [
+        "s04.inside.s02"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Первый слой приносит доход. Он приходит от инструментов платформы и остаётся у владельца.",
+        "en": "The first layer brings income. It comes from the platform tools and stays with the owner."
+      },
+      "tts": {
+        "ru": "Первый слой приносит доход. Он приходит от инструментов платформы и остаётся у владельца.",
+        "en": "The first layer brings income. It comes from the platform tools and stays with the owner."
+      }
+    },
+    {
+      "segmentId": "s04.inside.s03",
+      "slideId": "s04.inside",
+      "stepIds": [
+        "s04.inside.s03"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Второй слой формирует капитал: это стоимость, которая остаётся внутри актива, а не тратится на текущие расходы.",
+        "en": "The second layer builds capital: the value that stays inside the asset instead of being spent on current expenses."
+      },
+      "tts": {
+        "ru": "Второй слой формирует капитал: это стоимость, которая остаётся внутри актива, а не тратится на текущие расходы.",
+        "en": "The second layer builds capital: the value that stays inside the asset instead of being spent on current expenses."
+      }
+    },
+    {
+      "segmentId": "s04.inside.s04",
+      "slideId": "s04.inside",
+      "stepIds": [
+        "s04.inside.s04"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Третий слой даёт бизнес: вы строите структуру и получаете доход от собственного NFT и работы команды.",
+        "en": "The third layer gives you a business: build a structure and earn from your own NFT and the work of your team."
+      },
+      "tts": {
+        "ru": "Третий слой даёт бизнес: вы строите структуру и получаете доход от собственного энэфти и работы команды.",
+        "en": "The third layer gives you a business: build a structure and earn from your own N-F-T and the work of your team."
+      }
+    },
+    {
+      "segmentId": "s04.inside.s05",
+      "slideId": "s04.inside",
+      "stepIds": [
+        "s04.inside.s05"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Четвёртый слой открывает доступ к RWA: реальным активам, за которыми стоит имущество.",
+        "en": "The fourth layer opens access to RWA: real assets backed by property."
+      },
+      "tts": {
+        "ru": "Четвёртый слой открывает доступ к эрвиэй: реальным активам, за которыми стоит имущество.",
+        "en": "The fourth layer opens access to RWA: real assets backed by property."
+      }
+    },
+    {
+      "segmentId": "s04.inside.s06",
+      "slideId": "s04.inside",
+      "stepIds": [
+        "s04.inside.s06"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Пятый слой отвечает за наследие: вы формируете капитал с расчётом на долгий срок.",
+        "en": "The fifth layer is about legacy: building capital for the long term."
+      },
+      "tts": {
+        "ru": "Пятый слой отвечает за наследие: вы формируете капитал с расчётом на долгий срок.",
+        "en": "The fifth layer is about legacy: building capital for the long term."
+      }
+    },
+    {
+      "segmentId": "s04.inside.s07",
+      "slideId": "s04.inside",
+      "stepIds": [
+        "s04.inside.s07"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Доход, капитал, бизнес, доступ и наследие складываются в одну систему. Это и есть ваша финансовая империя.",
+        "en": "Income, capital, business, access, and legacy come together in one system. That is your financial empire."
+      },
+      "tts": {
+        "ru": "Доход, капитал, бизнес, доступ и наследие складываются в одну систему. Это и есть ваша финансовая империя.",
+        "en": "Income, capital, business, access, and legacy come together in one system. That is your financial empire."
+      }
+    },
+    {
+      "segmentId": "sc1.machine.s01",
+      "slideId": "sc1.machine",
+      "stepIds": [
+        "sc1.machine.s01"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Школа начинается с комиссии. Банк берёт за платёж, брокер за сделку, обменник за конвертацию. Вопрос в том, куда эта комиссия уходит.",
+        "en": "The school starts with fees. A bank charges for a payment, a broker for a trade, an exchange for a conversion. The question is where that fee goes."
+      },
+      "tts": {
+        "ru": "Школа начинается с комиссии. Банк берёт за платёж, брокер за сделку, обменник за конвертацию. Вопрос в том, куда эта комиссия уходит.",
+        "en": "The school starts with fees. A bank charges for a payment, a broker for a trade, an exchange for a conversion. The question is where that fee goes."
+      }
+    },
+    {
+      "segmentId": "sc1.machine.s02",
+      "slideId": "sc1.machine",
+      "stepIds": [
+        "sc1.machine.s02"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "В этой модели ваш NFT работает как машина, которая добывает актив DA. Источником для её работы служат комиссии.",
+        "en": "In this model your NFT works like a machine that produces DA. Fees provide the resources that keep it running."
+      },
+      "tts": {
+        "ru": "В этой модели ваш энэфти работает как машина, которая добывает актив ди эй. Источником для её работы служат комиссии.",
+        "en": "In this model your N-F-T works like a machine that produces D-A. Fees provide the resources that keep it running."
+      }
+    },
+    {
+      "segmentId": "sc1.machine.s03",
+      "slideId": "sc1.machine",
+      "stepIds": [
+        "sc1.machine.s03"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Топливо собирается из четырёх частей: доля с покупки NFT, доля с продления, удержание с вознаграждений и комиссия займа.",
+        "en": "The fuel comes from four parts: a share of the NFT purchase, a share of renewals, a withholding from rewards, and a loan fee."
+      },
+      "tts": {
+        "ru": "Топливо собирается из четырёх частей: доля с покупки энэфти, доля с продления, удержание с вознаграждений и комиссия займа.",
+        "en": "The fuel comes from four parts: a share of the N-F-T purchase, a share of renewals, a withholding from rewards, and a loan fee."
+      }
+    },
+    {
+      "segmentId": "sc1.machine.s04",
+      "slideId": "sc1.machine",
+      "stepIds": [
+        "sc1.machine.s04"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Комиссия стекается в общий накопитель. Этот резерв и есть топливный бак системы, из него обеспечивается выпуск DA.",
+        "en": "The fees collect in one reserve. That reserve is the fuel tank of the system, and it backs the issuance of DA."
+      },
+      "tts": {
+        "ru": "Комиссия стекается в общий накопитель. Этот резерв и есть топливный бак системы, из него обеспечивается выпуск ди эй.",
+        "en": "The fees collect in one reserve. That reserve is the fuel tank of the system, and it backs the issuance of D-A."
+      }
+    },
+    {
+      "segmentId": "sc1.machine.s05",
+      "slideId": "sc1.machine",
+      "stepIds": [
+        "sc1.machine.s05"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Рядом находится пул ликвидности: в примере там один доллар и один токен, это состояние до начала добычи.",
+        "en": "Next to it is the liquidity pool: in the example it holds one dollar and one token, which is the state before mining begins."
+      },
+      "tts": {
+        "ru": "Рядом находится пул ликвидности: в примере там один доллар и один токен, это состояние до начала добычи.",
+        "en": "Next to it is the liquidity pool: in the example it holds one dollar and one token, which is the state before mining begins."
+      }
+    },
+    {
+      "segmentId": "sc1.machine.s06",
+      "slideId": "sc1.machine",
+      "stepIds": [
+        "sc1.machine.s06"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Сначала накапливается резерв, затем выпускается DA, и каждый выпуск заранее обеспечен. Из этого складывается цена.",
+        "en": "First the reserve builds, then DA is issued, and every issuance is backed in advance. That is how the price forms."
+      },
+      "tts": {
+        "ru": "Сначала накапливается резерв, затем выпускается ди эй, и каждый выпуск заранее обеспечен. Из этого складывается цена.",
+        "en": "First the reserve builds, then D-A is issued, and every issuance is backed in advance. That is how the price forms."
+      }
+    },
+    {
+      "segmentId": "sc2.mech.s01",
+      "slideId": "sc2.mech",
+      "stepIds": [
+        "sc2.mech.s01"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Механика работает по правилам контракта, без биржевого стакана. Разберём арифметику на примере из школы.",
+        "en": "The mechanics run on contract rules, without an order book. We walk through the arithmetic on the school example."
+      },
+      "tts": {
+        "ru": "Механика работает по правилам контракта, без биржевого стакана. Разберём арифметику на примере из школы.",
+        "en": "The mechanics run on contract rules, without an order book. We walk through the arithmetic on the school example."
+      }
+    },
+    {
+      "segmentId": "sc2.mech.s02",
+      "slideId": "sc2.mech",
+      "stepIds": [
+        "sc2.mech.s02",
+        "sc2.mech.s03"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Пять потоков пополняют резерв: покупка NFT, продление, удержание с вознаграждений, комиссия займов и внешние поступления. Все они сходятся в один накопитель, ноду.",
+        "en": "Five streams feed the reserve: NFT purchases, renewals, reward withholding, loan fees, and external inflows. They all meet in one accumulator, the node."
+      },
+      "tts": {
+        "ru": "Пять потоков пополняют резерв: покупка энэфти, продление, удержание с вознаграждений, комиссия займов и внешние поступления. Все они сходятся в один накопитель, ноду.",
+        "en": "Five streams feed the reserve: N-F-T purchases, renewals, reward withholding, loan fees, and external inflows. They all meet in one accumulator, the node."
+      }
+    },
+    {
+      "segmentId": "sc2.mech.s03",
+      "slideId": "sc2.mech",
+      "stepIds": [
+        "sc2.mech.s04",
+        "sc2.mech.s05"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "В накопителе около четырёхсот шестидесяти тысяч USDT. Пул ликвидности рядом, и из него рассчитывается цена.",
+        "en": "The accumulator holds about four hundred sixty thousand USDT. The liquidity pool sits next to it, and the price is calculated from that pool."
+      },
+      "tts": {
+        "ru": "В накопителе около четырёхсот шестидесяти тысяч ю эс ди ти. Пул ликвидности рядом, и из него рассчитывается цена.",
+        "en": "The accumulator holds about four hundred sixty thousand U-S-D-T. The liquidity pool sits next to it, and the price is calculated from that pool."
+      }
+    },
+    {
+      "segmentId": "sc2.mech.s04",
+      "slideId": "sc2.mech",
+      "stepIds": [
+        "sc2.mech.s06",
+        "sc2.mech.s07"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Участник забирает добытое: в пул уходит обеспечение в USDT и выпускаются DA на ту же сумму. Обеспечение делится на токены, и цена выходит ровно доллар.",
+        "en": "A participant withdraws what was mined: USDT backing goes into the pool and DA is issued for the same amount. The backing is divided by the tokens, and the price comes out at exactly one dollar."
+      },
+      "tts": {
+        "ru": "Участник забирает добытое: в пул уходит обеспечение в ю эс ди ти и выпускаются ди эй на ту же сумму. Обеспечение делится на токены, и цена выходит ровно доллар.",
+        "en": "A participant withdraws what was mined: U-S-D-T backing goes into the pool and D-A is issued for the same amount. The backing is divided by the tokens, and the price comes out at exactly one dollar."
+      }
+    },
+    {
+      "segmentId": "sc2.mech.s05",
+      "slideId": "sc2.mech",
+      "stepIds": [
+        "sc2.mech.s08",
+        "sc2.mech.s09"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Продажа идёт без покупателя: тридцать тысяч DA по доллару дают двадцать одну тысячу USDT, это семьдесят процентов. Токены сгорают, их становится меньше, и расчётная цена растёт.",
+        "en": "The sale happens without a buyer: thirty thousand DA at one dollar returns twenty-one thousand USDT, seventy percent. The tokens burn, supply falls, and the calculated price rises."
+      },
+      "tts": {
+        "ru": "Продажа идёт без покупателя: тридцать тысяч ди эй по доллару дают двадцать одну тысячу ю эс ди ти, это семьдесят процентов. Токены сгорают, их становится меньше, и расчётная цена растёт.",
+        "en": "The sale happens without a buyer: thirty thousand D-A at one dollar returns twenty-one thousand U-S-D-T, seventy percent. The tokens burn, supply falls, and the calculated price rises."
+      }
+    },
+    {
+      "segmentId": "sc2.mech.s06",
+      "slideId": "sc2.mech",
+      "stepIds": [
+        "sc2.mech.s10",
+        "sc2.mech.s11",
+        "sc2.mech.s12",
+        "sc2.mech.s13"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "В следующем круге выпуск идёт уже по новой цене. Токенов выпускается меньше, а обеспечение на выпуск сохраняется, затем снова продажа и сжигание.",
+        "en": "In the next cycle the issuance uses the new price. Fewer tokens are issued for the same backing, then the sale and burn repeat."
+      },
+      "tts": {
+        "ru": "В следующем круге выпуск идёт уже по новой цене. Токенов выпускается меньше, а обеспечение на выпуск сохраняется, затем снова продажа и сжигание.",
+        "en": "In the next cycle the issuance uses the new price. Fewer tokens are issued for the same backing, then the sale and burn repeat."
+      }
+    },
+    {
+      "segmentId": "sc2.mech.s07",
+      "slideId": "sc2.mech",
+      "stepIds": [
+        "sc2.mech.s14",
+        "sc2.mech.s15",
+        "sc2.mech.s16",
+        "sc2.mech.s17"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Каждый круг поднимает планку, хотя новых денег в пул не приходит. Владельцы забирают тридцать четыре тысячи семьсот девяносто восемь USDT, а цена проходит полтора, затем один шестьдесят девять.",
+        "en": "Each cycle lifts the price even though no new money enters the pool. Owners withdraw thirty-four thousand seven hundred ninety-eight USDT, and the price moves through one fifty, then one sixty-nine."
+      },
+      "tts": {
+        "ru": "Каждый круг поднимает планку, хотя новых денег в пул не приходит. Владельцы забирают тридцать четыре тысячи семьсот девяносто восемь ю эс ди ти, а цена проходит полтора, затем один шестьдесят девять.",
+        "en": "Each cycle lifts the price even though no new money enters the pool. Owners withdraw thirty-four thousand seven hundred ninety-eight U-S-D-T, and the price moves through one fifty, then one sixty-nine."
+      }
+    },
+    {
+      "segmentId": "sc2.mech.s08",
+      "slideId": "sc2.mech",
+      "stepIds": [
+        "sc2.mech.s18",
+        "sc2.mech.s19",
+        "sc2.mech.s20",
+        "sc2.mech.s21"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Дальше круги становятся меньше: сорок тысяч, потом восемь тысяч токенов с тем же эффектом. Цена переходит за два доллара.",
+        "en": "The cycles then get smaller: forty thousand, then eight thousand tokens with the same effect. The price moves above two dollars."
+      },
+      "tts": {
+        "ru": "Дальше круги становятся меньше: сорок тысяч, потом восемь тысяч токенов с тем же эффектом. Цена переходит за два доллара.",
+        "en": "The cycles then get smaller: forty thousand, then eight thousand tokens with the same effect. The price moves above two dollars."
+      }
+    },
+    {
+      "segmentId": "sc2.mech.s09",
+      "slideId": "sc2.mech",
+      "stepIds": [
+        "sc2.mech.s22",
+        "sc2.mech.s23"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Итог: расчётная цена выросла с одного доллара до двух долларов семнадцати центов без нового поступления в пул на этих шагах. Так работает модель.",
+        "en": "The example ends with the calculated price rising from one dollar to two dollars seventeen cents, with no new inflow into the pool in those steps. That is how the model works."
+      },
+      "tts": {
+        "ru": "Итог: расчётная цена выросла с одного доллара до двух долларов семнадцати центов без нового поступления в пул на этих шагах. Так работает модель.",
+        "en": "The example ends with the calculated price rising from one dollar to two dollars seventeen cents, with no new inflow into the pool in those steps. That is how the model works."
+      }
+    },
+    {
+      "segmentId": "sc3.sell.s01",
+      "slideId": "sc3.sell",
+      "stepIds": [
+        "sc3.sell.s01",
+        "sc3.sell.s02"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Выход из актива обычно требует покупателя. В этой модели покупатель не нужен, и сразу видно, что происходит, когда спроса не хватает.",
+        "en": "Selling an asset usually requires a buyer. This model does not, and you can see what happens when demand is thin."
+      },
+      "tts": {
+        "ru": "Выход из актива обычно требует покупателя. В этой модели покупатель не нужен, и сразу видно, что происходит, когда спроса не хватает.",
+        "en": "Selling an asset usually requires a buyer. This model does not, and you can see what happens when demand is thin."
+      }
+    },
+    {
+      "segmentId": "sc3.sell.s02",
+      "slideId": "sc3.sell",
+      "stepIds": [
+        "sc3.sell.s03"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Выкуп выполняет контракт из пула обеспечения по заданной формуле. Поэтому продать можно без поиска встречной стороны.",
+        "en": "The contract buys from the backing pool under a fixed formula. That is why you can sell without finding a counterparty."
+      },
+      "tts": {
+        "ru": "Выкуп выполняет контракт из пула обеспечения по заданной формуле. Поэтому продать можно без поиска встречной стороны.",
+        "en": "The contract buys from the backing pool under a fixed formula. That is why you can sell without finding a counterparty."
+      }
+    },
+    {
+      "segmentId": "sc3.sell.s03",
+      "slideId": "sc3.sell",
+      "stepIds": [
+        "sc3.sell.s04",
+        "sc3.sell.s05"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Продавать вручную тоже не нужно: партия уходит по таймеру. Первая ступень наступает через сто двадцать дней, четверть партии.",
+        "en": "You do not have to sell by hand either: the batch exits on a timer. The first step comes after one hundred twenty days, a quarter of the batch."
+      },
+      "tts": {
+        "ru": "Продавать вручную тоже не нужно: партия уходит по таймеру. Первая ступень наступает через сто двадцать дней, четверть партии.",
+        "en": "You do not have to sell by hand either: the batch exits on a timer. The first step comes after one hundred twenty days, a quarter of the batch."
+      }
+    },
+    {
+      "segmentId": "sc3.sell.s04",
+      "slideId": "sc3.sell",
+      "stepIds": [
+        "sc3.sell.s06",
+        "sc3.sell.s07",
+        "sc3.sell.s08"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Через девяносто дней уходит сорок процентов остатка, потом половина остатка, а на триста шестьдесят пятый день всё остальное, что закрывает партию.",
+        "en": "Ninety days later forty percent of the remainder goes, then half of what is left, and on day three hundred sixty-five the rest, which closes the batch."
+      },
+      "tts": {
+        "ru": "Через девяносто дней уходит сорок процентов остатка, потом половина остатка, а на триста шестьдесят пятый день всё остальное, что закрывает партию.",
+        "en": "Ninety days later forty percent of the remainder goes, then half of what is left, and on day three hundred sixty-five the rest, which closes the batch."
+      }
+    },
+    {
+      "segmentId": "sc3.sell.s05",
+      "slideId": "sc3.sell",
+      "stepIds": [
+        "sc3.sell.s09"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Три способа продажи, и в каждом часть стоимости остаётся в пуле. Поэтому продажа меняет расчётную цену токенов, которые остаются у вас.",
+        "en": "Three ways to sell, and each leaves part of the value in the pool. That is why a sale changes the calculated price of the tokens you still hold."
+      },
+      "tts": {
+        "ru": "Три способа продажи, и в каждом часть стоимости остаётся в пуле. Поэтому продажа меняет расчётную цену токенов, которые остаются у вас.",
+        "en": "Three ways to sell, and each leaves part of the value in the pool. That is why a sale changes the calculated price of the tokens you still hold."
+      }
+    },
+    {
+      "segmentId": "sc4.levels.s01",
+      "slideId": "sc4.levels",
+      "stepIds": [
+        "sc4.levels.s01"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Самый частый вопрос: обязательно ли приглашать людей. Нет, доход можно строить только на самом активе, и дальше считаем именно этот сценарий.",
+        "en": "The most common question is whether you have to invite people. You do not; income can come from the asset itself, and that is the scenario we calculate next."
+      },
+      "tts": {
+        "ru": "Самый частый вопрос: обязательно ли приглашать людей. Нет, доход можно строить только на самом активе, и дальше считаем именно этот сценарий.",
+        "en": "The most common question is whether you have to invite people. You do not; income can come from the asset itself, and that is the scenario we calculate next."
+      }
+    },
+    {
+      "segmentId": "sc4.levels.s02",
+      "slideId": "sc4.levels",
+      "stepIds": [
+        "sc4.levels.s02"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Возьмём шестой уровень: тысяча сто долларов один раз и около четырёхсот двух долларов в год. Это тридцать семь процентов от стоимости актива.",
+        "en": "Take level six: one thousand one hundred dollars once and about four hundred two dollars a year. That is thirty-seven percent of the asset price."
+      },
+      "tts": {
+        "ru": "Возьмём шестой уровень: тысяча сто долларов один раз и около четырёхсот двух долларов в год. Это тридцать семь процентов от стоимости актива.",
+        "en": "Take level six: one thousand one hundred dollars once and about four hundred two dollars a year. That is thirty-seven percent of the asset price."
+      }
+    },
+    {
+      "segmentId": "sc4.levels.s03",
+      "slideId": "sc4.levels",
+      "stepIds": [
+        "sc4.levels.s03",
+        "sc4.levels.s04"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Первый год скромный: первая партия уходит на автопродажу только через двести восемь дней. Зато к четвёртому году вложенное возвращается полностью.",
+        "en": "The first year is modest: the first batch auto-sells only after two hundred eight days. By the fourth year, though, the initial amount is fully returned."
+      },
+      "tts": {
+        "ru": "Первый год скромный: первая партия уходит на автопродажу только через двести восемь дней. Зато к четвёртому году вложенное возвращается полностью.",
+        "en": "The first year is modest: the first batch auto-sells only after two hundred eight days. By the fourth year, though, the initial amount is fully returned."
+      }
+    },
+    {
+      "segmentId": "sc4.levels.s04",
+      "slideId": "sc4.levels",
+      "stepIds": [
+        "sc4.levels.s05"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Выработка задана в долларах, поэтому при росте цены выпускается меньше токенов на ту же сумму. Отсюда и разное количество токенов в расчёте.",
+        "en": "Output is set in dollars, so a higher price means fewer tokens for the same amount. That explains the different token counts in the calculation."
+      },
+      "tts": {
+        "ru": "Выработка задана в долларах, поэтому при росте цены выпускается меньше токенов на ту же сумму. Отсюда и разное количество токенов в расчёте.",
+        "en": "Output is set in dollars, so a higher price means fewer tokens for the same amount. That explains the different token counts in the calculation."
+      }
+    },
+    {
+      "segmentId": "sc4.levels.s05",
+      "slideId": "sc4.levels",
+      "stepIds": [
+        "sc4.levels.s06"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "По расчёту возврат занимает около трёх с половиной лет, а с восьмого уровня около двух целых девяти десятых года, при этом срок зависит от сценария.",
+        "en": "In the calculation, payback takes about three and a half years, and from level eight about two point nine years, with the term depending on the scenario."
+      },
+      "tts": {
+        "ru": "По расчёту возврат занимает около трёх с половиной лет, а с восьмого уровня около двух целых девяти десятых года, при этом срок зависит от сценария.",
+        "en": "In the calculation, payback takes about three and a half years, and from level eight about two point nine years, with the term depending on the scenario."
+      }
+    },
+    {
+      "segmentId": "sc5.cycle.s01",
+      "slideId": "sc5.cycle",
+      "stepIds": [
+        "sc5.cycle.s01",
+        "sc5.cycle.s02"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "На шестом уровне NFT стоит тысячу сто долларов, а лимит дохода составляет две тысячи семьсот. Этот лимит определяет объём обязательств платформы перед владельцем.",
+        "en": "At level six the NFT costs one thousand one hundred dollars, with an income limit of two thousand seven hundred. That limit defines the platform commitment to the owner."
+      },
+      "tts": {
+        "ru": "На шестом уровне энэфти стоит тысячу сто долларов, а лимит дохода составляет две тысячи семьсот. Этот лимит определяет объём обязательств платформы перед владельцем.",
+        "en": "At level six the N-F-T costs one thousand one hundred dollars, with an income limit of two thousand seven hundred. That limit defines the platform commitment to the owner."
+      }
+    },
+    {
+      "segmentId": "sc5.cycle.s02",
+      "slideId": "sc5.cycle",
+      "stepIds": [
+        "sc5.cycle.s03"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Когда лимит выбран, NFT продлевается из заработанного на платформе. Новые деньги извне для этого не вносятся.",
+        "en": "Once the limit is reached, the NFT renews using earnings from the platform. No new money is brought in from outside for that renewal."
+      },
+      "tts": {
+        "ru": "Когда лимит выбран, энэфти продлевается из заработанного на платформе. Новые деньги извне для этого не вносятся.",
+        "en": "Once the limit is reached, the N-F-T renews using earnings from the platform. No new money is brought in from outside for that renewal."
+      }
+    },
+    {
+      "segmentId": "sc5.cycle.s03",
+      "slideId": "sc5.cycle",
+      "stepIds": [
+        "sc5.cycle.s04"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Цикл замыкается: часть продления уходит в накопитель, оттуда обеспечивается новый выпуск DA, и добыча продолжается, потому что средства двигаются внутри системы.",
+        "en": "The cycle closes: part of the renewal goes to the accumulator, which backs a new issuance of DA, and mining continues because the money moves inside the system."
+      },
+      "tts": {
+        "ru": "Цикл замыкается: часть продления уходит в накопитель, оттуда обеспечивается новый выпуск ди эй, и добыча продолжается, потому что средства двигаются внутри системы.",
+        "en": "The cycle closes: part of the renewal goes to the accumulator, which backs a new issuance of D-A, and mining continues because the money moves inside the system."
+      }
+    },
+    {
+      "segmentId": "sc5.cycle.s04",
+      "slideId": "sc5.cycle",
+      "stepIds": [
+        "sc5.cycle.s05",
+        "sc5.cycle.s06"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "В масштабе сети вложения участников составляют три и восемь десятых миллиона. По установленным лимитам платформа должна выплатить девять и шесть десятых миллиона.",
+        "en": "Across the network, participants have invested three point eight million. Under the established limits, the platform is committed to paying nine point six million."
+      },
+      "tts": {
+        "ru": "В масштабе сети вложения участников составляют три и восемь десятых миллиона. По установленным лимитам платформа должна выплатить девять и шесть десятых миллиона.",
+        "en": "Across the network, participants have invested three point eight million. Under the established limits, the platform is committed to paying nine point six million."
+      }
+    },
+    {
+      "segmentId": "sc6.now.s01",
+      "slideId": "sc6.now",
+      "stepIds": [
+        "sc6.now.s01",
+        "sc6.now.s02"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "На момент среза в сети было больше двух тысяч человек на шестом уровне и шестьдесят девять NFT с восьмого по десятый.",
+        "en": "At the time of this snapshot, the network had more than two thousand people at level six and sixty-nine NFTs across levels eight to ten."
+      },
+      "tts": {
+        "ru": "На момент среза в сети было больше двух тысяч человек на шестом уровне и шестьдесят девять энэфти с восьмого по десятый.",
+        "en": "At the time of this snapshot, the network had more than two thousand people at level six and sixty-nine N-F-Ts across levels eight to ten."
+      }
+    },
+    {
+      "segmentId": "sc6.now.s02",
+      "slideId": "sc6.now",
+      "stepIds": [
+        "sc6.now.s03"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Это полтора процента сети, и причина не в цене, а в том, что мало кто считал свой сценарий до конца.",
+        "en": "That is one and a half percent of the network, and the reason is not price; few people ran their own scenario to the end."
+      },
+      "tts": {
+        "ru": "Это полтора процента сети, и причина не в цене, а в том, что мало кто считал свой сценарий до конца.",
+        "en": "That is one and a half percent of the network, and the reason is not price; few people ran their own scenario to the end."
+      }
+    },
+    {
+      "segmentId": "sc6.now.s03",
+      "slideId": "sc6.now",
+      "stepIds": [
+        "sc6.now.s04",
+        "sc6.now.s05"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "Платформа молодая, инструментов несколько, а в школе разобран один. Второй инструмент показывает пример: счёт на тысячу долларов и шестьдесят шесть дней начислений.",
+        "en": "The platform is young, there are several tools, and the school covers one. The second tool shows an account of one thousand dollars over sixty-six days of accrual."
+      },
+      "tts": {
+        "ru": "Платформа молодая, инструментов несколько, а в школе разобран один. Второй инструмент показывает пример: счёт на тысячу долларов и шестьдесят шесть дней начислений.",
+        "en": "The platform is young, there are several tools, and the school covers one. The second tool shows an account of one thousand dollars over sixty-six days of accrual."
+      }
+    },
+    {
+      "segmentId": "sc6.now.s04",
+      "slideId": "sc6.now",
+      "stepIds": [
+        "sc6.now.s06"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "step"
+      },
+      "display": {
+        "ru": "На начальном этапе системы накопитель формируется до старта добычи. Сначала создаётся резерв для будущего выпуска DA.",
+        "en": "At the early stage of the system, the accumulator builds up before production begins. The reserve is created first to support future DA issuance."
+      },
+      "tts": {
+        "ru": "На начальном этапе системы накопитель формируется до старта добычи. Сначала создаётся резерв для будущего выпуска ди эй.",
+        "en": "At the early stage of the system, the accumulator builds up before production begins. The reserve is created first to support future D-A issuance."
+      }
+    },
+    {
+      "segmentId": "deck.slides.s00",
+      "slideId": "deck.slides",
+      "stepIds": [
+        "deck.slides.s00"
+      ],
+      "actionId": "deck.slides.s00.a01",
+      "trigger": {
+        "type": "container"
+      },
+      "display": {
+        "ru": "RWA NFT объединяет цифровой актив, источники дохода и доступ к реальному имуществу. Я покажу, как устроена эта система и что получает её участник.",
+        "en": "RWA NFT brings together a digital asset, income streams and access to real property. I will explain how the system works and what participants receive."
+      },
+      "tts": {
+        "ru": "Эрвиэй энэфти объединяет цифровой актив, источники дохода и доступ к реальному имуществу. Я покажу, как устроена эта система и что получает её участник.",
+        "en": "R-W-A N-F-T brings together a digital asset, income streams and access to real property. I will explain how the system works and what participants receive."
+      }
+    },
+    {
+      "segmentId": "deck.school.s00",
+      "slideId": "deck.school",
+      "stepIds": [
+        "deck.school.s00"
+      ],
+      "actionId": null,
+      "trigger": {
+        "type": "container"
+      },
+      "display": {
+        "ru": "Отдельный раздел называется школа. Шесть частей: машина, механика роста, продажа, уровни, цикл и текущее состояние. Здесь разобрана вся модель.",
+        "en": "A separate section is the school. Six parts: the machine, growth mechanics, selling, levels, the cycle, and the current state. The whole model is laid out here."
+      },
+      "tts": {
+        "ru": "Отдельный раздел называется школа. Шесть частей: машина, механика роста, продажа, уровни, цикл и текущее состояние. Здесь разобрана вся модель.",
+        "en": "A separate section is the school. Six parts: the machine, growth mechanics, selling, levels, the cycle, and the current state. The whole model is laid out here."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.formula-1",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s01"
+      ],
+      "actionId": "finflow.formulas.card-1",
+      "trigger": {
+        "type": "action",
+        "actionId": "finflow.formulas.card-1"
+      },
+      "display": {
+        "ru": "Первая формула отвечает за рыночную нейтральность. Позиции объединяют так, чтобы результат меньше зависел от направления рынка.",
+        "en": "The first formula handles market neutrality. Positions are combined so the result depends less on the market direction."
+      },
+      "tts": {
+        "ru": "Первая формула отвечает за рыночную нейтральность. Позиции объединяют так, чтобы результат меньше зависел от направления рынка.",
+        "en": "The first formula handles market neutrality. Positions are combined so the result depends less on the market direction."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.formula-2",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s01"
+      ],
+      "actionId": "finflow.formulas.card-2",
+      "trigger": {
+        "type": "action",
+        "actionId": "finflow.formulas.card-2"
+      },
+      "display": {
+        "ru": "Вторая формула задаёт размер одной операции по методу Келли. Капитал делится так, чтобы риск на сделку был рассчитан заранее, а не выбран на эмоциях.",
+        "en": "The second formula sets position size using the Kelly method. Capital is allocated so the risk per trade is calculated in advance rather than chosen on emotion."
+      },
+      "tts": {
+        "ru": "Вторая формула задаёт размер одной операции по методу Келли. Капитал делится так, чтобы риск на сделку был рассчитан заранее, а не выбран на эмоциях.",
+        "en": "The second formula sets position size using the Kelly method. Capital is allocated so the risk per trade is calculated in advance rather than chosen on emotion."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.formula-3",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s01"
+      ],
+      "actionId": "finflow.formulas.card-3",
+      "trigger": {
+        "type": "action",
+        "actionId": "finflow.formulas.card-3"
+      },
+      "display": {
+        "ru": "Третья формула оценивает потери при редких неблагоприятных событиях. Расчёт помогает выбрать объём операции с учётом таких сценариев; фактический убыток может оказаться больше оценки.",
+        "en": "The third formula estimates losses from rare adverse events. The estimate helps size trades for those scenarios; the actual loss can exceed that estimate."
+      },
+      "tts": {
+        "ru": "Третья формула оценивает потери при редких неблагоприятных событиях. Расчёт помогает выбрать объём операции с учётом таких сценариев; фактический убыток может оказаться больше оценки.",
+        "en": "The third formula estimates losses from rare adverse events. The estimate helps size trades for those scenarios; the actual loss can exceed that estimate."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.formula-4",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s01"
+      ],
+      "actionId": "finflow.formulas.card-4",
+      "trigger": {
+        "type": "action",
+        "actionId": "finflow.formulas.card-4"
+      },
+      "display": {
+        "ru": "Четвёртая формула сокращает объём при просадке. Чем глубже просадка, тем меньше расчётный размер позиции, вместо попытки отыграться.",
+        "en": "The fourth formula cuts size in a drawdown. The deeper the drawdown, the smaller the calculated position, instead of trying to win it back."
+      },
+      "tts": {
+        "ru": "Четвёртая формула сокращает объём при просадке. Чем глубже просадка, тем меньше расчётный размер позиции, вместо попытки отыграться.",
+        "en": "The fourth formula cuts size in a drawdown. The deeper the drawdown, the smaller the calculated position, instead of trying to win it back."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.formula-5",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s01"
+      ],
+      "actionId": "finflow.formulas.card-5",
+      "trigger": {
+        "type": "action",
+        "actionId": "finflow.formulas.card-5"
+      },
+      "display": {
+        "ru": "Пятая формула задаёт порог выхода. Он подстраивается под размах рыночных колебаний, поэтому в спокойном и в волатильном рынке расстояние до выхода разное.",
+        "en": "The fifth formula sets the exit threshold. It adapts to the range of market swings, so the exit sits at a different distance in a calm and a volatile market."
+      },
+      "tts": {
+        "ru": "Пятая формула задаёт порог выхода. Он подстраивается под размах рыночных колебаний, поэтому в спокойном и в волатильном рынке расстояние до выхода разное.",
+        "en": "The fifth formula sets the exit threshold. It adapts to the range of market swings, so the exit sits at a different distance in a calm and a volatile market."
+      }
+    },
+    {
+      "segmentId": "s08.finflow.formula-6",
+      "slideId": "s08.finflow",
+      "stepIds": [
+        "s08.finflow.s01"
+      ],
+      "actionId": "finflow.formulas.card-6",
+      "trigger": {
+        "type": "action",
+        "actionId": "finflow.formulas.card-6"
+      },
+      "display": {
+        "ru": "Шестая формула фильтрует объём. Перед входом модель требует, чтобы движение цены сопровождалось достаточным объёмом.",
+        "en": "The sixth formula filters volume. Before entering, the model requires the price move to come with enough volume."
+      },
+      "tts": {
+        "ru": "Шестая формула фильтрует объём. Перед входом модель требует, чтобы движение цены сопровождалось достаточным объёмом.",
+        "en": "The sixth formula filters volume. Before entering, the model requires the price move to come with enough volume."
+      }
+    }
+  ]
+}

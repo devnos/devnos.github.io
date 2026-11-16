@@ -1,0 +1,299 @@
+/* Narration bar. Scoped under #voiceRoot, deck colours only. */
+#voiceRoot {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(18px, 3.2vh, 38px);
+  transform: translateX(-50%);
+  /* #screenModal is 10000; controls must remain usable above its iframe. */
+  z-index: 10001;
+  width: min(720px, calc(100vw - 280px));
+  pointer-events: none;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  color: #f5f5f7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Speaker mode has no permanent panel. The only default child is a screen
+ * reader live region, absolutely positioned so an empty #voiceRoot keeps a
+ * zero-sized, non-interactive box that never covers slide content.
+ */
+#voiceRoot .voice-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+#voiceRoot .voice-bar {
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: auto auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 8px 8px;
+  border: 1px solid rgba(212, 168, 87, 0.28);
+  border-radius: 16px;
+  background: rgba(8, 8, 12, 0.86);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(16px);
+  transition: border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+#voiceRoot .voice-bar[data-state="playing"] {
+  border-color: rgba(240, 198, 116, 0.6);
+  box-shadow: 0 0 26px rgba(212, 168, 87, 0.16), 0 14px 40px rgba(0, 0, 0, 0.55);
+}
+/* Screens without voice hooks stay visually clean; only hooked FinFlow shows controls. */
+#voiceRoot .voice-bar[data-state="no-slide"] {
+  display: none;
+}
+#voiceRoot .voice-bar[data-state="unavailable"],
+#voiceRoot .voice-bar[data-state="blocked"],
+#voiceRoot .voice-bar[data-state="error"] {
+  border-color: rgba(212, 168, 87, 0.42);
+}
+#voiceRoot .voice-bar[data-state="unsupported"],
+#voiceRoot .voice-bar[data-state="data-error"] {
+  border-color: rgba(212, 112, 122, 0.55);
+}
+
+#voiceRoot .voice-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 7px 13px 7px 10px;
+  border: 1px solid rgba(212, 168, 87, 0.38);
+  border-radius: 999px;
+  background: linear-gradient(160deg, rgba(212, 168, 87, 0.16), rgba(212, 168, 87, 0.04));
+  color: #f0c674;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s, opacity 0.2s;
+}
+#voiceRoot .voice-primary:hover:not(:disabled) {
+  border-color: rgba(240, 198, 116, 0.8);
+  box-shadow: 0 0 22px rgba(212, 168, 87, 0.22);
+  transform: translateY(-1px);
+}
+#voiceRoot .voice-primary:disabled {
+  cursor: default;
+  opacity: 0.62;
+}
+#voiceRoot .voice-primary-icon,
+#voiceRoot .voice-primary-icon svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+#voiceRoot .voice-primary-label {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+#voiceRoot .voice-repeat,
+#voiceRoot .voice-off,
+#voiceRoot .voice-expand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(245, 245, 247, 0.14);
+  border-radius: 10px;
+  background: rgba(245, 245, 247, 0.04);
+  color: rgba(245, 245, 247, 0.7);
+  cursor: pointer;
+  transition: color 0.25s, border-color 0.25s, opacity 0.25s;
+}
+#voiceRoot .voice-expand {
+  display: none;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 7.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+#voiceRoot .voice-repeat:hover:not(:disabled),
+#voiceRoot .voice-off:hover,
+#voiceRoot .voice-expand:hover {
+  color: #f0c674;
+  border-color: rgba(240, 198, 116, 0.5);
+}
+#voiceRoot .voice-repeat:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+#voiceRoot .voice-repeat svg,
+#voiceRoot .voice-off svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+#voiceRoot .voice-off[aria-pressed="true"] {
+  color: rgba(245, 245, 247, 0.42);
+  border-color: rgba(245, 245, 247, 0.1);
+}
+
+#voiceRoot .voice-copy {
+  min-width: 0;
+  padding: 0 5px 0 3px;
+}
+#voiceRoot .voice-status {
+  display: block;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(240, 198, 116, 0.72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#voiceRoot .voice-transcript {
+  margin-top: 3px;
+  display: block;
+  max-height: 4.26em;
+  overflow-y: auto;
+  font-size: 12.5px;
+  line-height: 1.42;
+  color: rgba(245, 245, 247, 0.8);
+}
+#voiceRoot .voice-transcript[hidden] {
+  display: none;
+}
+#voiceRoot .voice-bar:not(.has-text) .voice-copy {
+  padding-top: 0;
+}
+
+/* Honest "not connected / loading / failed" state: no dead controls. */
+#voiceRoot .voice-bar[data-state="no-slide"],
+#voiceRoot .voice-bar[data-state="loading"],
+#voiceRoot .voice-bar[data-state="data-error"] {
+  grid-template-columns: 1fr;
+}
+#voiceRoot .voice-bar[data-state="no-slide"] .voice-repeat,
+#voiceRoot .voice-bar[data-state="no-slide"] .voice-off,
+#voiceRoot .voice-bar[data-state="no-slide"] .voice-expand,
+#voiceRoot .voice-bar[data-state="no-slide"] .voice-copy,
+#voiceRoot .voice-bar[data-state="loading"] .voice-repeat,
+#voiceRoot .voice-bar[data-state="loading"] .voice-off,
+#voiceRoot .voice-bar[data-state="loading"] .voice-expand,
+#voiceRoot .voice-bar[data-state="loading"] .voice-copy,
+#voiceRoot .voice-bar[data-state="data-error"] .voice-repeat,
+#voiceRoot .voice-bar[data-state="data-error"] .voice-off,
+#voiceRoot .voice-bar[data-state="data-error"] .voice-expand,
+#voiceRoot .voice-bar[data-state="data-error"] .voice-copy {
+  display: none;
+}
+#voiceRoot .voice-bar[data-state="no-slide"] .voice-primary,
+#voiceRoot .voice-bar[data-state="loading"] .voice-primary,
+#voiceRoot .voice-bar[data-state="data-error"] .voice-primary {
+  border-color: transparent;
+  background: transparent;
+  opacity: 0.72;
+}
+#voiceRoot .voice-bar[data-state="unsupported"] .voice-status {
+  white-space: normal;
+  line-height: 1.45;
+  letter-spacing: 0.08em;
+}
+#voiceRoot .voice-bar[data-state="unsupported"] .voice-repeat {
+  display: none;
+}
+
+#voiceRoot .voice-primary:focus-visible,
+#voiceRoot .voice-repeat:focus-visible,
+#voiceRoot .voice-off:focus-visible,
+#voiceRoot .voice-expand:focus-visible {
+  outline: 2px solid #f0c674;
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  #voiceRoot {
+    left: 48px;
+    right: 48px;
+    bottom: 12px;
+    width: auto;
+    transform: none;
+  }
+  #voiceRoot .voice-bar {
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    gap: 5px;
+    padding: 5px 6px;
+    border-radius: 12px;
+  }
+  #voiceRoot .voice-copy {
+    display: none;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding: 2px 3px 3px;
+  }
+  #voiceRoot .voice-bar.expanded .voice-copy {
+    display: block;
+  }
+  #voiceRoot .voice-primary {
+    justify-content: center;
+    min-width: 0;
+    min-height: 32px;
+    padding: 5px 9px 5px 8px;
+  }
+  #voiceRoot .voice-primary-label {
+    font-size: 8px;
+    letter-spacing: 0.06em;
+  }
+  #voiceRoot .voice-repeat,
+  #voiceRoot .voice-off,
+  #voiceRoot .voice-expand {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+  #voiceRoot .voice-expand {
+    display: inline-flex;
+    font-size: 7px;
+  }
+  #voiceRoot .voice-transcript {
+    font-size: 11.5px;
+    -webkit-line-clamp: 3;
+  }
+  #voiceRoot .voice-bar.expanded .voice-transcript {
+    -webkit-line-clamp: unset;
+    max-height: 30vh;
+    overflow-y: auto;
+  }
+  #voiceRoot .voice-bar:not(.has-text) .voice-expand {
+    display: none;
+  }
+  #voiceRoot .voice-bar[data-state="no-slide"] .voice-primary-label,
+  #voiceRoot .voice-bar[data-state="loading"] .voice-primary-label,
+  #voiceRoot .voice-bar[data-state="data-error"] .voice-primary-label {
+    white-space: normal;
+    text-align: left;
+  }
+  #voiceRoot .voice-bar[data-state="no-slide"],
+  #voiceRoot .voice-bar[data-state="loading"],
+  #voiceRoot .voice-bar[data-state="data-error"] {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #voiceRoot .voice-primary,
+  #voiceRoot .voice-bar {
+    transition: none;
+  }
+}

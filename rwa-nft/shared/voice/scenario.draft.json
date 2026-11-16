@@ -1,0 +1,2494 @@
+{
+ "meta": {
+  "version": "draft-1 — на согласование, платная генерация не запускалась",
+  "generated": "2026-11-15",
+  "source_root": "/root/hermes-workspace/rwa-nft-voice/source/presentation_v2_deploy",
+  "languages": [
+   "ru",
+   "en"
+  ],
+  "pronunciation": {
+   "ru": {
+    "RWA NFT": "Эрвиэй энэфти",
+    "FinFlow": "Финфлоу",
+    "DA": "ди эй",
+    "USDT": "ю эс ди ти"
+   },
+   "note": "RU-строки подтверждены пользователем 2026-11-15 (RWA NFT — последняя правка: «Эрвиэй энэфти»). EN-произношение не подтверждено: в TTS-тексте оставлено латиницей, помечено pending."
+  },
+  "rules": [
+   "display — то, что показываем как текст реплики; tts — то, что уходит в синтез",
+   "в tts подставлены подтверждённые расшифровки: Эрвиэй энэфти, Финфлоу, ди эй, ю эс ди ти",
+   "цифры доходности не добавляются; оговорки источника сохраняются",
+   "сегмент играет при входе на первый шаг из stepIds; повторный вход на следующие шаги его не перезапускает",
+   "при смене языка играет тот же segmentId на другом языке, с начала, только если звук был активен",
+   "если на одном шаге несколько реплик (cal.lite), они играют очередью: в один момент звучит только один файл"
+  ],
+  "unconfirmed_terms": [
+   "FinPro",
+   "GENESIS",
+   "ADVANCE",
+   "ASCEND",
+   "ECLIPSE",
+   "HYDRO",
+   "QUANTUM",
+   "PULSE",
+   "AURORA",
+   "FLAME",
+   "INFINITY",
+   "iPhone",
+   "MacBook",
+   "VERTU",
+   "Rolex",
+   "Range Rover"
+  ],
+  "chars_display": {
+   "ru": 10615,
+   "en": 11205
+  },
+  "chars_tts": {
+   "ru": 10723,
+   "en": 11205
+  },
+  "segments": 79,
+  "chars_by_slide": {
+   "deck.slides": {
+    "segments": 1,
+    "display": {
+     "ru": 120,
+     "en": 133
+    },
+    "tts": {
+     "ru": 126,
+     "en": 133
+    }
+   },
+   "s01.imagine": {
+    "segments": 3,
+    "display": {
+     "ru": 399,
+     "en": 423
+    },
+    "tts": {
+     "ru": 405,
+     "en": 423
+    }
+   },
+   "s02.bridge": {
+    "segments": 5,
+    "display": {
+     "ru": 615,
+     "en": 637
+    },
+    "tts": {
+     "ru": 621,
+     "en": 637
+    }
+   },
+   "s06.system": {
+    "segments": 11,
+    "display": {
+     "ru": 1321,
+     "en": 1308
+    },
+    "tts": {
+     "ru": 1327,
+     "en": 1308
+    }
+   },
+   "s14.choose": {
+    "segments": 2,
+    "display": {
+     "ru": 306,
+     "en": 295
+    },
+    "tts": {
+     "ru": 315,
+     "en": 295
+    }
+   },
+   "s08.finflow": {
+    "segments": 6,
+    "display": {
+     "ru": 945,
+     "en": 1016
+    },
+    "tts": {
+     "ru": 945,
+     "en": 1016
+    }
+   },
+   "s07c.market": {
+    "segments": 1,
+    "display": {
+     "ru": 154,
+     "en": 170
+    },
+    "tts": {
+     "ru": 157,
+     "en": 170
+    }
+   },
+   "cal.lite": {
+    "segments": 3,
+    "display": {
+     "ru": 406,
+     "en": 451
+    },
+    "tts": {
+     "ru": 418,
+     "en": 451
+    }
+   },
+   "s09.ranks": {
+    "segments": 4,
+    "display": {
+     "ru": 710,
+     "en": 722
+    },
+    "tts": {
+     "ru": 710,
+     "en": 722
+    }
+   },
+   "s10.vip": {
+    "segments": 2,
+    "display": {
+     "ru": 258,
+     "en": 282
+    },
+    "tts": {
+     "ru": 261,
+     "en": 282
+    }
+   },
+   "s04.inside": {
+    "segments": 7,
+    "display": {
+     "ru": 580,
+     "en": 583
+    },
+    "tts": {
+     "ru": 580,
+     "en": 583
+    }
+   },
+   "deck.school": {
+    "segments": 1,
+    "display": {
+     "ru": 135,
+     "en": 179
+    },
+    "tts": {
+     "ru": 135,
+     "en": 179
+    }
+   },
+   "sc1.machine": {
+    "segments": 6,
+    "display": {
+     "ru": 828,
+     "en": 844
+    },
+    "tts": {
+     "ru": 843,
+     "en": 844
+    }
+   },
+   "sc2.mech": {
+    "segments": 9,
+    "display": {
+     "ru": 1343,
+     "en": 1425
+    },
+    "tts": {
+     "ru": 1370,
+     "en": 1425
+    }
+   },
+   "sc3.sell": {
+    "segments": 5,
+    "display": {
+     "ru": 632,
+     "en": 695
+    },
+    "tts": {
+     "ru": 632,
+     "en": 695
+    }
+   },
+   "sc4.levels": {
+    "segments": 5,
+    "display": {
+     "ru": 675,
+     "en": 718
+    },
+    "tts": {
+     "ru": 675,
+     "en": 718
+    }
+   },
+   "sc5.cycle": {
+    "segments": 4,
+    "display": {
+     "ru": 659,
+     "en": 714
+    },
+    "tts": {
+     "ru": 671,
+     "en": 714
+    }
+   },
+   "sc6.now": {
+    "segments": 4,
+    "display": {
+     "ru": 529,
+     "en": 610
+    },
+    "tts": {
+     "ru": 532,
+     "en": 610
+    }
+   }
+  },
+  "status": "draft-adapter-fixture",
+  "schemaVersionSource": "planning/narration-draft.json",
+  "note": "Runtime snapshot adapted from the planning draft. Not approved narration. Canonical scenario.json supersedes this file once the parent compiles it."
+ },
+ "segments": [
+  {
+   "segmentId": "deck.slides.s00",
+   "slideId": "deck.slides",
+   "stepIds": [
+    "deck.slides.s00"
+   ],
+   "actionId": "deck.slides.s00.a01",
+   "title": "Лаунчер: приглашение включить звук",
+   "display": {
+    "ru": "RWA NFT. Интерактивная презентация. Включите звук — я объясню каждый шаг. Листать можно стрелками, колесом или нажатием.",
+    "en": "RWA NFT. An interactive presentation. Turn the sound on and I will explain each step. Move with the arrow keys, the wheel or a click."
+   },
+   "tts": {
+    "ru": "Эрвиэй энэфти. Интерактивная презентация. Включите звук — я объясню каждый шаг. Листать можно стрелками, колесом или нажатием.",
+    "en": "RWA NFT. An interactive presentation. Turn the sound on and I will explain each step. Move with the arrow keys, the wheel or a click."
+   },
+   "chars": {
+    "ru": 120,
+    "en": 133
+   },
+   "ttsChars": {
+    "ru": 126,
+    "en": 133
+   },
+   "grounding": "Задание, раздел 5 (элементы «Начать со звуком»); index.html: нет такого элемента — только план",
+   "flags": [
+    "ui-missing"
+   ]
+  },
+  {
+   "segmentId": "s01.imagine.s01",
+   "slideId": "s01.imagine",
+   "stepIds": [
+    "s01.imagine.s01"
+   ],
+   "actionId": null,
+   "title": "Тёмная заставка: RWA NFT / Начало новой реальности",
+   "display": {
+    "ru": "Начнём с простой сцены. Отель у моря — чужой актив. Люди отдыхают, владелец получает доход, а вы в этой сделке только гость.",
+    "en": "We start with a simple scene. A hotel by the sea belongs to someone else. People rest, the owner earns, and in that deal you are only a guest."
+   },
+   "tts": {
+    "ru": "Начнём с простой сцены. Отель у моря — чужой актив. Люди отдыхают, владелец получает доход, а вы в этой сделке только гость.",
+    "en": "We start with a simple scene. A hotel by the sea belongs to someone else. People rest, the owner earns, and in that deal you are only a guest."
+   },
+   "chars": {
+    "ru": 124,
+    "en": 142
+   },
+   "ttsChars": {
+    "ru": 124,
+    "en": 142
+   },
+   "grounding": "slide_01_imagine.html:869-872 (комментарий шагов), 715-718",
+   "flags": []
+  },
+  {
+   "segmentId": "s01.imagine.s02",
+   "slideId": "s01.imagine",
+   "stepIds": [
+    "s01.imagine.s02"
+   ],
+   "actionId": null,
+   "title": "Чистый стоп-кадр видео",
+   "display": {
+    "ru": "Пока это только кадр. Дальше вопрос: может ли такой актив работать на вас, а не на кого-то другого.",
+    "en": "For now it is only a frame. The question is whether an asset like this can work for you, not for somebody else."
+   },
+   "tts": {
+    "ru": "Пока это только кадр. Дальше вопрос: может ли такой актив работать на вас, а не на кого-то другого.",
+    "en": "For now it is only a frame. The question is whether an asset like this can work for you, not for somebody else."
+   },
+   "chars": {
+    "ru": 99,
+    "en": 111
+   },
+   "ttsChars": {
+    "ru": 99,
+    "en": 111
+   },
+   "grounding": "slide_01_imagine.html:917-928 (step>=1 снимает затенение и титры)",
+   "flags": []
+  },
+  {
+   "segmentId": "s01.imagine.s03",
+   "slideId": "s01.imagine",
+   "stepIds": [
+    "s01.imagine.s03"
+   ],
+   "actionId": null,
+   "title": "Видео и три киноплашки",
+   "display": {
+    "ru": "Смотрите, что меняется. Люди отдыхают, владелец получает доход. Но может быть иначе: вы совладелец, и доход получаете вы. Один актив, разделённый на доли, — это и есть RWA NFT.",
+    "en": "Watch what changes. People rest, the owner earns. But it can be different: you are a co-owner, and the income comes to you. One asset split into shares — that is RWA NFT."
+   },
+   "tts": {
+    "ru": "Смотрите, что меняется. Люди отдыхают, владелец получает доход. Но может быть иначе: вы совладелец, и доход получаете вы. Один актив, разделённый на доли, — это и есть Эрвиэй энэфти.",
+    "en": "Watch what changes. People rest, the owner earns. But it can be different: you are a co-owner, and the income comes to you. One asset split into shares — that is RWA NFT."
+   },
+   "chars": {
+    "ru": 176,
+    "en": 170
+   },
+   "ttsChars": {
+    "ru": 182,
+    "en": 170
+   },
+   "grounding": "slide_01_imagine.html:887-915 (три плашки: 1 с, 5.4 с, 13.35 с)",
+   "flags": []
+  },
+  {
+   "segmentId": "s02.bridge.s01",
+   "slideId": "s02.bridge",
+   "stepIds": [
+    "s02.bridge.s01"
+   ],
+   "actionId": null,
+   "title": "Композиция «Раньше»: доступ у избранных",
+   "display": {
+    "ru": "Раньше доступ к надёжным активам был у избранных. Банки, фонды, миллионеры: билет измерялся капиталом, а не интересом.",
+    "en": "Access to reliable assets used to belong to the few. Banks, funds, millionaires: the ticket was measured in capital, not in interest."
+   },
+   "tts": {
+    "ru": "Раньше доступ к надёжным активам был у избранных. Банки, фонды, миллионеры: билет измерялся капиталом, а не интересом.",
+    "en": "Access to reliable assets used to belong to the few. Banks, funds, millionaires: the ticket was measured in capital, not in interest."
+   },
+   "chars": {
+    "ru": 118,
+    "en": 133
+   },
+   "ttsChars": {
+    "ru": 118,
+    "en": 133
+   },
+   "grounding": "slide_02_bridge.html:480-499; i18n.js s02.before.*",
+   "flags": []
+  },
+  {
+   "segmentId": "s02.bridge.s02",
+   "slideId": "s02.bridge",
+   "stepIds": [
+    "s02.bridge.s02"
+   ],
+   "actionId": null,
+   "title": "Раскрытие «1%» + список и подпись",
+   "display": {
+    "ru": "Дальше на экране цифра один процент и три закрытые двери: банки, фонды, миллионеры. Подпись прямо говорит: надёжные активы только для крупного капитала.",
+    "en": "Then comes the figure of one percent and three locked doors: banks, funds, millionaires. The caption says it plainly: reliable assets only for large capital."
+   },
+   "tts": {
+    "ru": "Дальше на экране цифра один процент и три закрытые двери: банки, фонды, миллионеры. Подпись прямо говорит: надёжные активы только для крупного капитала.",
+    "en": "Then comes the figure of one percent and three locked doors: banks, funds, millionaires. The caption says it plainly: reliable assets only for large capital."
+   },
+   "chars": {
+    "ru": 152,
+    "en": 157
+   },
+   "ttsChars": {
+    "ru": 152,
+    "en": 157
+   },
+   "grounding": "slide_02_bridge.html:489-510 (big-number 1%, data-list before-1..3, s02.before.note)",
+   "flags": [
+    "claim-unmeasured"
+   ]
+  },
+  {
+   "segmentId": "s02.bridge.s03",
+   "slideId": "s02.bridge",
+   "stepIds": [
+    "s02.bridge.s03"
+   ],
+   "actionId": null,
+   "title": "Золотая вспышка, смена фото на «Сейчас»",
+   "display": {
+    "ru": "Вспышка — и та же сцена меняется. Вместо «раньше» появляется «сейчас», а границы, которые держали доступ, стираются.",
+    "en": "A flash, and the same scene changes. Instead of before we get now, and the borders that held access dissolve."
+   },
+   "tts": {
+    "ru": "Вспышка — и та же сцена меняется. Вместо «раньше» появляется «сейчас», а границы, которые держали доступ, стираются.",
+    "en": "A flash, and the same scene changes. Instead of before we get now, and the borders that held access dissolve."
+   },
+   "chars": {
+    "ru": 116,
+    "en": 109
+   },
+   "ttsChars": {
+    "ru": 116,
+    "en": 109
+   },
+   "grounding": "slide_02_bridge.html:728-733, 700-721",
+   "flags": []
+  },
+  {
+   "segmentId": "s02.bridge.s04",
+   "slideId": "s02.bridge",
+   "stepIds": [
+    "s02.bridge.s04"
+   ],
+   "actionId": null,
+   "title": "Раскрытие «100%»: доступ есть у каждого",
+   "display": {
+    "ru": "Сто процентов и подпись: доступ есть у каждого. Это заявление платформы, а не измеренный факт. Дальше смотрим, из чего оно складывается.",
+    "en": "One hundred percent, and the line: access is open to everyone. That is the platform's claim, not a measured fact. Next we look at what it is built on."
+   },
+   "tts": {
+    "ru": "Сто процентов и подпись: доступ есть у каждого. Это заявление платформы, а не измеренный факт. Дальше смотрим, из чего оно складывается.",
+    "en": "One hundred percent, and the line: access is open to everyone. That is the platform's claim, not a measured fact. Next we look at what it is built on."
+   },
+   "chars": {
+    "ru": 136,
+    "en": 150
+   },
+   "ttsChars": {
+    "ru": 136,
+    "en": 150
+   },
+   "grounding": "slide_02_bridge.html:717-718 (step>=3), s02.hero",
+   "flags": [
+    "claim-unmeasured"
+   ]
+  },
+  {
+   "segmentId": "s02.bridge.s05",
+   "slideId": "s02.bridge",
+   "stepIds": [
+    "s02.bridge.s05"
+   ],
+   "actionId": null,
+   "title": "Финальная плашка «RWA NFT растворил ограничения»",
+   "display": {
+    "ru": "Итог главы: RWA NFT растворяет ограничение по размеру капитала. Как именно — следующий слайд.",
+    "en": "The takeaway: RWA NFT dissolves the capital-size limit. How exactly — on the next slide."
+   },
+   "tts": {
+    "ru": "Итог главы: Эрвиэй энэфти растворяет ограничение по размеру капитала. Как именно — следующий слайд.",
+    "en": "The takeaway: RWA NFT dissolves the capital-size limit. How exactly — on the next slide."
+   },
+   "chars": {
+    "ru": 93,
+    "en": 88
+   },
+   "ttsChars": {
+    "ru": 99,
+    "en": 88
+   },
+   "grounding": "slide_02_bridge.html:696-721 (finalPill, step===4)",
+   "flags": []
+  },
+  {
+   "segmentId": "s06.system.s01",
+   "slideId": "s06.system",
+   "stepIds": [
+    "s06.system.s01"
+   ],
+   "actionId": "s06.system.s01.a01",
+   "title": "Схема: NFT в центре, шесть потоков, два выхода",
+   "display": {
+    "ru": "Перед нами схема платформы: NFT в центре, шесть потоков вокруг и два выхода — банковская карта и DeFi. Разберём потоки по одному.",
+    "en": "Here is the platform map: the NFT in the centre, six streams around it, and two exits — a bank card and DeFi. We take the streams one by one."
+   },
+   "tts": {
+    "ru": "Перед нами схема платформы: энэфти в центре, шесть потоков вокруг и два выхода — банковская карта и DeFi. Разберём потоки по одному.",
+    "en": "Here is the platform map: the NFT in the centre, six streams around it, and two exits — a bank card and DeFi. We take the streams one by one."
+   },
+   "chars": {
+    "ru": 129,
+    "en": 141
+   },
+   "ttsChars": {
+    "ru": 132,
+    "en": 141
+   },
+   "grounding": "slide_06_system.html:1064-1070, 1550-1570; step(): n>=1 eyebrow+NFT",
+   "flags": []
+  },
+  {
+   "segmentId": "s06.system.s02",
+   "slideId": "s06.system",
+   "stepIds": [
+    "s06.system.s02"
+   ],
+   "actionId": "s06.system.s02.a01",
+   "title": "Поток 1: FinPro (перевёртыш с видео)",
+   "display": {
+    "ru": "Первый поток — FinPro. Это вход в инструмент FinFlow: у карточки есть лицевая сторона, а на обороте видео. Внутри спрятаны две кнопки: «как это работает» и «рассчитать доход».",
+    "en": "The first stream is FinPro, the entry into FinFlow. The card has a front and a video on the back. Two buttons sit behind it: how it works, and calculate income."
+   },
+   "tts": {
+    "ru": "Первый поток — FinPro. Это вход в инструмент Финфлоу: у карточки есть лицевая сторона, а на обороте видео. Внутри спрятаны две кнопки: «как это работает» и «рассчитать доход».",
+    "en": "The first stream is FinPro, the entry into FinFlow. The card has a front and a video on the back. Two buttons sit behind it: how it works, and calculate income."
+   },
+   "chars": {
+    "ru": 175,
+    "en": 160
+   },
+   "ttsChars": {
+    "ru": 175,
+    "en": 160
+   },
+   "grounding": "slide_06_system.html:1069-1160, 2246-2319",
+   "flags": []
+  },
+  {
+   "segmentId": "s06.system.s03",
+   "slideId": "s06.system",
+   "stepIds": [
+    "s06.system.s03"
+   ],
+   "actionId": null,
+   "title": "Поток 2: растущий актив DA",
+   "display": {
+    "ru": "Второй — растущий актив DA. По замыслу он растёт в цене. Механику роста разбирает отдельная школа, здесь только место в схеме.",
+    "en": "Second, the growing DA asset. By design its price rises. The mechanism has its own school section; here it is only a place on the map."
+   },
+   "tts": {
+    "ru": "Второй — растущий актив ди эй. По замыслу он растёт в цене. Механику роста разбирает отдельная школа, здесь только место в схеме.",
+    "en": "Second, the growing DA asset. By design its price rises. The mechanism has its own school section; here it is only a place on the map."
+   },
+   "chars": {
+    "ru": 126,
+    "en": 134
+   },
+   "ttsChars": {
+    "ru": 129,
+    "en": 134
+   },
+   "grounding": "slide_06_system.html:1179-1233",
+   "flags": []
+  },
+  {
+   "segmentId": "s06.system.s04",
+   "slideId": "s06.system",
+   "stepIds": [
+    "s06.system.s04"
+   ],
+   "actionId": null,
+   "title": "Поток 3: RWA",
+   "display": {
+    "ru": "Третий — RWA: доступ к реальным активам, которые обычно закрыты для небольших сумм.",
+    "en": "Third, RWA: access to real-world assets that are usually closed to small amounts."
+   },
+   "tts": {
+    "ru": "Третий — RWA: доступ к реальным активам, которые обычно закрыты для небольших сумм.",
+    "en": "Third, RWA: access to real-world assets that are usually closed to small amounts."
+   },
+   "chars": {
+    "ru": 83,
+    "en": 81
+   },
+   "ttsChars": {
+    "ru": 83,
+    "en": 81
+   },
+   "grounding": "slide_06_system.html:1270-1286",
+   "flags": []
+  },
+  {
+   "segmentId": "s06.system.s05",
+   "slideId": "s06.system",
+   "stepIds": [
+    "s06.system.s05"
+   ],
+   "actionId": "s06.system.s05.a01",
+   "title": "Поток 4: партнёрская программа (перевёртыш)",
+   "display": {
+    "ru": "Четвёртый — партнёрская программа. Карточка переворачивается, а второй клик открывает калькулятор маркетинга.",
+    "en": "Fourth, the partner programme. The card flips, and a second click opens the marketing calculator."
+   },
+   "tts": {
+    "ru": "Четвёртый — партнёрская программа. Карточка переворачивается, а второй клик открывает калькулятор маркетинга.",
+    "en": "Fourth, the partner programme. The card flips, and a second click opens the marketing calculator."
+   },
+   "chars": {
+    "ru": 109,
+    "en": 97
+   },
+   "ttsChars": {
+    "ru": 109,
+    "en": 97
+   },
+   "grounding": "slide_06_system.html:1330-1348, 2321-2360",
+   "flags": []
+  },
+  {
+   "segmentId": "s06.system.s06",
+   "slideId": "s06.system",
+   "stepIds": [
+    "s06.system.s06"
+   ],
+   "actionId": "s06.system.s06.a01",
+   "title": "Поток 5: карьера",
+   "display": {
+    "ru": "Пятый — карьера: восемь ступеней с условиями по обороту и личному объёму. Второй клик открывает экран рангов.",
+    "en": "Fifth, career: eight steps with turnover and personal volume conditions. A second click opens the ranks screen."
+   },
+   "tts": {
+    "ru": "Пятый — карьера: восемь ступеней с условиями по обороту и личному объёму. Второй клик открывает экран рангов.",
+    "en": "Fifth, career: eight steps with turnover and personal volume conditions. A second click opens the ranks screen."
+   },
+   "chars": {
+    "ru": 109,
+    "en": 111
+   },
+   "ttsChars": {
+    "ru": 109,
+    "en": 111
+   },
+   "grounding": "slide_06_system.html:1440-1452, 2400",
+   "flags": []
+  },
+  {
+   "segmentId": "s06.system.s07",
+   "slideId": "s06.system",
+   "stepIds": [
+    "s06.system.s07"
+   ],
+   "actionId": "s06.system.s07.a01",
+   "title": "Поток 6: VIP Club",
+   "display": {
+    "ru": "Шестой — VIP Club, ограниченная серия. На карточке написано: десять процентов от платформы.",
+    "en": "Sixth, the VIP Club, a limited edition. The card states ten percent of the platform."
+   },
+   "tts": {
+    "ru": "Шестой — VIP Club, ограниченная серия. На карточке написано: десять процентов от платформы.",
+    "en": "Sixth, the VIP Club, a limited edition. The card states ten percent of the platform."
+   },
+   "chars": {
+    "ru": 91,
+    "en": 84
+   },
+   "ttsChars": {
+    "ru": 91,
+    "en": 84
+   },
+   "grounding": "slide_06_system.html:1530-1543; i18n s06.vip",
+   "flags": [
+    "finance-wording"
+   ]
+  },
+  {
+   "segmentId": "s06.system.s08",
+   "slideId": "s06.system",
+   "stepIds": [
+    "s06.system.s08"
+   ],
+   "actionId": null,
+   "title": "Выходы: банковская карта и DeFi",
+   "display": {
+    "ru": "Теперь выходы. Слева банковская карта, справа DeFi. Счётчики на картах — демонстрация интерфейса, а не реальные балансы.",
+    "en": "Now the exits. A bank card on the left, DeFi on the right. The counters on the cards are an interface demo, not real balances."
+   },
+   "tts": {
+    "ru": "Теперь выходы. Слева банковская карта, справа DeFi. Счётчики на картах — демонстрация интерфейса, а не реальные балансы.",
+    "en": "Now the exits. A bank card on the left, DeFi on the right. The counters on the cards are an interface demo, not real balances."
+   },
+   "chars": {
+    "ru": 120,
+    "en": 126
+   },
+   "ttsChars": {
+    "ru": 120,
+    "en": 126
+   },
+   "grounding": "slide_06_system.html:1550-1570; step() n>=8 outputCards; счётчики $0",
+   "flags": [
+    "simulated-data"
+   ]
+  },
+  {
+   "segmentId": "s06.system.s09",
+   "slideId": "s06.system",
+   "stepIds": [
+    "s06.system.s09"
+   ],
+   "actionId": null,
+   "title": "Первая тройка благ, счётчики до $1.5M",
+   "display": {
+    "ru": "Дальше схема показывает, на что уходит доход: стиль, гаджеты, развлечения. Счётчики разгоняются до полутора миллионов.",
+    "en": "Then the map shows what the income is spent on: style, gadgets, leisure. The counters run up to one and a half million."
+   },
+   "tts": {
+    "ru": "Дальше схема показывает, на что уходит доход: стиль, гаджеты, развлечения. Счётчики разгоняются до полутора миллионов.",
+    "en": "Then the map shows what the income is spent on: style, gadgets, leisure. The counters run up to one and a half million."
+   },
+   "chars": {
+    "ru": 118,
+    "en": 119
+   },
+   "ttsChars": {
+    "ru": 118,
+    "en": 119
+   },
+   "grounding": "slide_06_system.html:2191 (setCounters(1500000)); шаг 9 в step()",
+   "flags": [
+    "simulated-data"
+   ]
+  },
+  {
+   "segmentId": "s06.system.s10",
+   "slideId": "s06.system",
+   "stepIds": [
+    "s06.system.s10"
+   ],
+   "actionId": null,
+   "title": "Вторая тройка и итог $3 000 000",
+   "display": {
+    "ru": "Вторая тройка: путешествия, авто, недвижимость. Итог на экране — три миллиона долларов. Это иллюстрация масштаба, а не обещание выплаты.",
+    "en": "The second three: travel, cars, property. The figure on screen is three million dollars. It illustrates scale; it is not a promised payout."
+   },
+   "tts": {
+    "ru": "Вторая тройка: путешествия, авто, недвижимость. Итог на экране — три миллиона долларов. Это иллюстрация масштаба, а не обещание выплаты.",
+    "en": "The second three: travel, cars, property. The figure on screen is three million dollars. It illustrates scale; it is not a promised payout."
+   },
+   "chars": {
+    "ru": 136,
+    "en": 139
+   },
+   "ttsChars": {
+    "ru": 136,
+    "en": 139
+   },
+   "grounding": "slide_06_system.html:2185-2193; подпись «$3 000 000»",
+   "flags": [
+    "simulated-data"
+   ]
+  },
+  {
+   "segmentId": "s06.system.s11",
+   "slideId": "s06.system",
+   "stepIds": [
+    "s06.system.s11"
+   ],
+   "actionId": null,
+   "title": "Финальная фраза слайда",
+   "display": {
+    "ru": "Финальная фраза: купили один раз — получаете десятилетиями. Звучит как обещание, поэтому дальше смотрим, на чём оно держится.",
+    "en": "The closing line: bought once, earning for decades. That sounds like a promise, so next we look at what holds it up."
+   },
+   "tts": {
+    "ru": "Финальная фраза: купили один раз — получаете десятилетиями. Звучит как обещание, поэтому дальше смотрим, на чём оно держится.",
+    "en": "The closing line: bought once, earning for decades. That sounds like a promise, so next we look at what holds it up."
+   },
+   "chars": {
+    "ru": 125,
+    "en": 116
+   },
+   "ttsChars": {
+    "ru": 125,
+    "en": 116
+   },
+   "grounding": "slide_06_system.html:1724-1728, s06.final.line/sub",
+   "flags": [
+    "income-claim"
+   ]
+  },
+  {
+   "segmentId": "s14.choose.s01",
+   "slideId": "s14.choose",
+   "stepIds": [
+    "s14.choose.s01"
+   ],
+   "actionId": null,
+   "title": "Заголовок «Выбрать NFT»",
+   "display": {
+    "ru": "Последний слайд основной колоды — выбор NFT. Десять уровней: от GENESIS за двадцать восемь USDT до INFINITY за двадцать четыре тысячи.",
+    "en": "The last slide of the main deck is the NFT choice. Ten levels, from GENESIS at twenty-eight USDT to INFINITY at twenty-four thousand."
+   },
+   "tts": {
+    "ru": "Последний слайд основной колоды — выбор энэфти. Десять уровней: от GENESIS за двадцать восемь ю эс ди ти до INFINITY за двадцать четыре тысячи.",
+    "en": "The last slide of the main deck is the NFT choice. Ten levels, from GENESIS at twenty-eight USDT to INFINITY at twenty-four thousand."
+   },
+   "chars": {
+    "ru": 134,
+    "en": 133
+   },
+   "ttsChars": {
+    "ru": 143,
+    "en": 133
+   },
+   "grounding": "slide_14_choose_nft.html:414-423",
+   "flags": []
+  },
+  {
+   "segmentId": "s14.choose.s02",
+   "slideId": "s14.choose",
+   "stepIds": [
+    "s14.choose.s02"
+   ],
+   "actionId": "s14.choose.s02.a01",
+   "title": "Карусель карточек, оборот и кнопка",
+   "display": {
+    "ru": "Карусель листается перетаскиванием, карточка переворачивается и показывает условия: уровни маркетинга, лимит дохода, доступ к инструментам. Кнопка внизу ведёт на платформу.",
+    "en": "The carousel is dragged sideways; a card flips to show the terms: marketing levels, income limit, access to tools. The button at the bottom leads to the platform."
+   },
+   "tts": {
+    "ru": "Карусель листается перетаскиванием, карточка переворачивается и показывает условия: уровни маркетинга, лимит дохода, доступ к инструментам. Кнопка внизу ведёт на платформу.",
+    "en": "The carousel is dragged sideways; a card flips to show the terms: marketing levels, income limit, access to tools. The button at the bottom leads to the platform."
+   },
+   "chars": {
+    "ru": 172,
+    "en": 162
+   },
+   "ttsChars": {
+    "ru": 172,
+    "en": 162
+   },
+   "grounding": "slide_14_choose_nft.html:620-692, 671-681",
+   "flags": [
+    "ref-link"
+   ]
+  },
+  {
+   "segmentId": "s08.finflow.s01",
+   "slideId": "s08.finflow",
+   "stepIds": [
+    "s08.finflow.s01"
+   ],
+   "actionId": "s08.finflow.s01.a02",
+   "title": "Блок 1: две встречные сделки",
+   "display": {
+    "ru": "Отдельный экран математики FinFlow. Первый блок: алгоритм держит две встречные сделки на равную сумму, поэтому движение цены на итог не влияет.",
+    "en": "This is the FinFlow maths screen. Block one: the algorithm holds two opposite trades of equal size, so price movement does not change the result."
+   },
+   "tts": {
+    "ru": "Отдельный экран математики Финфлоу. Первый блок: алгоритм держит две встречные сделки на равную сумму, поэтому движение цены на итог не влияет.",
+    "en": "This is the FinFlow maths screen. Block one: the algorithm holds two opposite trades of equal size, so price movement does not change the result."
+   },
+   "chars": {
+    "ru": 143,
+    "en": 145
+   },
+   "ttsChars": {
+    "ru": 143,
+    "en": 145
+   },
+   "grounding": "slide_08_finflow.html:1284-1320 (step 0), i18n s08.b1.*",
+   "flags": []
+  },
+  {
+   "segmentId": "s08.finflow.s02",
+   "slideId": "s08.finflow",
+   "stepIds": [
+    "s08.finflow.s02"
+   ],
+   "actionId": "s08.finflow.s02.a01",
+   "title": "Плата за баланс: откуда доход",
+   "display": {
+    "ru": "Второй такт — откуда берётся доход. Ставки на рост и на падение почти никогда не равны, и биржа перекладывает плату с большей стороны на меньшую. Каждые восемь часов.",
+    "en": "The second beat answers where the income comes from. Bets on growth and on decline are almost never equal, and the exchange moves a payment from the larger side to the smaller one. Every eight hours."
+   },
+   "tts": {
+    "ru": "Второй такт — откуда берётся доход. Ставки на рост и на падение почти никогда не равны, и биржа перекладывает плату с большей стороны на меньшую. Каждые восемь часов.",
+    "en": "The second beat answers where the income comes from. Bets on growth and on decline are almost never equal, and the exchange moves a payment from the larger side to the smaller one. Every eight hours."
+   },
+   "chars": {
+    "ru": 166,
+    "en": 199
+   },
+   "ttsChars": {
+    "ru": 166,
+    "en": 199
+   },
+   "grounding": "slide_08_finflow.html:1300-1309; i18n s08.sc, s08.every8, s08.perYear",
+   "flags": []
+  },
+  {
+   "segmentId": "s08.finflow.s03",
+   "slideId": "s08.finflow",
+   "stepIds": [
+    "s08.finflow.s03"
+   ],
+   "actionId": "s08.finflow.s03.a01",
+   "title": "Возврат к среднему",
+   "display": {
+    "ru": "Третий такт: у цены есть обычный уровень. Когда отклонение становится редким, алгоритм покупает и ждёт возврата. В примере — плюс два сорок на единицу.",
+    "en": "Third beat: a price has its usual level. When the deviation becomes rare, the algorithm buys and waits for the return. In the example, plus two forty per unit."
+   },
+   "tts": {
+    "ru": "Третий такт: у цены есть обычный уровень. Когда отклонение становится редким, алгоритм покупает и ждёт возврата. В примере — плюс два сорок на единицу.",
+    "en": "Third beat: a price has its usual level. When the deviation becomes rare, the algorithm buys and waits for the return. In the example, plus two forty per unit."
+   },
+   "chars": {
+    "ru": 151,
+    "en": 159
+   },
+   "ttsChars": {
+    "ru": 151,
+    "en": 159
+   },
+   "grounding": "slide_08_finflow.html:1290-1292; i18n s08.b2.*, s08.tr1-tr5p",
+   "flags": []
+  },
+  {
+   "segmentId": "s08.finflow.s04",
+   "slideId": "s08.finflow",
+   "stepIds": [
+    "s08.finflow.s04"
+   ],
+   "actionId": "s08.finflow.s04.a02",
+   "title": "Тысяча операций и кнопка «сломать»",
+   "display": {
+    "ru": "Четвёртый такт: объём разложен на тысячу операций. Кнопка «сломать операции» показывает, что даже несколько отказов не решают судьбу счёта.",
+    "en": "Fourth beat: the volume is split into a thousand operations. The break button shows that even several failures do not decide the fate of the account."
+   },
+   "tts": {
+    "ru": "Четвёртый такт: объём разложен на тысячу операций. Кнопка «сломать операции» показывает, что даже несколько отказов не решают судьбу счёта.",
+    "en": "Fourth beat: the volume is split into a thousand operations. The break button shows that even several failures do not decide the fate of the account."
+   },
+   "chars": {
+    "ru": 139,
+    "en": 149
+   },
+   "ttsChars": {
+    "ru": 139,
+    "en": 149
+   },
+   "grounding": "slide_08_finflow.html:1314-1315; i18n s08.b3.*, s08.breakBtn, s08.gridCap",
+   "flags": [
+    "simulation"
+   ]
+  },
+  {
+   "segmentId": "s08.finflow.s05",
+   "slideId": "s08.finflow",
+   "stepIds": [
+    "s08.finflow.s05"
+   ],
+   "actionId": null,
+   "title": "Три источника и оговорка",
+   "display": {
+    "ru": "Финальный кадр: три источника и оговорка внизу. Показатели названы целевыми, а не гарантированными, а операции с цифровыми активами несут технические и рыночные риски.",
+    "en": "The final frame: three sources and a disclaimer below. The figures are called targets, not guarantees, and operations with digital assets carry technical and market risks."
+   },
+   "tts": {
+    "ru": "Финальный кадр: три источника и оговорка внизу. Показатели названы целевыми, а не гарантированными, а операции с цифровыми активами несут технические и рыночные риски.",
+    "en": "The final frame: three sources and a disclaimer below. The figures are called targets, not guarantees, and operations with digital assets carry technical and market risks."
+   },
+   "chars": {
+    "ru": 167,
+    "en": 171
+   },
+   "ttsChars": {
+    "ru": 167,
+    "en": 171
+   },
+   "grounding": "slide_08_finflow.html:1287; i18n s08.foot",
+   "flags": []
+  },
+  {
+   "segmentId": "s08.finflow.s01.a01",
+   "slideId": "s08.finflow",
+   "stepIds": [
+    "s08.finflow.s01"
+   ],
+   "actionId": "s08.finflow.s01.a01",
+   "title": "Кнопка «Формулы»: шесть карточек",
+   "display": {
+    "ru": "Кнопка «формулы» открывает шесть карточек с источниками: Марковиц и Шарп, Келли, Рокфеллар и Урясев, Морейра и Мьюир, Уайлдер. Это библиография подхода, а не проверка результатов.",
+    "en": "The formulas button opens six cards with references: Markowitz and Sharpe, Kelly, Rockafellar and Uryasev, Moreira and Muir, Wilder. It is a bibliography of the approach, not a test of results."
+   },
+   "tts": {
+    "ru": "Кнопка «формулы» открывает шесть карточек с источниками: Марковиц и Шарп, Келли, Рокфеллар и Урясев, Морейра и Мьюир, Уайлдер. Это библиография подхода, а не проверка результатов.",
+    "en": "The formulas button opens six cards with references: Markowitz and Sharpe, Kelly, Rockafellar and Uryasev, Moreira and Muir, Wilder. It is a bibliography of the approach, not a test of results."
+   },
+   "chars": {
+    "ru": 179,
+    "en": 193
+   },
+   "ttsChars": {
+    "ru": 179,
+    "en": 193
+   },
+   "grounding": "slide_08_finflow.html:1338-1358; i18n s08.f1.*-s08.f6.*",
+   "flags": [
+    "citations-unverified"
+   ]
+  },
+  {
+   "segmentId": "s07c.market.s01",
+   "slideId": "s07c.market",
+   "stepIds": [
+    "s07c.market.s01"
+   ],
+   "actionId": "s07c.market.s01.a01",
+   "title": "Маркетинг в цифрах: таблица 11 уровней",
+   "display": {
+    "ru": "Экран маркетинга в цифрах. Сверху выбранный NFT, ниже таблица из одиннадцати уровней: счета, проценты, доход. Это расчёт по модели, а не отчёт о выплатах.",
+    "en": "The marketing screen in numbers. The selected NFT on top, a table of eleven levels below: accounts, percentages, income. This is a model calculation, not a payout report."
+   },
+   "tts": {
+    "ru": "Экран маркетинга в цифрах. Сверху выбранный энэфти, ниже таблица из одиннадцати уровней: счета, проценты, доход. Это расчёт по модели, а не отчёт о выплатах.",
+    "en": "The marketing screen in numbers. The selected NFT on top, a table of eleven levels below: accounts, percentages, income. This is a model calculation, not a payout report."
+   },
+   "chars": {
+    "ru": 154,
+    "en": 170
+   },
+   "ttsChars": {
+    "ru": 157,
+    "en": 170
+   },
+   "grounding": "slide_07c_simple_calc.html; i18n s07.*; расчёт 44 693 USDT",
+   "flags": [
+    "mlm-model",
+    "income-claim"
+   ]
+  },
+  {
+   "segmentId": "cal.lite.s01",
+   "slideId": "cal.lite",
+   "stepIds": [
+    "cal.lite.s01"
+   ],
+   "actionId": "cal.lite.s01.a01",
+   "title": "Калькулятор FinFlow Lite: сумма и уровень",
+   "display": {
+    "ru": "Облегчённый калькулятор FinFlow. Сумма от двадцати пяти до семидесяти тысяч USDT, уровень подставляется автоматически по сумме.",
+    "en": "The FinFlow Lite calculator. An amount from twenty-five to seventy thousand USDT; the access level is filled in automatically from the amount."
+   },
+   "tts": {
+    "ru": "Облегчённый калькулятор Финфлоу. Сумма от двадцати пяти до семидесяти тысяч ю эс ди ти, уровень подставляется автоматически по сумме.",
+    "en": "The FinFlow Lite calculator. An amount from twenty-five to seventy thousand USDT; the access level is filled in automatically from the amount."
+   },
+   "chars": {
+    "ru": 127,
+    "en": 142
+   },
+   "ttsChars": {
+    "ru": 133,
+    "en": 142
+   },
+   "grounding": "calc/finflow_calculator_lite.html; i18n fc.amount, fc.hint, fc.auto",
+   "flags": []
+  },
+  {
+   "segmentId": "cal.lite.s01.a01",
+   "slideId": "cal.lite",
+   "stepIds": [
+    "cal.lite.s01"
+   ],
+   "actionId": "cal.lite.s01.a03",
+   "title": "Переключатели: пополнение и реинвест",
+   "display": {
+    "ru": "Переключатели добавляют ежемесячное пополнение и реинвест. По умолчанию сумма упирается в лимит уровня — две тысячи семьсот USDT.",
+    "en": "Two switches add a monthly top-up and reinvestment. By default the amount sits at the level limit: two thousand seven hundred USDT."
+   },
+   "tts": {
+    "ru": "Переключатели добавляют ежемесячное пополнение и реинвест. По умолчанию сумма упирается в лимит уровня — две тысячи семьсот ю эс ди ти.",
+    "en": "Two switches add a monthly top-up and reinvestment. By default the amount sits at the level limit: two thousand seven hundred USDT."
+   },
+   "chars": {
+    "ru": 129,
+    "en": 131
+   },
+   "ttsChars": {
+    "ru": 135,
+    "en": 131
+   },
+   "grounding": "calc/finflow_calculator_lite.html; значения по умолчанию 2 700 / 84 / 362 / 5 400",
+   "flags": []
+  },
+  {
+   "segmentId": "cal.lite.s01.a02",
+   "slideId": "cal.lite",
+   "stepIds": [
+    "cal.lite.s01"
+   ],
+   "actionId": "cal.lite.s01.a05",
+   "title": "Оговорка под калькулятором",
+   "display": {
+    "ru": "Внизу главная оговорка: цифры справочные, расчёт по диапазону одиннадцать–шестнадцать процентов в месяц. Это не гарантия, доходность зависит от рынка.",
+    "en": "At the bottom sits the main caveat: the figures are indicative, calculated from an eleven to sixteen percent monthly range. That is not a guarantee; returns depend on the market."
+   },
+   "tts": {
+    "ru": "Внизу главная оговорка: цифры справочные, расчёт по диапазону одиннадцать–шестнадцать процентов в месяц. Это не гарантия, доходность зависит от рынка.",
+    "en": "At the bottom sits the main caveat: the figures are indicative, calculated from an eleven to sixteen percent monthly range. That is not a guarantee; returns depend on the market."
+   },
+   "chars": {
+    "ru": 150,
+    "en": 178
+   },
+   "ttsChars": {
+    "ru": 150,
+    "en": 178
+   },
+   "grounding": "i18n fc.note; calc lite строка «Цифры справочные…»",
+   "flags": [
+    "income-claim",
+    "needs-approval"
+   ]
+  },
+  {
+   "segmentId": "s09.ranks.s01",
+   "slideId": "s09.ranks",
+   "stepIds": [
+    "s09.ranks.s01",
+    "s09.ranks.s02"
+   ],
+   "actionId": null,
+   "title": "Восемь ступеней: затравка и Beginner",
+   "display": {
+    "ru": "Карьерные ранги. Восемь ступеней, от Beginner до CEO. Сначала на экране растут столбики — это затравка, а не данные. Первая ступень, Beginner: бонус пятьсот долларов, оборот пятьдесят тысяч, личный объём десять тысяч.",
+    "en": "Career ranks. Eight steps, from Beginner to CEO. First the bars grow on screen — a teaser, not data. The first step, Beginner: a five hundred dollar bonus, fifty thousand turnover, ten thousand personal."
+   },
+   "tts": {
+    "ru": "Карьерные ранги. Восемь ступеней, от Beginner до CEO. Сначала на экране растут столбики — это затравка, а не данные. Первая ступень, Beginner: бонус пятьсот долларов, оборот пятьдесят тысяч, личный объём десять тысяч.",
+    "en": "Career ranks. Eight steps, from Beginner to CEO. First the bars grow on screen — a teaser, not data. The first step, Beginner: a five hundred dollar bonus, fifty thousand turnover, ten thousand personal."
+   },
+   "chars": {
+    "ru": 217,
+    "en": 203
+   },
+   "ttsChars": {
+    "ru": 217,
+    "en": 203
+   },
+   "grounding": "slide_09_ranks.html:1184-1221, 929-939",
+   "flags": [
+    "income-claim"
+   ]
+  },
+  {
+   "segmentId": "s09.ranks.s02",
+   "slideId": "s09.ranks",
+   "stepIds": [
+    "s09.ranks.s03",
+    "s09.ranks.s04"
+   ],
+   "actionId": null,
+   "title": "Partner и Manager",
+   "display": {
+    "ru": "Вторая ступень, Partner: тысяча долларов или iPhone, нужно два партнёра уровня Beginner. Третья, Manager: две тысячи или MacBook, оборот двести пятьдесят тысяч.",
+    "en": "Second, Partner: one thousand dollars or an iPhone, requiring two Beginners. Third, Manager: two thousand or a MacBook, with two hundred fifty thousand turnover."
+   },
+   "tts": {
+    "ru": "Вторая ступень, Partner: тысяча долларов или iPhone, нужно два партнёра уровня Beginner. Третья, Manager: две тысячи или MacBook, оборот двести пятьдесят тысяч.",
+    "en": "Second, Partner: one thousand dollars or an iPhone, requiring two Beginners. Third, Manager: two thousand or a MacBook, with two hundred fifty thousand turnover."
+   },
+   "chars": {
+    "ru": 160,
+    "en": 161
+   },
+   "ttsChars": {
+    "ru": 160,
+    "en": 161
+   },
+   "grounding": "slide_09_ranks.html:940-961; rendered steps 3–4",
+   "flags": [
+    "prize-brands"
+   ]
+  },
+  {
+   "segmentId": "s09.ranks.s03",
+   "slideId": "s09.ranks",
+   "stepIds": [
+    "s09.ranks.s05",
+    "s09.ranks.s06",
+    "s09.ranks.s07"
+   ],
+   "actionId": null,
+   "title": "Leader, Senior Leader, Director",
+   "display": {
+    "ru": "Дальше Leader — четыре тысячи или путешествие, Senior Leader — восемь тысяч или VERTU, Director — двадцать тысяч или Rolex. Требования по обороту растут до трёх миллионов.",
+    "en": "Then Leader: four thousand or a trip; Senior Leader: eight thousand or a VERTU phone; Director: twenty thousand or a Rolex. Turnover requirements rise to three million."
+   },
+   "tts": {
+    "ru": "Дальше Leader — четыре тысячи или путешествие, Senior Leader — восемь тысяч или VERTU, Director — двадцать тысяч или Rolex. Требования по обороту растут до трёх миллионов.",
+    "en": "Then Leader: four thousand or a trip; Senior Leader: eight thousand or a VERTU phone; Director: twenty thousand or a Rolex. Turnover requirements rise to three million."
+   },
+   "chars": {
+    "ru": 171,
+    "en": 168
+   },
+   "ttsChars": {
+    "ru": 171,
+    "en": 168
+   },
+   "grounding": "slide_09_ranks.html:962-994; rendered steps 5–7",
+   "flags": [
+    "prize-brands"
+   ]
+  },
+  {
+   "segmentId": "s09.ranks.s04",
+   "slideId": "s09.ranks",
+   "stepIds": [
+    "s09.ranks.s08",
+    "s09.ranks.s09"
+   ],
+   "actionId": null,
+   "title": "Vice President и CEO",
+   "display": {
+    "ru": "Последние две: Vice President — сто тысяч или квартира, CEO — сто семьдесят пять тысяч или Range Rover. Это верхняя точка карьеры, и дальше о ней отдельный слайд.",
+    "en": "The last two: Vice President, one hundred thousand or an apartment; CEO, one hundred and seventy-five thousand or a Range Rover. This is the top of the career, and it has its own slide next."
+   },
+   "tts": {
+    "ru": "Последние две: Vice President — сто тысяч или квартира, CEO — сто семьдесят пять тысяч или Range Rover. Это верхняя точка карьеры, и дальше о ней отдельный слайд.",
+    "en": "The last two: Vice President, one hundred thousand or an apartment; CEO, one hundred and seventy-five thousand or a Range Rover. This is the top of the career, and it has its own slide next."
+   },
+   "chars": {
+    "ru": 162,
+    "en": 190
+   },
+   "ttsChars": {
+    "ru": 162,
+    "en": 190
+   },
+   "grounding": "slide_09_ranks.html:995-1017; rendered steps 8–9",
+   "flags": [
+    "prize-brands",
+    "income-claim"
+   ]
+  },
+  {
+   "segmentId": "s10.vip.s01",
+   "slideId": "s10.vip",
+   "stepIds": [
+    "s10.vip.s01",
+    "s10.vip.s02"
+   ],
+   "actionId": null,
+   "title": "VIP Limited Edition: 200 NFT, 10% дохода",
+   "display": {
+    "ru": "VIP Limited Edition. Двести NFT в мире: сто VIP и сто Ambassador. Десять процентов от дохода компании распределяется между их владельцами.",
+    "en": "VIP Limited Edition. Two hundred NFTs worldwide: one hundred VIP and one hundred Ambassador. Ten percent of company income is shared among their owners."
+   },
+   "tts": {
+    "ru": "VIP Limited Edition. Двести энэфти в мире: сто VIP и сто Ambassador. Десять процентов от дохода компании распределяется между их владельцами.",
+    "en": "VIP Limited Edition. Two hundred NFTs worldwide: one hundred VIP and one hundred Ambassador. Ten percent of company income is shared among their owners."
+   },
+   "chars": {
+    "ru": 138,
+    "en": 152
+   },
+   "ttsChars": {
+    "ru": 141,
+    "en": 152
+   },
+   "grounding": "slide_10_vip.html:446-451; i18n s10.pct, s10.dist, s10.cap1/2",
+   "flags": [
+    "income-claim",
+    "finance-wording"
+   ]
+  },
+  {
+   "segmentId": "s10.vip.s02",
+   "slideId": "s10.vip",
+   "stepIds": [
+    "s10.vip.s03",
+    "s10.vip.s04"
+   ],
+   "actionId": null,
+   "title": "Нижняя плашка и финальный кадр",
+   "display": {
+    "ru": "Нижняя плашка появляется позже и повторяет условие. Сумма зависит от дохода компании, поэтому назвать её заранее нельзя.",
+    "en": "The bottom banner appears later and repeats the condition. The amount depends on company income, so it cannot be named in advance."
+   },
+   "tts": {
+    "ru": "Нижняя плашка появляется позже и повторяет условие. Сумма зависит от дохода компании, поэтому назвать её заранее нельзя.",
+    "en": "The bottom banner appears later and repeats the condition. The amount depends on company income, so it cannot be named in advance."
+   },
+   "chars": {
+    "ru": 120,
+    "en": 130
+   },
+   "ttsChars": {
+    "ru": 120,
+    "en": 130
+   },
+   "grounding": "slide_10_vip.html:446-451 (bottomBanner при n>=3)",
+   "flags": [
+    "income-claim"
+   ]
+  },
+  {
+   "segmentId": "s04.inside.s01",
+   "slideId": "s04.inside",
+   "stepIds": [
+    "s04.inside.s01"
+   ],
+   "actionId": null,
+   "title": "Карта и подпись «это не картинка»",
+   "display": {
+    "ru": "Что внутри ключа. Появляется карта и подпись: это не картинка.",
+    "en": "What is inside the key. A card appears, with the line: this is not a picture."
+   },
+   "tts": {
+    "ru": "Что внутри ключа. Появляется карта и подпись: это не картинка.",
+    "en": "What is inside the key. A card appears, with the line: this is not a picture."
+   },
+   "chars": {
+    "ru": 62,
+    "en": 77
+   },
+   "ttsChars": {
+    "ru": 62,
+    "en": 77
+   },
+   "grounding": "slide_04_inside.html:1009-1015, 1053-1061",
+   "flags": []
+  },
+  {
+   "segmentId": "s04.inside.s02",
+   "slideId": "s04.inside",
+   "stepIds": [
+    "s04.inside.s02"
+   ],
+   "actionId": null,
+   "title": "Сцена «Доход»",
+   "display": {
+    "ru": "Первая сцена — доход. Дальше вокруг карты по одной открываются остальные слои.",
+    "en": "The first scene is income. Around the card, the other layers open one at a time."
+   },
+   "tts": {
+    "ru": "Первая сцена — доход. Дальше вокруг карты по одной открываются остальные слои.",
+    "en": "The first scene is income. Around the card, the other layers open one at a time."
+   },
+   "chars": {
+    "ru": 78,
+    "en": 80
+   },
+   "ttsChars": {
+    "ru": 78,
+    "en": 80
+   },
+   "grounding": "slide_04_inside.html:1010-1014, 1064-1072",
+   "flags": []
+  },
+  {
+   "segmentId": "s04.inside.s03",
+   "slideId": "s04.inside",
+   "stepIds": [
+    "s04.inside.s03"
+   ],
+   "actionId": null,
+   "title": "Сцена «Капитал»",
+   "display": {
+    "ru": "Вторая — капитал: то, что остаётся внутри актива, а не тратится.",
+    "en": "Second, capital: what stays inside the asset instead of being spent."
+   },
+   "tts": {
+    "ru": "Вторая — капитал: то, что остаётся внутри актива, а не тратится.",
+    "en": "Second, capital: what stays inside the asset instead of being spent."
+   },
+   "chars": {
+    "ru": 64,
+    "en": 68
+   },
+   "ttsChars": {
+    "ru": 64,
+    "en": 68
+   },
+   "grounding": "slide_04_inside.html:1010-1014; i18n s04.capital",
+   "flags": []
+  },
+  {
+   "segmentId": "s04.inside.s04",
+   "slideId": "s04.inside",
+   "stepIds": [
+    "s04.inside.s04"
+   ],
+   "actionId": null,
+   "title": "Сцена «Бизнес»",
+   "display": {
+    "ru": "Третья — бизнес: возможность строить структуру, а не только держать токен.",
+    "en": "Third, business: the chance to build a structure, not just hold a token."
+   },
+   "tts": {
+    "ru": "Третья — бизнес: возможность строить структуру, а не только держать токен.",
+    "en": "Third, business: the chance to build a structure, not just hold a token."
+   },
+   "chars": {
+    "ru": 74,
+    "en": 72
+   },
+   "ttsChars": {
+    "ru": 74,
+    "en": 72
+   },
+   "grounding": "slide_04_inside.html:1010-1014; i18n s04.business",
+   "flags": []
+  },
+  {
+   "segmentId": "s04.inside.s05",
+   "slideId": "s04.inside",
+   "stepIds": [
+    "s04.inside.s05"
+   ],
+   "actionId": null,
+   "title": "Сцена «Доступ»",
+   "display": {
+    "ru": "Четвёртая — доступ. Он открывает RWA: реальные активы, за которыми стоит имущество, а не только токен.",
+    "en": "Fourth, access. It opens RWA: real assets backed by property, not just a token."
+   },
+   "tts": {
+    "ru": "Четвёртая — доступ. Он открывает RWA: реальные активы, за которыми стоит имущество, а не только токен.",
+    "en": "Fourth, access. It opens RWA: real assets backed by property, not just a token."
+   },
+   "chars": {
+    "ru": 102,
+    "en": 79
+   },
+   "ttsChars": {
+    "ru": 102,
+    "en": 79
+   },
+   "grounding": "slide_04_inside.html:1013, 1026-1027; i18n s04.rwa",
+   "flags": []
+  },
+  {
+   "segmentId": "s04.inside.s06",
+   "slideId": "s04.inside",
+   "stepIds": [
+    "s04.inside.s06"
+   ],
+   "actionId": null,
+   "title": "Сцена «Наследие»",
+   "display": {
+    "ru": "Пятая — наследие. Это последняя сцена перед финальной фразой.",
+    "en": "Fifth, legacy. It is the last scene before the closing line."
+   },
+   "tts": {
+    "ru": "Пятая — наследие. Это последняя сцена перед финальной фразой.",
+    "en": "Fifth, legacy. It is the last scene before the closing line."
+   },
+   "chars": {
+    "ru": 61,
+    "en": 60
+   },
+   "ttsChars": {
+    "ru": 61,
+    "en": 60
+   },
+   "grounding": "slide_04_inside.html:1014; i18n s04.legacy",
+   "flags": []
+  },
+  {
+   "segmentId": "s04.inside.s07",
+   "slideId": "s04.inside",
+   "stepIds": [
+    "s04.inside.s07"
+   ],
+   "actionId": null,
+   "title": "Финал: «это ваша финансовая империя»",
+   "display": {
+    "ru": "Финальная фраза: это ваша финансовая империя. Формулировка сильная, поэтому в озвучке она остаётся цитатой слайда, без добавления гарантий.",
+    "en": "The closing line: this is your financial empire. The wording is strong, so the voice keeps it as a quotation from the slide and adds no guarantees."
+   },
+   "tts": {
+    "ru": "Финальная фраза: это ваша финансовая империя. Формулировка сильная, поэтому в озвучке она остаётся цитатой слайда, без добавления гарантий.",
+    "en": "The closing line: this is your financial empire. The wording is strong, so the voice keeps it as a quotation from the slide and adds no guarantees."
+   },
+   "chars": {
+    "ru": 139,
+    "en": 147
+   },
+   "ttsChars": {
+    "ru": 139,
+    "en": 147
+   },
+   "grounding": "slide_04_inside.html:883-884, 1074",
+   "flags": [
+    "income-claim"
+   ]
+  },
+  {
+   "segmentId": "deck.school.s00",
+   "slideId": "deck.school",
+   "stepIds": [
+    "deck.school.s00"
+   ],
+   "actionId": null,
+   "title": "Вход в школу",
+   "display": {
+    "ru": "Отдельный раздел — школа. Шесть экранов: машина, механика роста, продажа, уровни, цикл и текущее состояние. Текст здесь только русский.",
+    "en": "A separate section: the school. Six screens — the machine, the growth mechanics, selling, levels, the cycle, and where things stand today. The on-screen text here is Russian only."
+   },
+   "tts": {
+    "ru": "Отдельный раздел — школа. Шесть экранов: машина, механика роста, продажа, уровни, цикл и текущее состояние. Текст здесь только русский.",
+    "en": "A separate section: the school. Six screens — the machine, the growth mechanics, selling, levels, the cycle, and where things stand today. The on-screen text here is Russian only."
+   },
+   "chars": {
+    "ru": 135,
+    "en": 179
+   },
+   "ttsChars": {
+    "ru": 135,
+    "en": 179
+   },
+   "grounding": "slides/school_deck.html:39-46; school_*.html без data-i18n",
+   "flags": [
+    "en-ui-missing"
+   ]
+  },
+  {
+   "segmentId": "sc1.machine.s01",
+   "slideId": "sc1.machine",
+   "stepIds": [
+    "sc1.machine.s01"
+   ],
+   "actionId": null,
+   "title": "Комиссия есть везде",
+   "display": {
+    "ru": "Школа начинается с комиссии. Банк берёт за платёж, брокер за сделку, обменник за конвертацию. Вопрос не в том, есть ли комиссия, а в том, куда она уходит.",
+    "en": "The school starts with fees. A bank charges for a payment, a broker for a trade, an exchange for a conversion. The question is not whether a fee exists, but where it goes."
+   },
+   "tts": {
+    "ru": "Школа начинается с комиссии. Банк берёт за платёж, брокер за сделку, обменник за конвертацию. Вопрос не в том, есть ли комиссия, а в том, куда она уходит.",
+    "en": "The school starts with fees. A bank charges for a payment, a broker for a trade, an exchange for a conversion. The question is not whether a fee exists, but where it goes."
+   },
+   "chars": {
+    "ru": 154,
+    "en": 171
+   },
+   "ttsChars": {
+    "ru": 154,
+    "en": 171
+   },
+   "grounding": "school_1_machine.html:375-377 (SCENE 1)",
+   "flags": []
+  },
+  {
+   "segmentId": "sc1.machine.s02",
+   "slideId": "sc1.machine",
+   "stepIds": [
+    "sc1.machine.s02"
+   ],
+   "actionId": null,
+   "title": "NFT как добывающее устройство",
+   "display": {
+    "ru": "Ваш NFT — не картинка и не билет. В этой модели это устройство, которое добывает актив DA, и работает оно на том же топливе — на комиссии.",
+    "en": "Your NFT is not a picture and not a ticket. In this model it is a device that mines the DA asset, and it runs on the same fuel: the fee."
+   },
+   "tts": {
+    "ru": "Ваш энэфти — не картинка и не билет. В этой модели это устройство, которое добывает актив ди эй, и работает оно на том же топливе — на комиссии.",
+    "en": "Your NFT is not a picture and not a ticket. In this model it is a device that mines the DA asset, and it runs on the same fuel: the fee."
+   },
+   "chars": {
+    "ru": 138,
+    "en": 136
+   },
+   "ttsChars": {
+    "ru": 144,
+    "en": 136
+   },
+   "grounding": "school_1_machine.html:378-379 (SCENE 2)",
+   "flags": []
+  },
+  {
+   "segmentId": "sc1.machine.s03",
+   "slideId": "sc1.machine",
+   "stepIds": [
+    "sc1.machine.s03"
+   ],
+   "actionId": null,
+   "title": "Из чего складывается топливо",
+   "display": {
+    "ru": "Топливо складывается из четырёх частей: доля с покупки NFT, доля с продления, удержание с вознаграждений и комиссия займа.",
+    "en": "The fuel has four parts: a share of the NFT purchase, a share of the renewal, a hold on rewards, and a loan fee."
+   },
+   "tts": {
+    "ru": "Топливо складывается из четырёх частей: доля с покупки энэфти, доля с продления, удержание с вознаграждений и комиссия займа.",
+    "en": "The fuel has four parts: a share of the NFT purchase, a share of the renewal, a hold on rewards, and a loan fee."
+   },
+   "chars": {
+    "ru": 122,
+    "en": 112
+   },
+   "ttsChars": {
+    "ru": 125,
+    "en": 112
+   },
+   "grounding": "school_1_machine.html:381-382 (SCENE 3)",
+   "flags": []
+  },
+  {
+   "segmentId": "sc1.machine.s04",
+   "slideId": "sc1.machine",
+   "stepIds": [
+    "sc1.machine.s04"
+   ],
+   "actionId": null,
+   "title": "Комиссия идёт в накопитель",
+   "display": {
+    "ru": "Дальше разница: комиссия не уходит владельцу платформы, а стекается в общий накопитель, из которого потом обеспечивается ваш DA. На экране — его текущий объём.",
+    "en": "Here is the difference: the fee does not go to the platform owner. It collects in a shared vault that later backs your DA. The screen shows its current size."
+   },
+   "tts": {
+    "ru": "Дальше разница: комиссия не уходит владельцу платформы, а стекается в общий накопитель, из которого потом обеспечивается ваш ди эй. На экране — его текущий объём.",
+    "en": "Here is the difference: the fee does not go to the platform owner. It collects in a shared vault that later backs your DA. The screen shows its current size."
+   },
+   "chars": {
+    "ru": 159,
+    "en": 157
+   },
+   "ttsChars": {
+    "ru": 162,
+    "en": 157
+   },
+   "grounding": "school_1_machine.html:384-386 (SCENE 4)",
+   "flags": [
+    "number-conflict"
+   ]
+  },
+  {
+   "segmentId": "sc1.machine.s05",
+   "slideId": "sc1.machine",
+   "stepIds": [
+    "sc1.machine.s05"
+   ],
+   "actionId": null,
+   "title": "Второй бак: пул ликвидности",
+   "display": {
+    "ru": "Второй бак — пул ликвидности, и он пока практически пуст: на слайде один доллар и один токен. Добыча ещё не начиналась.",
+    "en": "The second tank is the liquidity pool, and it is almost empty: the slide shows one dollar and one token. Mining has not started yet."
+   },
+   "tts": {
+    "ru": "Второй бак — пул ликвидности, и он пока практически пуст: на слайде один доллар и один токен. Добыча ещё не начиналась.",
+    "en": "The second tank is the liquidity pool, and it is almost empty: the slide shows one dollar and one token. Mining has not started yet."
+   },
+   "chars": {
+    "ru": 119,
+    "en": 132
+   },
+   "ttsChars": {
+    "ru": 119,
+    "en": 132
+   },
+   "grounding": "school_1_machine.html:388-390 (SCENE 5)",
+   "flags": []
+  },
+  {
+   "segmentId": "sc1.machine.s06",
+   "slideId": "sc1.machine",
+   "stepIds": [
+    "sc1.machine.s06"
+   ],
+   "actionId": null,
+   "title": "Сначала резерв, потом выпуск",
+   "display": {
+    "ru": "Порядок такой: сначала резерв, потом выпуск. Каждый DA, который появится, обеспечен заранее. Дальше — как из двух баков получается цена.",
+    "en": "The order is: reserve first, issuance second. Every DA that appears is backed in advance. Next we see how the two tanks produce a price."
+   },
+   "tts": {
+    "ru": "Порядок такой: сначала резерв, потом выпуск. Каждый ди эй, который появится, обеспечен заранее. Дальше — как из двух баков получается цена.",
+    "en": "The order is: reserve first, issuance second. Every DA that appears is backed in advance. Next we see how the two tanks produce a price."
+   },
+   "chars": {
+    "ru": 136,
+    "en": 136
+   },
+   "ttsChars": {
+    "ru": 139,
+    "en": 136
+   },
+   "grounding": "school_1_machine.html:392-394 (SCENE 6)",
+   "flags": []
+  },
+  {
+   "segmentId": "sc2.mech.s01",
+   "slideId": "sc2.mech",
+   "stepIds": [
+    "sc2.mech.s01"
+   ],
+   "actionId": null,
+   "title": "Арифметика в договоре",
+   "display": {
+    "ru": "Теперь механика. Здесь нет биржи и нет продавцов друг другу: только арифметика, записанная в договоре.",
+    "en": "Now the mechanics. There is no exchange here and no sellers to each other: only arithmetic written into the contract."
+   },
+   "tts": {
+    "ru": "Теперь механика. Здесь нет биржи и нет продавцов друг другу: только арифметика, записанная в договоре.",
+    "en": "Now the mechanics. There is no exchange here and no sellers to each other: only arithmetic written into the contract."
+   },
+   "chars": {
+    "ru": 102,
+    "en": 117
+   },
+   "ttsChars": {
+    "ru": 102,
+    "en": 117
+   },
+   "grounding": "school_2_mech.html SCENE 1",
+   "flags": []
+  },
+  {
+   "segmentId": "sc2.mech.s02",
+   "slideId": "sc2.mech",
+   "stepIds": [
+    "sc2.mech.s02",
+    "sc2.mech.s03"
+   ],
+   "actionId": null,
+   "title": "Пять потоков и нода",
+   "display": {
+    "ru": "Пять потоков пополняют резерв: покупка NFT, продление, удержание с вознаграждений, комиссия займов и внешние поступления. Все они сходятся в один накопитель — ноду.",
+    "en": "Five streams fill the reserve: NFT purchases, renewals, a hold on rewards, loan fees and external inflows. All of them meet in one vault, the node."
+   },
+   "tts": {
+    "ru": "Пять потоков пополняют резерв: покупка энэфти, продление, удержание с вознаграждений, комиссия займов и внешние поступления. Все они сходятся в один накопитель — ноду.",
+    "en": "Five streams fill the reserve: NFT purchases, renewals, a hold on rewards, loan fees and external inflows. All of them meet in one vault, the node."
+   },
+   "chars": {
+    "ru": 164,
+    "en": 147
+   },
+   "ttsChars": {
+    "ru": 167,
+    "en": 147
+   },
+   "grounding": "school_2_mech.html SCENE 2-3",
+   "flags": []
+  },
+  {
+   "segmentId": "sc2.mech.s03",
+   "slideId": "sc2.mech",
+   "stepIds": [
+    "sc2.mech.s04",
+    "sc2.mech.s05"
+   ],
+   "actionId": null,
+   "title": "Накопитель и пул: что задаёт цену",
+   "display": {
+    "ru": "Накопитель наполняется непрерывно, около четырёхсот шестидесяти тысяч USDT на момент записи. Рядом второй счёт, пул ликвидности, и цену задаёт именно он.",
+    "en": "The vault fills continuously: about four hundred sixty thousand USDT at the time of recording. Beside it sits the liquidity pool, and that pool is what sets the price."
+   },
+   "tts": {
+    "ru": "Накопитель наполняется непрерывно, около четырёхсот шестидесяти тысяч ю эс ди ти на момент записи. Рядом второй счёт, пул ликвидности, и цену задаёт именно он.",
+    "en": "The vault fills continuously: about four hundred sixty thousand USDT at the time of recording. Beside it sits the liquidity pool, and that pool is what sets the price."
+   },
+   "chars": {
+    "ru": 153,
+    "en": 167
+   },
+   "ttsChars": {
+    "ru": 159,
+    "en": 167
+   },
+   "grounding": "school_2_mech.html SCENE 4-5; точные значения расходятся со school_1 (458 839 / 461 584)",
+   "flags": [
+    "number-conflict"
+   ]
+  },
+  {
+   "segmentId": "sc2.mech.s04",
+   "slideId": "sc2.mech",
+   "stepIds": [
+    "sc2.mech.s06",
+    "sc2.mech.s07"
+   ],
+   "actionId": null,
+   "title": "Выпуск: обеспечение и токены вместе",
+   "display": {
+    "ru": "Участник забирает добытое: в пул уходит обеспечение в USDT и выпускаются DA на ту же сумму. Обеспечение делим на токены — получаем цену. В примере ровно доллар.",
+    "en": "A participant withdraws what was mined: backing in USDT enters the pool and DA is issued for the same amount. Backing divided by tokens gives the price. In the example, exactly one dollar."
+   },
+   "tts": {
+    "ru": "Участник забирает добытое: в пул уходит обеспечение в ю эс ди ти и выпускаются ди эй на ту же сумму. Обеспечение делим на токены — получаем цену. В примере ровно доллар.",
+    "en": "A participant withdraws what was mined: backing in USDT enters the pool and DA is issued for the same amount. Backing divided by tokens gives the price. In the example, exactly one dollar."
+   },
+   "chars": {
+    "ru": 160,
+    "en": 188
+   },
+   "ttsChars": {
+    "ru": 169,
+    "en": 188
+   },
+   "grounding": "school_2_mech.html SCENE 6-7",
+   "flags": []
+  },
+  {
+   "segmentId": "sc2.mech.s05",
+   "slideId": "sc2.mech",
+   "stepIds": [
+    "sc2.mech.s08",
+    "sc2.mech.s09"
+   ],
+   "actionId": null,
+   "title": "Сжигание и первый рост цены",
+   "display": {
+    "ru": "Продажа. Покупателя нет: токены сгорают. Тридцать тысяч DA по доллару дают двадцать одну тысячу USDT, это семьдесят процентов. Токенов остаётся меньше, и цена растёт.",
+    "en": "A sale. There is no buyer: the tokens are burned. Thirty thousand DA at one dollar return twenty-one thousand USDT, seventy percent. Fewer tokens remain, so the price rises."
+   },
+   "tts": {
+    "ru": "Продажа. Покупателя нет: токены сгорают. Тридцать тысяч ди эй по доллару дают двадцать одну тысячу ю эс ди ти, это семьдесят процентов. Токенов остаётся меньше, и цена растёт.",
+    "en": "A sale. There is no buyer: the tokens are burned. Thirty thousand DA at one dollar return twenty-one thousand USDT, seventy percent. Fewer tokens remain, so the price rises."
+   },
+   "chars": {
+    "ru": 166,
+    "en": 173
+   },
+   "ttsChars": {
+    "ru": 175,
+    "en": 173
+   },
+   "grounding": "school_2_mech.html SCENE 8-9",
+   "flags": []
+  },
+  {
+   "segmentId": "sc2.mech.s06",
+   "slideId": "sc2.mech",
+   "stepIds": [
+    "sc2.mech.s10",
+    "sc2.mech.s11",
+    "sc2.mech.s12",
+    "sc2.mech.s13"
+   ],
+   "actionId": null,
+   "title": "Следующий выпуск и следующая продажа",
+   "display": {
+    "ru": "Поток не остановился. Следующий выпуск идёт уже по новой цене: токенов выпускается меньше, цена не сдвигается. Затем новая продажа и сжигание — дороже предыдущего.",
+    "en": "The stream did not stop. The next issuance happens at the new price: fewer tokens, and the price does not move. Then another sale and another burn, more expensive than the last."
+   },
+   "tts": {
+    "ru": "Поток не остановился. Следующий выпуск идёт уже по новой цене: токенов выпускается меньше, цена не сдвигается. Затем новая продажа и сжигание — дороже предыдущего.",
+    "en": "The stream did not stop. The next issuance happens at the new price: fewer tokens, and the price does not move. Then another sale and another burn, more expensive than the last."
+   },
+   "chars": {
+    "ru": 163,
+    "en": 177
+   },
+   "ttsChars": {
+    "ru": 163,
+    "en": 177
+   },
+   "grounding": "school_2_mech.html SCENE 10-13",
+   "flags": []
+  },
+  {
+   "segmentId": "sc2.mech.s07",
+   "slideId": "sc2.mech",
+   "stepIds": [
+    "sc2.mech.s14",
+    "sc2.mech.s15",
+    "sc2.mech.s16",
+    "sc2.mech.s17"
+   ],
+   "actionId": null,
+   "title": "Круги без новых денег",
+   "display": {
+    "ru": "Каждый круг поднимает планку, новых денег в пул не приходит. Владельцы забирают тридцать четыре тысячи семьсот девяносто восемь, цена проходит полтора, затем один шестьдесят девять.",
+    "en": "Each round lifts the bar, and no new money enters the pool. Owners withdraw thirty-four thousand seven hundred ninety-eight, and the price passes one fifty, then one sixty-nine."
+   },
+   "tts": {
+    "ru": "Каждый круг поднимает планку, новых денег в пул не приходит. Владельцы забирают тридцать четыре тысячи семьсот девяносто восемь, цена проходит полтора, затем один шестьдесят девять.",
+    "en": "Each round lifts the bar, and no new money enters the pool. Owners withdraw thirty-four thousand seven hundred ninety-eight, and the price passes one fifty, then one sixty-nine."
+   },
+   "chars": {
+    "ru": 181,
+    "en": 177
+   },
+   "ttsChars": {
+    "ru": 181,
+    "en": 177
+   },
+   "grounding": "school_2_mech.html SCENE 14-17",
+   "flags": []
+  },
+  {
+   "segmentId": "sc2.mech.s08",
+   "slideId": "sc2.mech",
+   "stepIds": [
+    "sc2.mech.s18",
+    "sc2.mech.s19",
+    "sc2.mech.s20",
+    "sc2.mech.s21"
+   ],
+   "actionId": null,
+   "title": "Меньше токенов, тот же эффект",
+   "display": {
+    "ru": "Дальше круги с меньшим числом токенов и тем же эффектом: сорок тысяч, потом восемь тысяч. Цена переходит за два доллара.",
+    "en": "Then rounds with fewer tokens and the same effect: forty thousand, then eight thousand. The price moves past two dollars."
+   },
+   "tts": {
+    "ru": "Дальше круги с меньшим числом токенов и тем же эффектом: сорок тысяч, потом восемь тысяч. Цена переходит за два доллара.",
+    "en": "Then rounds with fewer tokens and the same effect: forty thousand, then eight thousand. The price moves past two dollars."
+   },
+   "chars": {
+    "ru": 120,
+    "en": 121
+   },
+   "ttsChars": {
+    "ru": 120,
+    "en": 121
+   },
+   "grounding": "school_2_mech.html SCENE 18-21",
+   "flags": []
+  },
+  {
+   "segmentId": "sc2.mech.s09",
+   "slideId": "sc2.mech",
+   "stepIds": [
+    "sc2.mech.s22",
+    "sc2.mech.s23"
+   ],
+   "actionId": null,
+   "title": "Итог примера: 1.00 → 2.17",
+   "display": {
+    "ru": "Итог примера: с единицы до двух семнадцати, больше чем вдвое, без единого нового доллара в пуле. Круг повторяется, пока система живёт.",
+    "en": "The example ends at two seventeen from one, more than double, without a single new dollar entering the pool. The loop repeats for as long as the system lives."
+   },
+   "tts": {
+    "ru": "Итог примера: с единицы до двух семнадцати, больше чем вдвое, без единого нового доллара в пуле. Круг повторяется, пока система живёт.",
+    "en": "The example ends at two seventeen from one, more than double, without a single new dollar entering the pool. The loop repeats for as long as the system lives."
+   },
+   "chars": {
+    "ru": 134,
+    "en": 158
+   },
+   "ttsChars": {
+    "ru": 134,
+    "en": 158
+   },
+   "grounding": "school_2_mech.html SCENE 22-23",
+   "flags": [
+    "model-example"
+   ]
+  },
+  {
+   "segmentId": "sc3.sell.s01",
+   "slideId": "sc3.sell",
+   "stepIds": [
+    "sc3.sell.s01",
+    "sc3.sell.s02"
+   ],
+   "actionId": null,
+   "title": "Слабое место: нужен покупатель",
+   "display": {
+    "ru": "Слабое место любого актива — нужен тот, кто купит. У обычного токена в момент выхода покупателей не остаётся.",
+    "en": "Every asset has a weak point: it needs someone to buy. With an ordinary token, the moment everyone exits, there are no buyers left."
+   },
+   "tts": {
+    "ru": "Слабое место любого актива — нужен тот, кто купит. У обычного токена в момент выхода покупателей не остаётся.",
+    "en": "Every asset has a weak point: it needs someone to buy. With an ordinary token, the moment everyone exits, there are no buyers left."
+   },
+   "chars": {
+    "ru": 109,
+    "en": 131
+   },
+   "ttsChars": {
+    "ru": 109,
+    "en": 131
+   },
+   "grounding": "school_3_sell.html SCENE 1-2",
+   "flags": []
+  },
+  {
+   "segmentId": "sc3.sell.s02",
+   "slideId": "sc3.sell",
+   "stepIds": [
+    "sc3.sell.s03"
+   ],
+   "actionId": null,
+   "title": "Выкупает контракт",
+   "display": {
+    "ru": "Здесь покупатель не нужен: выкупает сам контракт, из пула обеспечения, по формуле. Без стакана и без встречной стороны.",
+    "en": "Here no buyer is needed: the contract itself buys back from the backing pool, by formula. No order book, no counterparty."
+   },
+   "tts": {
+    "ru": "Здесь покупатель не нужен: выкупает сам контракт, из пула обеспечения, по формуле. Без стакана и без встречной стороны.",
+    "en": "Here no buyer is needed: the contract itself buys back from the backing pool, by formula. No order book, no counterparty."
+   },
+   "chars": {
+    "ru": 119,
+    "en": 121
+   },
+   "ttsChars": {
+    "ru": 119,
+    "en": 121
+   },
+   "grounding": "school_3_sell.html SCENE 3",
+   "flags": []
+  },
+  {
+   "segmentId": "sc3.sell.s03",
+   "slideId": "sc3.sell",
+   "stepIds": [
+    "sc3.sell.s04",
+    "sc3.sell.s05"
+   ],
+   "actionId": null,
+   "title": "Автопродажа: первая ступень",
+   "display": {
+    "ru": "Продавать вручную тоже не обязательно: партия уходит по таймеру. Первая ступень — через сто двадцать дней, четверть партии.",
+    "en": "Selling by hand is optional too: a batch leaves on a timer. The first step comes after one hundred twenty days and takes a quarter of the batch."
+   },
+   "tts": {
+    "ru": "Продавать вручную тоже не обязательно: партия уходит по таймеру. Первая ступень — через сто двадцать дней, четверть партии.",
+    "en": "Selling by hand is optional too: a batch leaves on a timer. The first step comes after one hundred twenty days and takes a quarter of the batch."
+   },
+   "chars": {
+    "ru": 123,
+    "en": 144
+   },
+   "ttsChars": {
+    "ru": 123,
+    "en": 144
+   },
+   "grounding": "school_3_sell.html SCENE 4-5",
+   "flags": []
+  },
+  {
+   "segmentId": "sc3.sell.s04",
+   "slideId": "sc3.sell",
+   "stepIds": [
+    "sc3.sell.s06",
+    "sc3.sell.s07",
+    "sc3.sell.s08"
+   ],
+   "actionId": null,
+   "title": "Ступени 2–4 и закрытие партии",
+   "display": {
+    "ru": "Дальше ещё девяносто дней и сорок процентов остатка, потом половина остатка, и на триста шестьдесят пятый день — всё остальное. Партия закрыта.",
+    "en": "Then another ninety days and forty percent of the remainder, then half of what is left, and on day three hundred sixty-five the rest. The batch is closed."
+   },
+   "tts": {
+    "ru": "Дальше ещё девяносто дней и сорок процентов остатка, потом половина остатка, и на триста шестьдесят пятый день — всё остальное. Партия закрыта.",
+    "en": "Then another ninety days and forty percent of the remainder, then half of what is left, and on day three hundred sixty-five the rest. The batch is closed."
+   },
+   "chars": {
+    "ru": 143,
+    "en": 154
+   },
+   "ttsChars": {
+    "ru": 143,
+    "en": 154
+   },
+   "grounding": "school_3_sell.html SCENE 6-8",
+   "flags": []
+  },
+  {
+   "segmentId": "sc3.sell.s05",
+   "slideId": "sc3.sell",
+   "stepIds": [
+    "sc3.sell.s09"
+   ],
+   "actionId": null,
+   "title": "Три способа и след в пуле",
+   "display": {
+    "ru": "Расстаться с токеном можно тремя способами, и в каждом часть стоимости остаётся в пуле. Именно она поднимает цену для тех, кто ещё держит.",
+    "en": "There are three ways to part with the token, and each leaves part of the value in the pool. That is what lifts the price for those still holding."
+   },
+   "tts": {
+    "ru": "Расстаться с токеном можно тремя способами, и в каждом часть стоимости остаётся в пуле. Именно она поднимает цену для тех, кто ещё держит.",
+    "en": "There are three ways to part with the token, and each leaves part of the value in the pool. That is what lifts the price for those still holding."
+   },
+   "chars": {
+    "ru": 138,
+    "en": 145
+   },
+   "ttsChars": {
+    "ru": 138,
+    "en": 145
+   },
+   "grounding": "school_3_sell.html SCENE 9",
+   "flags": []
+  },
+  {
+   "segmentId": "sc4.levels.s01",
+   "slideId": "sc4.levels",
+   "stepIds": [
+    "sc4.levels.s01"
+   ],
+   "actionId": null,
+   "title": "Без приглашений",
+   "display": {
+    "ru": "Самый частый вопрос: обязательно ли приглашать людей. Дальше считаем только то, что делает сам актив.",
+    "en": "The most frequent question: must you invite people? From here we count only what the asset itself does."
+   },
+   "tts": {
+    "ru": "Самый частый вопрос: обязательно ли приглашать людей. Дальше считаем только то, что делает сам актив.",
+    "en": "The most frequent question: must you invite people? From here we count only what the asset itself does."
+   },
+   "chars": {
+    "ru": 101,
+    "en": 103
+   },
+   "ttsChars": {
+    "ru": 101,
+    "en": 103
+   },
+   "grounding": "school_4_levels.html SCENE 1",
+   "flags": []
+  },
+  {
+   "segmentId": "sc4.levels.s02",
+   "slideId": "sc4.levels",
+   "stepIds": [
+    "sc4.levels.s02"
+   ],
+   "actionId": null,
+   "title": "Шестой уровень: 1 100 → 402 в год",
+   "display": {
+    "ru": "Шестой уровень: тысяча сто долларов один раз, около четырёхсот двух долларов в год. Это тридцать семь процентов от стоимости.",
+    "en": "Level six: eleven hundred dollars once, about four hundred two dollars a year. That is thirty-seven percent of the cost."
+   },
+   "tts": {
+    "ru": "Шестой уровень: тысяча сто долларов один раз, около четырёхсот двух долларов в год. Это тридцать семь процентов от стоимости.",
+    "en": "Level six: eleven hundred dollars once, about four hundred two dollars a year. That is thirty-seven percent of the cost."
+   },
+   "chars": {
+    "ru": 125,
+    "en": 120
+   },
+   "ttsChars": {
+    "ru": 125,
+    "en": 120
+   },
+   "grounding": "school_4_levels.html SCENE 2; таблица LVL l:6 (1100 / 402 / 37)",
+   "flags": [
+    "income-claim"
+   ]
+  },
+  {
+   "segmentId": "sc4.levels.s03",
+   "slideId": "sc4.levels",
+   "stepIds": [
+    "sc4.levels.s03",
+    "sc4.levels.s04"
+   ],
+   "actionId": null,
+   "title": "Разгон и возврат вложенного",
+   "display": {
+    "ru": "Первый год скромный: первая партия уходит на автопродажу только через двести восемь дней. Зато к четвёртому году вложенное возвращается полностью.",
+    "en": "The first year is modest: the first batch goes to auto-sale only after two hundred eight days. By the fourth year, though, the investment has come back in full."
+   },
+   "tts": {
+    "ru": "Первый год скромный: первая партия уходит на автопродажу только через двести восемь дней. Зато к четвёртому году вложенное возвращается полностью.",
+    "en": "The first year is modest: the first batch goes to auto-sale only after two hundred eight days. By the fourth year, though, the investment has come back in full."
+   },
+   "chars": {
+    "ru": 146,
+    "en": 160
+   },
+   "ttsChars": {
+    "ru": 146,
+    "en": 160
+   },
+   "grounding": "school_4_levels.html SCENE 3-4; Y_USD [66, 382, 403, 403…]",
+   "flags": [
+    "income-claim"
+   ]
+  },
+  {
+   "segmentId": "sc4.levels.s04",
+   "slideId": "sc4.levels",
+   "stepIds": [
+    "sc4.levels.s05"
+   ],
+   "actionId": null,
+   "title": "Токенов меньше, денег столько же",
+   "display": {
+    "ru": "Внутри происходит важное: токенов добывается всё меньше, а денег приходит столько же. Выработка записана в долларах, поэтому рост цены не раздувает выплаты, а вычищает токены из оборота.",
+    "en": "Something important happens inside: fewer tokens are mined, while the money stays the same. The output is fixed in dollars, so a higher price does not inflate payouts — it removes tokens from circulation."
+   },
+   "tts": {
+    "ru": "Внутри происходит важное: токенов добывается всё меньше, а денег приходит столько же. Выработка записана в долларах, поэтому рост цены не раздувает выплаты, а вычищает токены из оборота.",
+    "en": "Something important happens inside: fewer tokens are mined, while the money stays the same. The output is fixed in dollars, so a higher price does not inflate payouts — it removes tokens from circulation."
+   },
+   "chars": {
+    "ru": 186,
+    "en": 204
+   },
+   "ttsChars": {
+    "ru": 186,
+    "en": 204
+   },
+   "grounding": "school_4_levels.html SCENE 5",
+   "flags": []
+  },
+  {
+   "segmentId": "sc4.levels.s05",
+   "slideId": "sc4.levels",
+   "stepIds": [
+    "sc4.levels.s06"
+   ],
+   "actionId": null,
+   "title": "Все уровни и сроки возврата",
+   "display": {
+    "ru": "По всем уровням возврат занимает около трёх с половиной лет, с восьмого — два и девять. Дальше актив просто работает.",
+    "en": "Across the levels, payback takes about three and a half years; from level eight, two point nine. After that the asset simply works."
+   },
+   "tts": {
+    "ru": "По всем уровням возврат занимает около трёх с половиной лет, с восьмого — два и девять. Дальше актив просто работает.",
+    "en": "Across the levels, payback takes about three and a half years; from level eight, two point nine. After that the asset simply works."
+   },
+   "chars": {
+    "ru": 117,
+    "en": 131
+   },
+   "ttsChars": {
+    "ru": 117,
+    "en": 131
+   },
+   "grounding": "school_4_levels.html SCENE 6; таблица back: 3,6 / 2,9",
+   "flags": [
+    "table-scope"
+   ]
+  },
+  {
+   "segmentId": "sc5.cycle.s01",
+   "slideId": "sc5.cycle",
+   "stepIds": [
+    "sc5.cycle.s01",
+    "sc5.cycle.s02"
+   ],
+   "actionId": null,
+   "title": "Сколько раз платить: лимит как обязательство",
+   "display": {
+    "ru": "Сколько раз придётся платить. Шестой уровень: NFT за тысячу сто, лимит дохода две тысячи семьсот. Лимит здесь описан не как ограничение прибыли, а как обязательство платформы.",
+    "en": "How many times you have to pay. Level six: an NFT for eleven hundred, an income limit of twenty-seven hundred. The limit is described not as a cap on profit but as the platform's obligation."
+   },
+   "tts": {
+    "ru": "Сколько раз придётся платить. Шестой уровень: энэфти за тысячу сто, лимит дохода две тысячи семьсот. Лимит здесь описан не как ограничение прибыли, а как обязательство платформы.",
+    "en": "How many times you have to pay. Level six: an NFT for eleven hundred, an income limit of twenty-seven hundred. The limit is described not as a cap on profit but as the platform's obligation."
+   },
+   "chars": {
+    "ru": 175,
+    "en": 190
+   },
+   "ttsChars": {
+    "ru": 178,
+    "en": 190
+   },
+   "grounding": "school_5_cycle.html SCENE 1-2",
+   "flags": [
+    "finance-wording"
+   ]
+  },
+  {
+   "segmentId": "sc5.cycle.s02",
+   "slideId": "sc5.cycle",
+   "stepIds": [
+    "sc5.cycle.s03"
+   ],
+   "actionId": null,
+   "title": "Продление из заработанного",
+   "display": {
+    "ru": "Когда лимит выбран, NFT продлевается. Продление идёт из заработанного на платформе, а не из вашего кармана.",
+    "en": "When the limit is reached, the NFT is renewed. The renewal is paid from what was earned on the platform, not from your pocket."
+   },
+   "tts": {
+    "ru": "Когда лимит выбран, энэфти продлевается. Продление идёт из заработанного на платформе, а не из вашего кармана.",
+    "en": "When the limit is reached, the NFT is renewed. The renewal is paid from what was earned on the platform, not from your pocket."
+   },
+   "chars": {
+    "ru": 107,
+    "en": 126
+   },
+   "ttsChars": {
+    "ru": 110,
+    "en": 126
+   },
+   "grounding": "school_5_cycle.html SCENE 3",
+   "flags": [
+    "finance-wording"
+   ]
+  },
+  {
+   "segmentId": "sc5.cycle.s03",
+   "slideId": "sc5.cycle",
+   "stepIds": [
+    "sc5.cycle.s04"
+   ],
+   "actionId": null,
+   "title": "Круг замыкается",
+   "display": {
+    "ru": "Дальше круг замыкается: доля с продления уходит в накопитель, из накопителя обеспечивается новый DA, NFT продолжает добычу. Деньги не выходят из системы, они в ней вращаются.",
+    "en": "The loop closes: part of the renewal goes into the vault, the vault backs new DA, and the NFT keeps mining. The money does not leave the system; it circulates inside it."
+   },
+   "tts": {
+    "ru": "Дальше круг замыкается: доля с продления уходит в накопитель, из накопителя обеспечивается новый ди эй, энэфти продолжает добычу. Деньги не выходят из системы, они в ней вращаются.",
+    "en": "The loop closes: part of the renewal goes into the vault, the vault backs new DA, and the NFT keeps mining. The money does not leave the system; it circulates inside it."
+   },
+   "chars": {
+    "ru": 174,
+    "en": 169
+   },
+   "ttsChars": {
+    "ru": 180,
+    "en": 169
+   },
+   "grounding": "school_5_cycle.html SCENE 4",
+   "flags": []
+  },
+  {
+   "segmentId": "sc5.cycle.s04",
+   "slideId": "sc5.cycle",
+   "stepIds": [
+    "sc5.cycle.s05",
+    "sc5.cycle.s06"
+   ],
+   "actionId": null,
+   "title": "Масштаб сети: 3.8 млн против 9.6 млн",
+   "display": {
+    "ru": "В масштабе сети на слайде другие числа: участники вложили три и восемь десятых миллиона, а по лимитам платформа должна девять и шесть десятых. Это утверждение источника, и оно требует отдельной проверки.",
+    "en": "At network scale the slide gives other figures: participants put in three point eight million, while the income limits commit the platform to nine point six million. That is the source's claim, and it needs separate verification."
+   },
+   "tts": {
+    "ru": "В масштабе сети на слайде другие числа: участники вложили три и восемь десятых миллиона, а по лимитам платформа должна девять и шесть десятых. Это утверждение источника, и оно требует отдельной проверки.",
+    "en": "At network scale the slide gives other figures: participants put in three point eight million, while the income limits commit the platform to nine point six million. That is the source's claim, and it needs separate verification."
+   },
+   "chars": {
+    "ru": 203,
+    "en": 229
+   },
+   "ttsChars": {
+    "ru": 203,
+    "en": 229
+   },
+   "grounding": "school_5_cycle.html SCENE 5-6",
+   "flags": [
+    "solvency-claim",
+    "needs-approval"
+   ]
+  },
+  {
+   "segmentId": "sc6.now.s01",
+   "slideId": "sc6.now",
+   "stepIds": [
+    "sc6.now.s01",
+    "sc6.now.s02"
+   ],
+   "actionId": null,
+   "title": "Данные из контракта, не прогноз",
+   "display": {
+    "ru": "Где система сегодня. Автор называет это данными из контракта, а не прогнозом: больше двух тысяч человек на шестом уровне и шестьдесят девять NFT с восьмого по десятый.",
+    "en": "Where the system stands today. The author calls this contract data, not a forecast: more than two thousand people on level six, and sixty-nine NFTs across levels eight to ten."
+   },
+   "tts": {
+    "ru": "Где система сегодня. Автор называет это данными из контракта, а не прогнозом: больше двух тысяч человек на шестом уровне и шестьдесят девять энэфти с восьмого по десятый.",
+    "en": "Where the system stands today. The author calls this contract data, not a forecast: more than two thousand people on level six, and sixty-nine NFTs across levels eight to ten."
+   },
+   "chars": {
+    "ru": 167,
+    "en": 175
+   },
+   "ttsChars": {
+    "ru": 170,
+    "en": 175
+   },
+   "grounding": "school_6_now.html SCENE 1-2",
+   "flags": [
+    "unverifiable-data"
+   ]
+  },
+  {
+   "segmentId": "sc6.now.s02",
+   "slideId": "sc6.now",
+   "stepIds": [
+    "sc6.now.s03"
+   ],
+   "actionId": null,
+   "title": "Полтора процента сети",
+   "display": {
+    "ru": "Это полтора процента сети. Объяснение автора: дело не в цене, а в том, что мало кто считал.",
+    "en": "That is one and a half percent of the network. The author's explanation: not because it is expensive, but because few people did the maths."
+   },
+   "tts": {
+    "ru": "Это полтора процента сети. Объяснение автора: дело не в цене, а в том, что мало кто считал.",
+    "en": "That is one and a half percent of the network. The author's explanation: not because it is expensive, but because few people did the maths."
+   },
+   "chars": {
+    "ru": 91,
+    "en": 139
+   },
+   "ttsChars": {
+    "ru": 91,
+    "en": 139
+   },
+   "grounding": "school_6_now.html SCENE 3",
+   "flags": [
+    "unverifiable-data"
+   ]
+  },
+  {
+   "segmentId": "sc6.now.s03",
+   "slideId": "sc6.now",
+   "stepIds": [
+    "sc6.now.s04",
+    "sc6.now.s05"
+   ],
+   "actionId": null,
+   "title": "Честная рамка и второй инструмент",
+   "display": {
+    "ru": "Честная рамка: платформа молодая, инструментов несколько, а разобран только один. Второй работает с июля: счёт на тысячу долларов, шестьдесят шесть дней начислений подряд.",
+    "en": "An honest frame: the platform is young, several tools exist, and only one was examined. A second has run since July: an account of one thousand dollars with sixty-six consecutive days of accrual."
+   },
+   "tts": {
+    "ru": "Честная рамка: платформа молодая, инструментов несколько, а разобран только один. Второй работает с июля: счёт на тысячу долларов, шестьдесят шесть дней начислений подряд.",
+    "en": "An honest frame: the platform is young, several tools exist, and only one was examined. A second has run since July: an account of one thousand dollars with sixty-six consecutive days of accrual."
+   },
+   "chars": {
+    "ru": 171,
+    "en": 195
+   },
+   "ttsChars": {
+    "ru": 171,
+    "en": 195
+   },
+   "grounding": "school_6_now.html SCENE 4-5",
+   "flags": [
+    "dated-claim"
+   ]
+  },
+  {
+   "segmentId": "sc6.now.s04",
+   "slideId": "sc6.now",
+   "stepIds": [
+    "sc6.now.s06"
+   ],
+   "actionId": null,
+   "title": "Система в самом начале",
+   "display": {
+    "ru": "Накопитель растёт каждый день, а добыча ещё даже не начиналась. Так система выглядит в самом начале.",
+    "en": "The vault grows every day, and mining has not even started. This is the system at its very beginning."
+   },
+   "tts": {
+    "ru": "Накопитель растёт каждый день, а добыча ещё даже не начиналась. Так система выглядит в самом начале.",
+    "en": "The vault grows every day, and mining has not even started. This is the system at its very beginning."
+   },
+   "chars": {
+    "ru": 100,
+    "en": 101
+   },
+   "ttsChars": {
+    "ru": 100,
+    "en": 101
+   },
+   "grounding": "school_6_now.html SCENE 6",
+   "flags": []
+  }
+ ]
+}

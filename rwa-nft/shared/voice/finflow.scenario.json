@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "slideId": "finflow",
+  "title": "FinFlow",
+  "reviewStatus": "review-required",
+  "reviewNote": "Editable seed text. Not approved for paid synthesis. The narration attributes mechanical claims to the on-slide illustration, keeps the source caveat that figures are targets rather than guarantees, and lists disputed claims in claimsReview for the source owner. Do not add yield promises or guarantees.",
+  "languages": [
+    "ru",
+    "en"
+  ],
+  "steps": [
+    {
+      "stepId": "finflow.funding-fee",
+      "stepIndex": 0,
+      "kind": "step",
+      "ru": {
+        "display": "На схеме алгоритм открывает две встречные сделки на равную сумму: одну на покупку, другую на продажу. В иллюстрации движение цены не влияет на общий результат.",
+        "speech": "На схеме алгоритм открывает две встречные сделки на равную сумму. Одна на покупку, другая на продажу. В иллюстрации движение цены не влияет на общий результат."
+      },
+      "en": {
+        "display": "In the illustration, the algorithm opens two opposite trades of equal size: one to buy, one to sell. Here the result does not depend on which way the market moves.",
+        "speech": "In the illustration, the algorithm opens two opposite trades of equal size. One to buy, one to sell. Here the result does not depend on which way the market moves."
+      }
+    },
+    {
+      "stepId": "finflow.funding-flow",
+      "stepIndex": 1,
+      "kind": "step",
+      "ru": {
+        "display": "На схеме доход создаёт плата за баланс. Стороны рынка почти никогда не равны, и каждые восемь часов биржа переводит плату от большей стороны к меньшей. В иллюстрации FinFlow стоит на стороне, которая получает.",
+        "speech": "На схеме доход создаёт плата за баланс. Стороны рынка почти никогда не равны. Каждые восемь часов биржа переводит плату от большей стороны к меньшей. В иллюстрации Финфлоу стоит на стороне, которая получает."
+      },
+      "en": {
+        "display": "In the illustration, the income comes from the funding fee. The two sides of the market are almost never equal, so every eight hours the exchange moves a payment from the larger side to the smaller one. Here FinFlow stands on the receiving side.",
+        "speech": "In the illustration, the income comes from the funding fee. The two sides of the market are almost never equal. Every eight hours the exchange moves a payment from the larger side to the smaller one. Here FinFlow stands on the receiving side."
+      }
+    },
+    {
+      "stepId": "finflow.mean-reversion",
+      "stepIndex": 2,
+      "kind": "step",
+      "ru": {
+        "display": "На схеме второй источник — возврат цены к среднему уровню. Когда отклонение становится больше обычного, алгоритм открывает сделку и закрывает её на возврате. В иллюстрации направление рынка здесь не важно.",
+        "speech": "На схеме второй источник — возврат цены к среднему уровню. Когда отклонение становится больше обычного, алгоритм открывает сделку и закрывает её на возврате. В иллюстрации направление рынка здесь не важно."
+      },
+      "en": {
+        "display": "In the illustration, the second source is the return of the price to its usual level. When the deviation becomes larger than normal, the algorithm opens a trade and closes it on the way back. Here the market direction does not matter.",
+        "speech": "In the illustration, the second source is the return of the price to its usual level. When the deviation becomes larger than normal, the algorithm opens a trade and closes it on the way back. Here the market direction does not matter."
+      }
+    },
+    {
+      "stepId": "finflow.volume-split",
+      "stepIndex": 3,
+      "kind": "step",
+      "ru": {
+        "display": "На схеме третий принцип — распределение объёма. Алгоритм делит сумму на тысячу небольших операций, растянутых по времени и цене. В иллюстрации сбой одной операции не становится заметным для счёта.",
+        "speech": "На схеме третий принцип — распределение объёма. Алгоритм делит сумму на тысячу небольших операций, растянутых по времени и цене. В иллюстрации сбой одной операции не становится заметным для счёта."
+      },
+      "en": {
+        "display": "In the illustration, the third principle is volume distribution. The algorithm splits the amount into a thousand small operations spread over time and price. Here the failure of a single operation does not become noticeable for the account.",
+        "speech": "In the illustration, the third principle is volume distribution. The algorithm splits the amount into a thousand small operations spread over time and price. Here the failure of a single operation does not become noticeable for the account."
+      }
+    },
+    {
+      "stepId": "finflow.three-sources",
+      "stepIndex": 4,
+      "kind": "step",
+      "ru": {
+        "display": "На схеме три источника: плата за баланс даёт основу, отклонения цены добавляют, распределение объёма ограничивает риск одной операции. Все показатели — целевые, а не гарантированные. Операции с цифровыми активами несут технические и рыночные риски.",
+        "speech": "На схеме три источника. Плата за баланс даёт основу, отклонения цены добавляют, распределение объёма ограничивает риск одной операции. Все показатели — целевые, а не гарантированные. Операции с цифровыми активами несут технические и рыночные риски."
+      },
+      "en": {
+        "display": "In the illustration there are three sources: the funding fee provides the base, price deviations add on top, and volume distribution limits the risk of a single operation. All figures are targets, not guarantees. Operations with digital assets carry technical and market risks.",
+        "speech": "In the illustration there are three sources. The funding fee provides the base, price deviations add on top, and volume distribution limits the risk of a single operation. All figures are targets, not guarantees. Operations with digital assets carry technical and market risks."
+      }
+    }
+  ],
+  "actions": [
+    {
+      "actionId": "finflow.formulas.open",
+      "kind": "action",
+      "ru": {
+        "display": "Откроем математику, на которой держится модель: рыночная нейтральность, размер одной операции и бюджет на редкие события.",
+        "speech": "Откроем математику, на которой держится модель. Три принципа: рыночная нейтральность, размер одной операции и бюджет на редкие события."
+      },
+      "en": {
+        "display": "Let us open the mathematics behind the model: market neutrality, the size of a single operation, and a budget for rare events.",
+        "speech": "Let us open the mathematics behind the model. Three principles: market neutrality, the size of a single operation, and a budget for rare events."
+      }
+    },
+    {
+      "actionId": "finflow.formulas.close",
+      "kind": "action",
+      "ru": {
+        "display": "Окно формул закрыто. Возвращаемся к схеме FinFlow.",
+        "speech": "Окно формул закрыто. Возвращаемся к схеме Финфлоу."
+      },
+      "en": {
+        "display": "The formulas window is closed. We return to the FinFlow diagram.",
+        "speech": "The formulas window is closed. We return to the FinFlow diagram."
+      }
+    },
+    {
+      "actionId": "finflow.formulas.next",
+      "kind": "action",
+      "ru": {
+        "display": "Следующий принцип — размер одной операции. В иллюстрации формула Келли показывает, какой долей капитала рисковать, чтобы рост был быстрым, а счёт не обнулялся. Это модель, а не гарантия сохранности счёта.",
+        "speech": "Следующий принцип — размер одной операции. В иллюстрации формула Келли показывает, какой долей капитала рисковать, чтобы рост был быстрым, а счёт не обнулялся. Это модель, а не гарантия сохранности счёта."
+      },
+      "en": {
+        "display": "The next principle is the size of a single operation. In the illustration the Kelly formula shows what share of capital to risk so that growth stays fast and the account does not go to zero. This is a model, not a guarantee that the account is preserved.",
+        "speech": "The next principle is the size of a single operation. In the illustration the Kelly formula shows what share of capital to risk so that growth stays fast and the account does not go to zero. This is a model, not a guarantee that the account is preserved."
+      }
+    },
+    {
+      "actionId": "finflow.formulas.prev",
+      "kind": "action",
+      "ru": {
+        "display": "Предыдущий принцип — рыночная нейтральность. В иллюстрации портфель держит зависимость от рынка около нуля, поэтому общий результат считается не из движения цены, а из структуры сделок.",
+        "speech": "Предыдущий принцип — рыночная нейтральность. В иллюстрации портфель держит зависимость от рынка около нуля. Поэтому общий результат считается не из движения цены, а из структуры сделок."
+      },
+      "en": {
+        "display": "The previous principle is market neutrality. In the illustration the portfolio keeps its dependence on the market near zero, so the result is counted from the structure of the trades, not from the price movement.",
+        "speech": "The previous principle is market neutrality. In the illustration the portfolio keeps its dependence on the market near zero. So the result is counted from the structure of the trades, not from the price movement."
+      }
+    },
+    {
+      "actionId": "finflow.trade.advance",
+      "kind": "action",
+      "ru": {
+        "display": "Следующий шаг встречных сделок. Одна нога растёт вместе с рынком, вторая работает ровно наоборот, а итог схемы остаётся на месте.",
+        "speech": "Следующий шаг встречных сделок. Одна нога растёт вместе с рынком, вторая работает ровно наоборот, а итог схемы остаётся на месте."
+      },
+      "en": {
+        "display": "The next step of the opposite trades. One leg rises with the market, the other works exactly the opposite way, and the illustrated total stays in place.",
+        "speech": "The next step of the opposite trades. One leg rises with the market, the other works exactly the opposite way, and the illustrated total stays in place."
+      }
+    },
+    {
+      "actionId": "finflow.operations.break",
+      "kind": "action",
+      "ru": {
+        "display": "Разорвём часть операций. В иллюстрации даже заметная доля сбоев затрагивает лишь малую часть объёма.",
+        "speech": "Разорвём часть операций. В иллюстрации даже заметная доля сбоев затрагивает лишь малую часть объёма."
+      },
+      "en": {
+        "display": "Let us break some operations. In the illustration even a noticeable share of failures affects only a small part of the volume.",
+        "speech": "Let us break some operations. In the illustration even a noticeable share of failures affects only a small part of the volume."
+      }
+    },
+    {
+      "actionId": "finflow.operations.reset",
+      "kind": "action",
+      "ru": {
+        "display": "Сброс: все операции снова работают, объём распределён по тысяче небольших частей.",
+        "speech": "Сброс. Все операции снова работают, объём распределён по тысяче небольших частей."
+      },
+      "en": {
+        "display": "Reset: all operations are running again, and the volume is split into a thousand small parts.",
+        "speech": "Reset. All operations are running again, and the volume is split into a thousand small parts."
+      }
+    }
+  ],
+  "pronunciations": {
+    "ru": {
+      "status": "approved-by-user",
+      "approvedAt": "2026-11-15",
+      "terms": {
+        "FinFlow": "Финфлоу",
+        "RWA NFT": "Эрвиэй энэфти",
+        "DA": "ди эй",
+        "USDT": "ю эс ди ти"
+      },
+      "rule": "Display text keeps the original Latin terms. Speech text uses the approved Russian pronunciation.",
+      "note": "Latest user correction: RWA NFT is spoken as «Эрвиэй энэфти»."
+    },
+    "en": {
+      "status": "not-confirmed",
+      "terms": {},
+      "rule": "Keep Latin terms in English speech until the user confirms a pronunciation."
+    }
+  },
+  "illustrationAttribution": {
+    "ru": "Текст описывает механику иллюстрации на слайде, а не гарантию доходности.",
+    "en": "The text describes the mechanics of the on-slide illustration, not a promise of returns."
+  },
+  "claimsReview": [
+    {
+      "id": "claim.price-neutral",
+      "stepId": "finflow.funding-fee",
+      "status": "disputed-review",
+      "text": "Движение цены не влияет на общий результат.",
+      "why": "Only an idealised equal-and-opposite hedge; fees, funding sign, slippage and execution can break neutrality."
+    },
+    {
+      "id": "claim.funding-income-positive",
+      "stepId": "finflow.funding-flow",
+      "status": "disputed-review",
+      "text": "Доход создаёт плата за баланс; FinFlow стоит на стороне, которая получает.",
+      "why": "Funding rate can be negative for the position; receiving side is not guaranteed. Needs source-owner review."
+    },
+    {
+      "id": "claim.mean-reversion",
+      "stepId": "finflow.mean-reversion",
+      "status": "disputed-review",
+      "text": "Цена возвращается к среднему уровню, поэтому сделка закрывается на возврате.",
+      "why": "Mean reversion is a model assumption, not an observed guarantee; deviations can persist."
+    },
+    {
+      "id": "claim.single-failure-not-noticeable",
+      "stepId": "finflow.volume-split",
+      "status": "disputed-review",
+      "text": "Сбой одной операции не становится заметным для счёта.",
+      "why": "Individual small failures are contained in the illustration, but correlated failures can still aggregate."
+    },
+    {
+      "id": "claim.three-sources-independent",
+      "stepId": "finflow.three-sources",
+      "status": "disputed-review",
+      "text": "Три источника работают независимо.",
+      "why": "The caveat \"targets, not guarantees\" is preserved, but independence is an assumption that may share market risk."
+    },
+    {
+      "id": "claim.kelly-no-ruin",
+      "actionId": "finflow.formulas.next",
+      "status": "disputed-review",
+      "text": "Формула Келли позволяет держать быстрый рост и не обнулять счёт.",
+      "why": "Kelly sizing does not guarantee survival; estimation error and fat tails can still produce large drawdowns."
+    },
+    {
+      "id": "claim.market-dependence-near-zero",
+      "actionId": "finflow.formulas.prev",
+      "status": "disputed-review",
+      "text": "Зависимость портфеля от рынка около нуля.",
+      "why": "Near-zero beta is an idealised hedge assumption, not a measured guarantee."
+    },
+    {
+      "id": "claim.total-unchanged",
+      "actionId": "finflow.trade.advance",
+      "status": "disputed-review",
+      "text": "Итог встречных сделок остаётся на месте.",
+      "why": "The illustrated total is stable by construction; real totals move with fees and execution."
+    },
+    {
+      "id": "claim.break-small-share",
+      "actionId": "finflow.operations.break",
+      "status": "disputed-review",
+      "text": "Даже заметная доля сбоев затрагивает лишь малую часть объёма.",
+      "why": "Illustration-specific sizing; does not bound aggregate loss under correlated failures."
+    }
+  ]
+}

@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>09 — Карьерные ранги</title>
+<script src="../shared/i18n.js"></script>
+<script src="../shared/mobile.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Tenor+Sans&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #08080c;
+  --ink: #f5f5f7;
+  --gold: #d4a857;
+  --gold-2: #f0c674;
+  --gold-3: #b8862e;
+  --display: 'Unbounded', system-ui, sans-serif;
+  --body: 'DM Sans', system-ui, sans-serif;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  overflow: hidden;
+  height: 100vh; width: 100vw;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+.step-indicator, .nav-hint, .reset-btn, .slide-num, .slide-tag { display: none !important; }
+.slide { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+
+/* === СЦЕНА === */
+.stage-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(212, 168, 87, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at center, #0c0b14 0%, #050508 100%);
+  z-index: 1;
+}
+.smoke-cloud {
+  position: absolute; border-radius: 50%;
+  pointer-events: none; filter: blur(80px);
+  opacity: 0.22; mix-blend-mode: screen;
+  z-index: 2;
+}
+.smoke-cloud.c1 { width: 70vw; height: 70vw; top: -10vw; left: -20vw;
+  background: radial-gradient(circle, rgba(120, 100, 140, 0.5) 0%, transparent 70%);
+  animation: cloudDrift1 50s ease-in-out infinite; }
+.smoke-cloud.c2 { width: 80vw; height: 80vw; top: 20vh; right: -30vw;
+  background: radial-gradient(circle, rgba(100, 90, 130, 0.4) 0%, transparent 70%);
+  animation: cloudDrift2 60s ease-in-out infinite; }
+@keyframes cloudDrift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(8vw,5vh) scale(1.1)} }
+@keyframes cloudDrift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-8vw,-3vh) scale(1.1)} }
+
+.grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 200;
+  opacity: 0.05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* === EYEBROW === */
+.eyebrow {
+  position: absolute; top: clamp(16px, 2.5vh, 32px); left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  z-index: 25; opacity: 0;
+  transition: opacity 1.4s var(--ease), transform 1.4s var(--ease);
+  text-align: center; white-space: nowrap;
+}
+.eyebrow.shown { opacity: 1; transform: translateX(-50%) translateY(0); }
+.eyebrow-line {
+  display: inline-block;
+  width: clamp(40px, 5vw, 70px); height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold) 50%, transparent);
+  vertical-align: middle; margin: 0 clamp(14px, 1.5vw, 22px); opacity: 0.7;
+}
+.eyebrow-text {
+  font-family: 'Unbounded', sans-serif; font-weight: 500;
+  font-size: clamp(11px, 1vw, 14px); letter-spacing: 0.4em; text-transform: uppercase;
+  color: var(--gold-2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9), 0 0 20px rgba(212, 168, 87, 0.4);
+  vertical-align: middle;
+}
+
+/* === ОСНОВНАЯ СЦЕНА === */
+.scene {
+  position: absolute;
+  top: clamp(50px, 7vh, 80px);
+  left: 0; right: 0;
+  bottom: clamp(20px, 3vh, 36px);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0 clamp(30px, 4vw, 80px);
+  gap: clamp(10px, 1.5vh, 20px);
+}
+
+/* === ПОДАРОК (68% высоты) === */
+.prize-wrap {
+  flex: 0 0 68%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.97);
+  transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
+}
+.prize-wrap.shown {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* === ШАГ 1: ВИЗУАЛИЗАЦИЯ СТОЛБИКОВ === */
+.intro-chart {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(8px, 1.5vw, 24px);
+  padding: clamp(20px, 4vh, 50px) clamp(40px, 6vw, 100px);
+  opacity: 0;
+  transition: opacity 0.8s var(--ease);
+  z-index: 10;
+  pointer-events: none;
+}
+.intro-chart.shown {
+  opacity: 1;
+}
+.intro-chart.fading {
+  opacity: 0;
+  transition: opacity 0.5s var(--ease);
+}
+
+.intro-bar {
+  flex: 1 1 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+}
+
+/* Базовый стиль столбика */
+.intro-bar .bar-fill {
+  width: 100%;
+  border-radius: 6px 6px 0 0;
+  position: relative;
+  overflow: hidden;
+  height: 0;
+  transition: height 1.3s var(--ease);
+}
+
+/* === СПЕКТРАЛЬНАЯ ПАЛИТРА: от тёплой бронзы к платиновому сиянию === */
+
+/* 1. Beginner — тёплая бронза */
+.intro-bar.b1 .bar-fill {
+  background: linear-gradient(180deg,
+    #d49560 0%,
+    #b8763a 50%,
+    #6b3e1a 100%);
+  box-shadow:
+    0 0 18px rgba(184, 118, 58, 0.55),
+    0 0 36px rgba(184, 118, 58, 0.25),
+    inset 0 1px 0 rgba(255, 200, 140, 0.5),
+    inset 0 -3px 8px rgba(107, 62, 26, 0.4);
+}
+
+/* 2. Partner — янтарь */
+.intro-bar.b2 .bar-fill {
+  background: linear-gradient(180deg,
+    #e8b478 0%,
+    #d49560 50%,
+    #8a5a28 100%);
+  box-shadow:
+    0 0 20px rgba(212, 149, 96, 0.6),
+    0 0 40px rgba(212, 149, 96, 0.28),
+    inset 0 1px 0 rgba(255, 220, 170, 0.55),
+    inset 0 -3px 8px rgba(138, 90, 40, 0.4);
+}
+
+/* 3. Manager — старое золото */
+.intro-bar.b3 .bar-fill {
+  background: linear-gradient(180deg,
+    #f0c674 0%,
+    #d4a857 50%,
+    #8a5e1f 100%);
+  box-shadow:
+    0 0 22px rgba(212, 168, 87, 0.65),
+    0 0 44px rgba(212, 168, 87, 0.3),
+    inset 0 1px 0 rgba(255, 240, 196, 0.6),
+    inset 0 -3px 8px rgba(138, 94, 31, 0.45);
+}
+
+/* 4. Leader — яркое золото */
+.intro-bar.b4 .bar-fill {
+  background: linear-gradient(180deg,
+    #fadc8a 0%,
+    #f0c674 50%,
+    #b8862e 100%);
+  box-shadow:
+    0 0 26px rgba(240, 198, 116, 0.7),
+    0 0 52px rgba(240, 198, 116, 0.35),
+    inset 0 1px 0 rgba(255, 245, 210, 0.65),
+    inset 0 -3px 8px rgba(184, 134, 46, 0.45);
+}
+
+/* 5. Senior Leader — платиновое золото */
+.intro-bar.b5 .bar-fill {
+  background: linear-gradient(180deg,
+    #ffe8b0 0%,
+    #f0d896 50%,
+    #c89f4c 100%);
+  box-shadow:
+    0 0 30px rgba(240, 216, 150, 0.75),
+    0 0 60px rgba(240, 216, 150, 0.38),
+    inset 0 1px 0 rgba(255, 248, 220, 0.7),
+    inset 0 -3px 8px rgba(200, 159, 76, 0.45);
+}
+
+/* 6. Director — бело-золото */
+.intro-bar.b6 .bar-fill {
+  background: linear-gradient(180deg,
+    #fff8d8 0%,
+    #fff0c4 50%,
+    #d8b870 100%);
+  box-shadow:
+    0 0 34px rgba(255, 240, 196, 0.8),
+    0 0 68px rgba(255, 240, 196, 0.4),
+    inset 0 1px 0 rgba(255, 252, 230, 0.8),
+    inset 0 -3px 8px rgba(216, 184, 112, 0.5);
+}
+
+/* 7. Vice President — лёд + золото */
+.intro-bar.b7 .bar-fill {
+  background: linear-gradient(180deg,
+    #fffce8 0%,
+    #f4f0d8 50%,
+    #c0b890 100%);
+  box-shadow:
+    0 0 38px rgba(244, 240, 216, 0.85),
+    0 0 76px rgba(244, 240, 216, 0.42),
+    0 0 100px rgba(255, 240, 196, 0.25),
+    inset 0 1px 0 rgba(255, 255, 248, 0.85),
+    inset 0 -3px 8px rgba(192, 184, 144, 0.5);
+}
+
+/* 8. CEO — платиновый свет с холодно-золотым ободом */
+.intro-bar.b8 .bar-fill {
+  background: linear-gradient(180deg,
+    #ffffff 0%,
+    #f8f4e0 50%,
+    #d0c896 100%);
+  box-shadow:
+    0 0 45px rgba(255, 255, 255, 0.9),
+    0 0 90px rgba(255, 248, 220, 0.5),
+    0 0 130px rgba(255, 240, 196, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 0 12px rgba(255, 240, 196, 0.4),
+    inset 0 -3px 8px rgba(208, 200, 150, 0.5);
+}
+
+/* Каскад задержек роста */
+.intro-bar.b1 .bar-fill { transition-delay: 0.0s; }
+.intro-bar.b2 .bar-fill { transition-delay: 0.18s; }
+.intro-bar.b3 .bar-fill { transition-delay: 0.36s; }
+.intro-bar.b4 .bar-fill { transition-delay: 0.54s; }
+.intro-bar.b5 .bar-fill { transition-delay: 0.72s; }
+.intro-bar.b6 .bar-fill { transition-delay: 0.90s; }
+.intro-bar.b7 .bar-fill { transition-delay: 1.08s; }
+.intro-bar.b8 .bar-fill { transition-delay: 1.26s; }
+
+.intro-chart.grown .b1 .bar-fill { height: 14%; }
+.intro-chart.grown .b2 .bar-fill { height: 22%; }
+.intro-chart.grown .b3 .bar-fill { height: 32%; }
+.intro-chart.grown .b4 .bar-fill { height: 44%; }
+.intro-chart.grown .b5 .bar-fill { height: 56%; }
+.intro-chart.grown .b6 .bar-fill { height: 72%; }
+.intro-chart.grown .b7 .bar-fill { height: 88%; }
+.intro-chart.grown .b8 .bar-fill { height: 100%; }
+
+/* Вертикальный блик при появлении (горизонтальная полоса проходит сверху вниз) */
+.intro-bar .bar-fill::before {
+  content: '';
+  position: absolute;
+  top: -100%; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg,
+    transparent 30%,
+    rgba(255, 250, 220, 0.55) 50%,
+    transparent 70%);
+  animation: barShineOnce 0.9s var(--ease) forwards;
+  animation-delay: inherit;
+  pointer-events: none;
+  z-index: 2;
+}
+.intro-chart.grown .b1 .bar-fill::before { animation-delay: 0.4s; }
+.intro-chart.grown .b2 .bar-fill::before { animation-delay: 0.58s; }
+.intro-chart.grown .b3 .bar-fill::before { animation-delay: 0.76s; }
+.intro-chart.grown .b4 .bar-fill::before { animation-delay: 0.94s; }
+.intro-chart.grown .b5 .bar-fill::before { animation-delay: 1.12s; }
+.intro-chart.grown .b6 .bar-fill::before { animation-delay: 1.30s; }
+.intro-chart.grown .b7 .bar-fill::before { animation-delay: 1.48s; }
+.intro-chart.grown .b8 .bar-fill::before { animation-delay: 1.66s; }
+@keyframes barShineOnce {
+  0%   { top: -100%; }
+  100% { top: 100%; }
+}
+
+/* Дополнительный СКВОЗНОЙ блик который пробегает по ВСЕМ столбикам слева направо после роста */
+.intro-bar .bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg,
+    transparent 30%,
+    rgba(255, 255, 240, 0.55) 48%,
+    rgba(255, 255, 255, 0.75) 50%,
+    rgba(255, 255, 240, 0.55) 52%,
+    transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: screen;
+}
+.intro-chart.grown.swept .b1 .bar-fill::after { animation: barSweep 0.8s var(--ease) forwards; animation-delay: 0.0s; }
+.intro-chart.grown.swept .b2 .bar-fill::after { animation: barSweep 0.8s var(--ease) forwards; animation-delay: 0.08s; }
+.intro-chart.grown.swept .b3 .bar-fill::after { animation: barSweep 0.8s var(--ease) forwards; animation-delay: 0.16s; }
+.intro-chart.grown.swept .b4 .bar-fill::after { animation: barSweep 0.8s var(--ease) forwards; animation-delay: 0.24s; }
+.intro-chart.grown.swept .b5 .bar-fill::after { animation: barSweep 0.8s var(--ease) forwards; animation-delay: 0.32s; }
+.intro-chart.grown.swept .b6 .bar-fill::after { animation: barSweep 0.8s var(--ease) forwards; animation-delay: 0.40s; }
+.intro-chart.grown.swept .b7 .bar-fill::after { animation: barSweep 0.8s var(--ease) forwards; animation-delay: 0.48s; }
+.intro-chart.grown.swept .b8 .bar-fill::after { animation: barSweep 0.8s var(--ease) forwards; animation-delay: 0.56s; }
+@keyframes barSweep {
+  0%   { opacity: 0; transform: translateY(-50%); }
+  40%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(50%); }
+}
+
+/* Подпись «Восемь ступеней. Восемь новых возможностей.» — ПОД столбиками */
+.intro-caption {
+  position: absolute;
+  bottom: clamp(-4px, -0.5vh, 4px);
+  left: 0; right: 0;
+  text-align: center;
+  font-family: 'Unbounded', sans-serif;
+  font-weight: 300;
+  font-size: clamp(13px, 1.4vw, 22px);
+  letter-spacing: 0;
+  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 3px 16px rgba(0,0,0,0.8);
+  opacity: 0;
+  transition: opacity 1s var(--ease);
+  z-index: 11;
+  pointer-events: none;
+}
+.intro-caption.shown {
+  opacity: 1;
+}
+.intro-caption em {
+  font-style: normal;
+  color: var(--gold-2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 0 24px rgba(212, 168, 87, 0.6);
+}
+
+/* === ПОДПИСЬ ПОДАРКА В ПРАВОМ НИЖНЕМ УГЛУ === */
+.prize-caption {
+  position: absolute;
+  right: clamp(28px, 3vw, 56px);
+  bottom: clamp(22px, 2.5vh, 40px);
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+}
+.prize-caption.shown {
+  opacity: 1;
+  transform: translateY(0);
+}
+.prize-caption-line {
+  width: clamp(40px, 6vw, 100px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-2) 80%, var(--gold-2));
+  margin-bottom: clamp(8px, 1.2vh, 14px);
+  box-shadow: 0 0 6px rgba(212, 168, 87, 0.5);
+}
+.prize-caption-text {
+  font-family: 'Unbounded', sans-serif;
+  font-weight: 300;
+  font-size: clamp(15px, 1.8vw, 30px);
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, #fff0c4 0%, #f0c674 40%, #d4a857 70%, #b8862e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.9),
+    0 0 30px rgba(212, 168, 87, 0.5);
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.95));
+  line-height: 1.1;
+  white-space: nowrap;
+  position: relative;
+}
+/* Пробегающий блик по тексту */
+.prize-caption-text::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg,
+    transparent 30%,
+    rgba(255, 255, 240, 0.7) 48%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(255, 255, 240, 0.7) 52%,
+    transparent 70%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0;
+  animation: captionShine 6s linear infinite;
+  animation-delay: 1.5s;
+  pointer-events: none;
+}
+@keyframes captionShine {
+  0%   { opacity: 0; transform: translateX(-50%); }
+  10%  { opacity: 1; }
+  20%  { opacity: 0; transform: translateX(50%); }
+  100% { opacity: 0; transform: translateX(50%); }
+}
+
+/* === ПОДПИСЬ ПОДАРКА В ЛЕВОМ НИЖНЕМ УГЛУ (поверх картинки) === */
+.prize-caption {
+  position: absolute;
+  left: clamp(28px, 3vw, 56px);
+  bottom: clamp(22px, 2.5vh, 40px);
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+}
+.prize-caption.shown {
+  opacity: 1;
+  transform: translateY(0);
+}
+.prize-caption-line {
+  width: clamp(40px, 6vw, 100px);
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold-2), var(--gold-2) 20%, transparent);
+  margin-bottom: clamp(8px, 1.2vh, 14px);
+  box-shadow: 0 0 8px rgba(212, 168, 87, 0.6);
+}
+.prize-caption-text {
+  font-family: 'Unbounded', sans-serif;
+  font-weight: 300;
+  font-size: clamp(15px, 1.8vw, 30px);
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  white-space: nowrap;
+  position: relative;
+  background: linear-gradient(135deg,
+    #fff0c4 0%,
+    #f0c674 35%,
+    #d4a857 65%,
+    #b8862e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter:
+    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 0 18px rgba(212, 168, 87, 0.45));
+}
+
+/* === РАМКА ПОДАРКА === */
+.prize-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: clamp(700px, 80vw, 1400px);
+  background: linear-gradient(135deg, #0d0d12 0%, #060508 100%);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.95),
+    0 0 100px rgba(212, 168, 87, 0.18),
+    inset 0 0 0 1px rgba(212, 168, 87, 0.12);
+  opacity: 0;
+  transition: opacity 0.7s var(--ease);
+}
+.prize-frame.frame-shown {
+  opacity: 1;
+}
+
+/* Слой с картинкой подарка (Ken Burns) */
+.prize-image-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.prize-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-size: cover;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease);
+  animation: kenBurns 20s ease-in-out infinite alternate;
+}
+.prize-image.active {
+  opacity: 1;
+}
+@keyframes kenBurns {
+  0%   { transform: scale(1.06) translate(-1%, -1%); }
+  100% { transform: scale(1.12) translate(2%, 1%); }
+}
+
+/* Placeholder с названием подарка */
+.prize-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse 70% 70% at center, rgba(212, 168, 87, 0.15) 0%, rgba(20, 16, 26, 0.7) 50%, #060508 100%);
+  font-family: 'Unbounded', sans-serif;
+  font-weight: 200;
+  font-size: clamp(28px, 4vw, 64px);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 247, 0.7);
+  text-align: center;
+  text-shadow: 0 4px 16px rgba(0,0,0,0.85);
+  opacity: 1;
+  transition: opacity 0.5s var(--ease);
+}
+.prize-placeholder.fading {
+  opacity: 0;
+}
+
+/* Виньетка по краям картинки */
+.prize-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 80% at center, transparent 50%, rgba(0,0,0,0.45) 100%),
+    linear-gradient(180deg, transparent 75%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Золотая вспышка при смене */
+.flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 50% 50% at center,
+    rgba(255, 240, 196, 0.95) 0%,
+    rgba(240, 198, 116, 0.7) 20%,
+    rgba(212, 168, 87, 0.3) 45%,
+    transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+  mix-blend-mode: screen;
+}
+.flash.fire {
+  animation: flashBurst 0.9s var(--ease) forwards;
+}
+@keyframes flashBurst {
+  0%   { opacity: 0; transform: scale(0.5); }
+  30%  { opacity: 1; transform: scale(1); }
+  70%  { opacity: 0.7; transform: scale(1.15); }
+  100% { opacity: 0; transform: scale(1.3); }
+}
+
+/* Пробегающий блик по подарку */
+.prize-shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 4;
+}
+.prize-shine::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -50%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(115deg,
+    transparent 30%,
+    rgba(255, 240, 196, 0.15) 48%,
+    rgba(255, 240, 196, 0.25) 50%,
+    rgba(255, 240, 196, 0.15) 52%,
+    transparent 70%);
+  animation: prizeShine 8s linear infinite;
+  animation-delay: 1.5s;
+}
+@keyframes prizeShine {
+  0%   { left: -50%; }
+  60%  { left: 110%; }
+  100% { left: 110%; }
+}
+
+/* Угловые золотые скобки */
+.frame-corner {
+  position: absolute;
+  width: clamp(24px, 2.6vw, 40px);
+  height: clamp(24px, 2.6vw, 40px);
+  pointer-events: none;
+  z-index: 6;
+}
+.frame-corner svg { width: 100%; height: 100%; display: block;
+  filter: drop-shadow(0 0 8px rgba(212, 168, 87, 0.7));
+}
+.frame-corner.tl { top: clamp(12px, 1.3vw, 20px); left: clamp(12px, 1.3vw, 20px); }
+.frame-corner.tr { top: clamp(12px, 1.3vw, 20px); right: clamp(12px, 1.3vw, 20px); transform: scaleX(-1); }
+.frame-corner.bl { bottom: clamp(12px, 1.3vw, 20px); left: clamp(12px, 1.3vw, 20px); transform: scaleY(-1); }
+.frame-corner.br { bottom: clamp(12px, 1.3vw, 20px); right: clamp(12px, 1.3vw, 20px); transform: scale(-1, -1); }
+
+/* === ПЛАШКА УСЛОВИЙ === */
+.conditions-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(36px, 5vh, 56px);
+  padding: 0 clamp(20px, 3vw, 40px);
+  background:
+    radial-gradient(ellipse 80% 80% at center, rgba(212, 168, 87, 0.06) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(20, 16, 26, 0.85) 0%, rgba(10, 8, 16, 0.85) 100%);
+  border: 1px solid rgba(212, 168, 87, 0.28);
+  border-radius: 10px;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(212, 168, 87, 0.2);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+.conditions-bar.shown {
+  opacity: 1;
+  transform: translateY(0);
+}
+.conditions-text {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  font-size: clamp(11px, 1vw, 15px);
+  letter-spacing: 0.02em;
+  color: rgba(245, 245, 247, 0.85);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9);
+  white-space: nowrap;
+  text-align: center;
+}
+.conditions-text strong {
+  font-weight: 600;
+  color: var(--gold-2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 0 14px rgba(212, 168, 87, 0.5);
+}
+.conditions-text .nft-tier {
+  font-weight: 600;
+  color: rgba(111, 155, 209, 0.95);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 0 14px rgba(111, 155, 209, 0.4);
+}
+.conditions-text .sep {
+  display: inline-block;
+  margin: 0 clamp(10px, 1.2vw, 18px);
+  color: rgba(212, 168, 87, 0.5);
+}
+
+/* === РЯД ПЛАШЕК РАНГОВ === */
+.ranks-row {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: clamp(6px, 0.8vw, 12px);
+  height: clamp(48px, 7vh, 72px);
+}
+
+.rank-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(8px, 1.2vh, 14px) clamp(6px, 0.8vw, 14px);
+  background:
+    radial-gradient(ellipse 80% 80% at center, rgba(20, 16, 26, 0.7) 0%, rgba(8, 8, 12, 0.7) 100%);
+  border: 1px solid rgba(212, 168, 87, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.6s var(--ease);
+  box-shadow: inset 0 1px 0 rgba(212, 168, 87, 0.08);
+  opacity: 0;
+  transform: translateY(8px);
+}
+.rank-tile.appeared {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.7s var(--ease),
+    transform 0.7s var(--ease),
+    border-color 0.6s var(--ease),
+    background 0.6s var(--ease),
+    box-shadow 0.6s var(--ease);
+}
+
+.rank-tile-name {
+  font-family: 'Unbounded', sans-serif;
+  font-weight: 500;
+  font-size: clamp(8px, 0.78vw, 12px);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 247, 0.4);
+  text-align: center;
+  line-height: 1.15;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9);
+  transition: all 0.6s var(--ease);
+  position: relative;
+  z-index: 2;
+}
+
+/* Пройденные — лёгкий золотой оттенок */
+.rank-tile.passed {
+  border-color: rgba(212, 168, 87, 0.3);
+  background:
+    radial-gradient(ellipse 80% 80% at center, rgba(40, 30, 16, 0.5) 0%, rgba(8, 8, 12, 0.7) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(212, 168, 87, 0.15),
+    0 0 14px rgba(212, 168, 87, 0.08);
+}
+.rank-tile.passed .rank-tile-name {
+  color: rgba(212, 168, 87, 0.65);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9), 0 0 8px rgba(212, 168, 87, 0.3);
+}
+
+/* Активная — яркое золотое свечение */
+.rank-tile.active {
+  border-color: rgba(240, 198, 116, 0.7);
+  background:
+    radial-gradient(ellipse 80% 80% at center, rgba(60, 45, 22, 0.7) 0%, rgba(20, 14, 10, 0.85) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(240, 198, 116, 0.5),
+    0 0 30px rgba(212, 168, 87, 0.45),
+    0 0 60px rgba(212, 168, 87, 0.2);
+  animation: rankTilePulse 3s ease-in-out infinite;
+}
+.rank-tile.active .rank-tile-name {
+  color: var(--gold-2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 0 18px rgba(255, 240, 196, 0.8);
+  font-weight: 600;
+}
+@keyframes rankTilePulse {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(240, 198, 116, 0.5), 0 0 30px rgba(212, 168, 87, 0.45), 0 0 60px rgba(212, 168, 87, 0.2); }
+  50%      { box-shadow: inset 0 1px 0 rgba(240, 198, 116, 0.6), 0 0 40px rgba(212, 168, 87, 0.65), 0 0 80px rgba(212, 168, 87, 0.3); }
+}
+
+/* Пробегающий блик внутри активной плашки */
+.rank-tile.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -120%;
+  width: 100%; height: 100%;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 240, 196, 0.22) 50%, transparent 70%);
+  animation: rankTileShine 4s var(--ease) infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes rankTileShine {
+  0%   { left: -120%; }
+  50%  { left: 120%; }
+  100% { left: 120%; }
+}
+
+/* === ФИНАЛЬНАЯ ФРАЗА === */
+.final-phrase {
+  flex: 0 0 auto;
+  text-align: center;
+  height: clamp(32px, 5vh, 52px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 1s var(--ease), transform 1s var(--ease);
+  pointer-events: none;
+}
+.final-phrase.shown {
+  opacity: 1;
+  transform: translateY(0);
+}
+.final-text {
+  font-family: 'Unbounded', sans-serif;
+  font-weight: 300;
+  font-size: clamp(13px, 1.4vw, 22px);
+  letter-spacing: 0;
+  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 3px 16px rgba(0,0,0,0.8);
+  line-height: 1.2;
+}
+.final-text em {
+  font-style: normal;
+  color: var(--gold-2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 0 30px rgba(212, 168, 87, 0.65);
+}
+</style>
+<link rel="stylesheet" href="../shared/voice/voice.css">
+<script src="../shared/voice/voice-protocol.js"></script>
+<script src="../shared/voice/voice-slides.js"></script>
+<script src="../shared/voice/voice-scenario.js"></script>
+<script src="../shared/voice/voice-core.js"></script>
+<script src="../shared/voice/voice-deck.js"></script>
+<script src="../shared/voice/voice-route.js"></script>
+<script src="../shared/voice/voice-ui-model.js"></script>
+<script src="../shared/voice/voice-ui.js"></script>
+<script src="../shared/voice/voice-slide.js"></script>
+</head>
+<body>
+
+<section class="slide">
+  <div class="stage-bg"></div>
+  <div class="smoke-cloud c1"></div>
+  <div class="smoke-cloud c2"></div>
+  <div class="grain"></div>
+
+  <div class="eyebrow" id="eyebrow">
+    <span class="eyebrow-line"></span><span class="eyebrow-text" data-i18n="s09.eyebrow">Карьерные ранги</span><span class="eyebrow-line"></span>
+  </div>
+
+  <div class="scene">
+    <!-- ПОДАРОК -->
+    <div class="prize-wrap" id="prizeWrap">
+      <!-- ШАГ 1: Затравка — столбики роста -->
+      <div class="intro-chart" id="introChart">
+        <div class="intro-bar b1"><div class="bar-fill"></div></div>
+        <div class="intro-bar b2"><div class="bar-fill"></div></div>
+        <div class="intro-bar b3"><div class="bar-fill"></div></div>
+        <div class="intro-bar b4"><div class="bar-fill"></div></div>
+        <div class="intro-bar b5"><div class="bar-fill"></div></div>
+        <div class="intro-bar b6"><div class="bar-fill"></div></div>
+        <div class="intro-bar b7"><div class="bar-fill"></div></div>
+        <div class="intro-bar b8"><div class="bar-fill"></div></div>
+      </div>
+      <div class="intro-caption" id="introCaption" data-i18n="s09.intro">Восемь ступеней. <em>Восемь новых возможностей.</em></div>
+
+      <div class="prize-frame" id="prizeFrame">
+        <div class="prize-image-layer">
+          <div class="prize-image" data-idx="0" style="background-image: url('../images/rank_01_money.jpg');"></div>
+          <div class="prize-image" data-idx="1" style="background-image: url('../images/rank_02_iphone.jpg');"></div>
+          <div class="prize-image" data-idx="2" style="background-image: url('../images/rank_03_macbook.jpg');"></div>
+          <div class="prize-image" data-idx="3" style="background-image: url('../images/rank_04_maldives.jpg');"></div>
+          <div class="prize-image" data-idx="4" style="background-image: url('../images/rank_05_vertu.jpg');"></div>
+          <div class="prize-image" data-idx="5" style="background-image: url('../images/rank_06_rolex.jpg');"></div>
+          <div class="prize-image" data-idx="6" style="background-image: url('../images/rank_07_penthouse.jpg');"></div>
+          <div class="prize-image" data-idx="7" style="background-image: url('../images/rank_08_rangerover.jpg');"></div>
+        </div>
+        <!-- Подпись подарка в правом нижнем углу (поверх картинки) -->
+        <div class="prize-caption" id="prizeCaption">
+          <div class="prize-caption-line"></div>
+          <div class="prize-caption-text" id="prizeCaptionText">$500 или подарок</div>
+        </div>
+        <div class="prize-vignette"></div>
+        <div class="flash" id="flash"></div>
+        <div class="prize-shine"></div>
+
+        <div class="frame-corner tl">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="cornerGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#fff0c4"/>
+                <stop offset="50%" stop-color="#f0c674"/>
+                <stop offset="100%" stop-color="#8a5e1f"/>
+              </linearGradient>
+            </defs>
+            <path d="M 4 16 L 4 4 L 16 4" stroke="url(#cornerGrad)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="frame-corner tr"><svg viewBox="0 0 40 40"><path d="M 4 16 L 4 4 L 16 4" stroke="url(#cornerGrad)" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></div>
+        <div class="frame-corner bl"><svg viewBox="0 0 40 40"><path d="M 4 16 L 4 4 L 16 4" stroke="url(#cornerGrad)" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></div>
+        <div class="frame-corner br"><svg viewBox="0 0 40 40"><path d="M 4 16 L 4 4 L 16 4" stroke="url(#cornerGrad)" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+
+    <!-- ПЛАШКА УСЛОВИЙ -->
+    <div class="conditions-bar" id="conditionsBar">
+      <div class="conditions-text" id="conditionsText">
+        <strong>$500 или подарок</strong>
+        <span class="sep">·</span>
+        NFT <span class="nft-tier">HYDRO</span>
+        <span class="sep">·</span>
+        Оборот $50K
+        <span class="sep">·</span>
+        Личные $10K
+      </div>
+    </div>
+
+    <!-- РЯД ПЛАШЕК РАНГОВ -->
+    <div class="ranks-row" id="ranksRow">
+      <div class="rank-tile" data-idx="0"><div class="rank-tile-name">Beginner</div></div>
+      <div class="rank-tile" data-idx="1"><div class="rank-tile-name">Partner</div></div>
+      <div class="rank-tile" data-idx="2"><div class="rank-tile-name">Manager</div></div>
+      <div class="rank-tile" data-idx="3"><div class="rank-tile-name">Leader</div></div>
+      <div class="rank-tile" data-idx="4"><div class="rank-tile-name">Senior<br>Leader</div></div>
+      <div class="rank-tile" data-idx="5"><div class="rank-tile-name">Director</div></div>
+      <div class="rank-tile" data-idx="6"><div class="rank-tile-name">Vice<br>President</div></div>
+      <div class="rank-tile" data-idx="7"><div class="rank-tile-name">CEO</div></div>
+    </div>
+
+    <!-- ФИНАЛЬНАЯ ФРАЗА -->
+    <div class="final-phrase" id="finalPhrase">
+      <div class="final-text" data-i18n="s09.final">Каждая ступень. <em>Это новая жизнь.</em></div>
+    </div>
+  </div>
+</section>
+
+<script>
+// =====================================================
+// 8 РАНГОВ
+// =====================================================
+function buildRanks(){ return [
+  {
+    name: 'Beginner',
+    placeholder: '$500',
+    image: 'images/rank_01_money.jpg',
+    conditions: {
+      prize: T('s09.bonus','Бонус')+' $500',
+      nft: 'HYDRO',
+      turnover: T('s09.turn','Оборот')+' $50K',
+      partners: T('s09.pers','Личные')+' $10K'
+    }
+  },
+  {
+    name: 'Partner',
+    placeholder: '$1,000<br>'+T('s09.or','или')+' iPhone',
+    image: 'images/rank_02_iphone.jpg',
+    conditions: {
+      prize: '$1,000 '+T('s09.or','или')+' iPhone',
+      nft: 'QUANTUM',
+      turnover: T('s09.turn','Оборот')+' $50K',
+      partners: '2 × Beginner'
+    }
+  },
+  {
+    name: 'Manager',
+    placeholder: '$2,000<br>'+T('s09.or','или')+' MacBook',
+    image: 'images/rank_03_macbook.jpg',
+    conditions: {
+      prize: '$2,000 '+T('s09.or','или')+' MacBook',
+      nft: 'PULSE',
+      turnover: T('s09.turn','Оборот')+' $250K',
+      partners: '2 × Partner'
+    }
+  },
+  {
+    name: 'Leader',
+    placeholder: '$4,000<br>'+T('s09.or','или')+' '+T('s09.trip','путешествие'),
+    image: 'images/rank_04_maldives.jpg',
+    conditions: {
+      prize: '$4,000 '+T('s09.or','или')+' '+T('s09.trip','путешествие'),
+      nft: 'AURORA',
+      turnover: T('s09.turn','Оборот')+' $750K',
+      partners: '2 × Manager'
+    }
+  },
+  {
+    name: 'Senior Leader',
+    placeholder: '$8,000<br>'+T('s09.or','или')+' VERTU',
+    image: 'images/rank_05_vertu.jpg',
+    conditions: {
+      prize: '$8,000 '+T('s09.or','или')+' VERTU',
+      nft: 'AURORA',
+      turnover: T('s09.turn','Оборот')+' $1.5M',
+      partners: '2 × Leader'
+    }
+  },
+  {
+    name: 'Director',
+    placeholder: '$20,000<br>'+T('s09.or','или')+' Rolex',
+    image: 'images/rank_06_rolex.jpg',
+    conditions: {
+      prize: '$20,000 '+T('s09.or','или')+' Rolex',
+      nft: 'FLAME',
+      turnover: T('s09.turn','Оборот')+' $3M',
+      partners: '2 × Senior Leader'
+    }
+  },
+  {
+    name: 'Vice President',
+    placeholder: '$100,000<br>'+T('s09.or','или')+' '+T('s09.flat','квартира'),
+    image: 'images/rank_07_penthouse.jpg',
+    conditions: {
+      prize: '$100,000 '+T('s09.or','или')+' '+T('s09.flat','квартира'),
+      nft: 'INFINITY',
+      turnover: T('s09.turn','Оборот')+' $7.5M',
+      partners: '1 × Director + 1 × Senior Leader'
+    }
+  },
+  {
+    name: 'CEO',
+    placeholder: '$175,000<br>'+T('s09.or','или')+' Range Rover',
+    image: 'images/rank_08_rangerover.jpg',
+    conditions: {
+      prize: '$175,000 '+T('s09.or','или')+' Range Rover',
+      nft: 'INFINITY',
+      turnover: T('s09.turn','Оборот')+' $15M',
+      partners: '1 × VP '+T('s09.or','или')+' 3 × Director'
+    }
+  },
+]; }
+let RANKS = buildRanks();
+I18N.onChange(()=>{ RANKS = buildRanks();
+  if (typeof applyRankContent === 'function') {
+    const i = window._rankIdx;
+    applyRankContent(i == null ? 0 : i, i == null);
+  }
+});
+
+// =====================================================
+// SlideEngine
+// =====================================================
+const SlideEngine = (function(){
+  let total = 1, current = 1, onStep = null;
+  let wheelAcc = 0, lastWheel = 0;
+  let atEndArmed = false, atStartArmed = false;
+
+  function emit(type){
+    try { window.parent.postMessage({ source: 'slide', type: type }, '*'); } catch(e){}
+  }
+  function go(n){
+    if(n < 1){
+      if (atStartArmed) { emit('slide-end-backward'); atStartArmed = false; }
+      else atStartArmed = true;
+      return;
+    }
+    if(n > total){
+      if (atEndArmed) { emit('slide-end-forward'); atEndArmed = false; }
+      else atEndArmed = true;
+      return;
+    }
+    atEndArmed = (n === total);
+    atStartArmed = (n === 1);
+    current = n;
+    if(onStep) onStep(current);
+  }
+  function next(){ go(current + 1); }
+  function prev(){ go(current - 1); }
+  function reset(){ atEndArmed = false; atStartArmed = true; current = 0; go(1); }
+
+  function init(opts){
+    total = opts.totalSteps || 1;
+    onStep = opts.onStep || null;
+    document.addEventListener('keydown', e => {
+      if(['ArrowRight','PageDown','Space','Enter'].includes(e.code)){ e.preventDefault(); next(); }
+      else if(['ArrowLeft','PageUp'].includes(e.code)){ e.preventDefault(); prev(); }
+      else if(e.code === 'Escape' || e.key === 'r' || e.key === 'R'){ e.preventDefault(); reset(); }
+    });
+    document.addEventListener('wheel', e => {
+      const now = Date.now();
+      if(now - lastWheel < 600) return;
+      wheelAcc += e.deltaY;
+      if(Math.abs(wheelAcc) > 80){
+        if(wheelAcc > 0) next(); else prev();
+        wheelAcc = 0; lastWheel = now;
+      }
+    }, { passive: true });
+    document.addEventListener('click', () => next());
+    window.addEventListener('message', e => {
+      const msg = e.data;
+      if (!msg || msg.source !== 'deck') return;
+      if (msg.type === 'goto-last-step') go(total);
+    });
+    go(1);
+  }
+  return { init, next, prev, go, reset };
+})();
+
+// =====================================================
+const els = {
+  eyebrow:           document.getElementById('eyebrow'),
+  prizeWrap:         document.getElementById('prizeWrap'),
+  prizeFrame:        document.getElementById('prizeFrame'),
+  prizeImages:       document.querySelectorAll('.prize-image'),
+  prizeCaption:      document.getElementById('prizeCaption'),
+  prizeCaptionText:  document.getElementById('prizeCaptionText'),
+  flash:             document.getElementById('flash'),
+  conditionsBar:     document.getElementById('conditionsBar'),
+  conditionsText:    document.getElementById('conditionsText'),
+  ranksRow:          document.getElementById('ranksRow'),
+  rankTiles:         document.querySelectorAll('.rank-tile'),
+  finalPhrase:       document.getElementById('finalPhrase'),
+  introChart:        document.getElementById('introChart'),
+  introCaption:      document.getElementById('introCaption'),
+};
+
+let timers = [];
+function clearAllTimers(){
+  timers.forEach(t => clearTimeout(t));
+  timers = [];
+}
+function later(fn, ms){
+  const t = setTimeout(fn, ms);
+  timers.push(t);
+}
+
+// Применяет содержимое ранга: активная картинка + подпись + условия + плашки
+function applyRankContent(idx, textOnly){
+  if (!textOnly) window._rankIdx = idx;
+  const r = RANKS[idx];
+  if (!r) return;
+
+  // Активная картинка (переключение через .active)
+  if (!textOnly) els.prizeImages.forEach((img, i) => {
+    if (i === idx) img.classList.add('active');
+    else img.classList.remove('active');
+  });
+
+  // Текст подписи (золотом в правом нижнем углу)
+  els.prizeCaptionText.textContent = r.conditions.prize;
+
+  // Условия БЕЗ дублирования подарка (он на картинке)
+  els.conditionsText.innerHTML = `
+    NFT <span class="nft-tier">${r.conditions.nft}</span>
+    <span class="sep">·</span>
+    ${r.conditions.turnover}
+    <span class="sep">·</span>
+    ${r.conditions.partners}
+  `;
+
+  // Плашки рангов: активный/пройденные/будущие
+  if (!textOnly) els.rankTiles.forEach((tile, i) => {
+    tile.classList.remove('active', 'passed');
+    if (i < idx) tile.classList.add('passed');
+    else if (i === idx) tile.classList.add('active');
+  });
+}
+
+// Сброс плашек (для шага 1)
+function resetRankTiles(){
+  els.rankTiles.forEach(tile => tile.classList.remove('active', 'passed'));
+}
+
+// Анимация смены ранга
+function transitionToRank(idx, isFirstShow){
+  if (isFirstShow){
+    applyRankContent(idx);
+    els.prizeFrame.classList.add('frame-shown');
+    els.prizeCaption.classList.add('shown');
+    els.conditionsBar.classList.add('shown');
+    return;
+  }
+
+  // Скрываем условия и подпись
+  els.conditionsBar.classList.remove('shown');
+  els.prizeCaption.classList.remove('shown');
+
+  // Вспышка
+  els.flash.classList.remove('fire');
+  void els.flash.offsetWidth;
+  els.flash.classList.add('fire');
+
+  // Через 0.35 сек — переключаем картинку, обновляем контент
+  later(() => {
+    applyRankContent(idx);
+  }, 350);
+
+  // Через 0.55 сек — показываем плашку условий
+  later(() => {
+    els.conditionsBar.classList.add('shown');
+  }, 550);
+
+  // Через 0.7 сек — показываем подпись (после того как картинка появилась)
+  later(() => {
+    els.prizeCaption.classList.add('shown');
+  }, 700);
+}
+
+function step(n){
+  clearAllTimers();
+
+  // На любом шаге — eyebrow и контейнер рангов (контейнер всегда виден)
+  if (n >= 1){
+    els.eyebrow.classList.add('shown');
+    els.prizeWrap.classList.add('shown');
+  }
+
+  if (n === 1){
+    // ШАГ 1: ЗАТРАВКА — столбики роста и плашки появляются синхронно
+    resetRankTiles();
+    // Сбрасываем плашки в невидимое состояние
+    els.rankTiles.forEach(tile => tile.classList.remove('appeared'));
+    els.prizeFrame.classList.remove('frame-shown');
+    els.conditionsBar.classList.remove('shown');
+    els.prizeCaption.classList.remove('shown');
+    els.prizeImages.forEach(img => img.classList.remove('active'));
+    els.finalPhrase.classList.remove('shown');
+
+    // Показываем график
+    els.introChart.classList.remove('fading', 'swept');
+    els.introChart.classList.add('shown');
+    // Запускаем рост столбиков
+    later(() => els.introChart.classList.add('grown'), 200);
+
+    // Плашки появляются СИНХРОННО с ростом столбиков
+    // Столбики стартуют с delay 0, 0.18, 0.36, 0.54, 0.72, 0.90, 1.08, 1.26 сек
+    // База: 200ms (старт класса .grown) + индивидуальный delay
+    const tileDelays = [200, 380, 560, 740, 920, 1100, 1280, 1460];
+    els.rankTiles.forEach((tile, i) => {
+      later(() => tile.classList.add('appeared'), tileDelays[i]);
+    });
+
+    // Подпись появляется в конце роста
+    later(() => els.introCaption.classList.add('shown'), 1900);
+    // Сквозной блик по всем столбикам слева направо после роста
+    later(() => els.introChart.classList.add('swept'), 2500);
+  } else if (n >= 2){
+    // ШАГ 2+: РАНГИ
+    // Все плашки должны быть видны
+    els.rankTiles.forEach(tile => tile.classList.add('appeared'));
+
+    // Скрываем график
+    els.introChart.classList.remove('grown', 'swept');
+    els.introChart.classList.remove('shown');
+    els.introChart.classList.add('fading');
+    els.introCaption.classList.remove('shown');
+
+    const idx = n - 2; // ранг = шаг - 2 (шаг 2 = Beginner)
+
+    if (n === 2){
+      // Первое появление ранга: с задержкой после исчезновения графика
+      later(() => transitionToRank(idx, true), 400);
+    } else {
+      // Смена ранга
+      transitionToRank(idx, false);
+    }
+
+    // Финальная фраза появляется с ранга Leader (idx 3 = шаг 5) и далее
+    if (idx >= 3) {
+      later(() => els.finalPhrase.classList.add('shown'), 800);
+    } else {
+      els.finalPhrase.classList.remove('shown');
+    }
+  }
+}
+
+function start(){
+  requestAnimationFrame(() => {
+    SlideEngine.init({
+      totalSteps: 9,
+      slideNumber: 9,
+      slideTotal: 14,
+      onStep: (n) => { window._currentStep = n; step(n); }
+    });
+  });
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  requestAnimationFrame(start);
+} else {
+  window.addEventListener('DOMContentLoaded', () => requestAnimationFrame(start));
+}
+</script>
+<div id="voiceRoot"></div>
+<script src="../shared/voice/voice-autoplay.js"></script>
+<script src="../shared/voice/voice-boot.js"></script>
+</body>
+</html>

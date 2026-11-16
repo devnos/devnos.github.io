@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "inventory": "planning/inventory.json#screens[s08.finflow]",
+  "controller": "shared/voice/voice-slides.js#FINFLOW",
+  "note": "Explicit checked bridge between planning screen IDs and runtime semantic segment IDs. The planning inventory is intentionally not renamed. Every inventory step/action is listed; modal actions are controller-only.",
+  "steps": [
+    {
+      "inventoryId": "s08.finflow.s01",
+      "controllerId": "finflow.funding-fee",
+      "index": 1
+    },
+    {
+      "inventoryId": "s08.finflow.s02",
+      "controllerId": "finflow.funding-flow",
+      "index": 2
+    },
+    {
+      "inventoryId": "s08.finflow.s03",
+      "controllerId": "finflow.mean-reversion",
+      "index": 3
+    },
+    {
+      "inventoryId": "s08.finflow.s04",
+      "controllerId": "finflow.volume-split",
+      "index": 4
+    },
+    {
+      "inventoryId": "s08.finflow.s05",
+      "controllerId": "finflow.three-sources",
+      "index": 5
+    }
+  ],
+  "actions": [
+    {
+      "inventoryId": "s08.finflow.s01.a01",
+      "controllerId": null,
+      "reason": "Market slider only recomputes the on-screen illustration and has no narration segment in the scenario."
+    },
+    {
+      "inventoryId": "s08.finflow.s01.a02",
+      "controllerId": "finflow.formulas.open"
+    },
+    {
+      "inventoryId": "s08.finflow.s02.a01",
+      "controllerId": "finflow.trade.advance"
+    },
+    {
+      "inventoryId": "s08.finflow.s04.a01",
+      "controllerId": "finflow.operations.break"
+    },
+    {
+      "inventoryId": "s08.finflow.s04.a02",
+      "controllerId": "finflow.operations.reset"
+    }
+  ],
+  "controllerOnlyActions": [
+    "finflow.formulas.card-1",
+    "finflow.formulas.card-2",
+    "finflow.formulas.card-3",
+    "finflow.formulas.card-4",
+    "finflow.formulas.card-5",
+    "finflow.formulas.card-6",
+    "finflow.formulas.close",
+    "finflow.formulas.open",
+    "finflow.formulas.next",
+    "finflow.formulas.prev"
+  ],
+  "controllerOnlyReason": "Each of the six formula cards is its own semantic narration entry. Opening the modal, arrow keys, dots and keyboard all address finflow.formulas.card-1..card-6 after the card commits; close is a silent hard stop. Legacy open/next/prev IDs stay allowlisted for compatibility but are no longer emitted."
+}

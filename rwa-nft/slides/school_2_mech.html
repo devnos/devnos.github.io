@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Механика роста DA</title>
+<script src="../shared/i18n.js"></script>
+<script src="../shared/mobile.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=Tenor+Sans&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08080c; --bg-2:#0d0d12;
+  --ink:#f5f5f7; --ink-2:rgba(245,245,247,.85); --ink-3:rgba(245,245,247,.5); --ink-4:rgba(245,245,247,.3);
+  --line-2:rgba(245,245,247,.15); --card-line:rgba(245,245,247,.10);
+  --gold:#d4a857; --gold-2:#f0c674; --gold-3:#b8862e;
+  --cold:#6f9bd1; --em:#3f8f6c; --em-2:#6fd3a8; --red:#e0713f;
+  --display:'Unbounded',system-ui,sans-serif;
+  --body:'DM Sans',system-ui,sans-serif;
+  --serif:'Tenor Sans',Georgia,serif;
+  --ease:cubic-bezier(0.22,1,0.36,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg); color:var(--ink); font-family:var(--body); font-weight:300;
+  height:100%; overflow:hidden; -webkit-font-smoothing:antialiased; user-select:none;
+  -webkit-tap-highlight-color:transparent}
+.grain{position:fixed; inset:0; pointer-events:none; z-index:300; opacity:.04; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.rays{position:absolute; top:-5%; left:0; right:0; height:70%; pointer-events:none; z-index:0; opacity:.85;
+  background:
+    linear-gradient(100deg, transparent 44%, rgba(240,198,116,.035) 47%, transparent 50%),
+    linear-gradient(94deg, transparent 54%, rgba(240,198,116,.042) 57%, transparent 60%),
+    linear-gradient(86deg, transparent 63%, rgba(240,198,116,.036) 66%, transparent 69%);
+  filter:blur(6px)}
+.gridfloor{position:absolute; left:-20%; right:-20%; bottom:-14%; height:40%; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgba(212,168,87,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212,168,87,.07) 1px, transparent 1px);
+  background-size:56px 34px;
+  transform:perspective(600px) rotateX(58deg);
+  -webkit-mask-image:radial-gradient(ellipse 70% 90% at 50% 100%, #000 30%, transparent 78%);
+  mask-image:radial-gradient(ellipse 70% 90% at 50% 100%, #000 30%, transparent 78%)}
+.slide{position:fixed; inset:0; z-index:1; display:flex; flex-direction:column;
+  background:radial-gradient(ellipse 120% 90% at 50% -10%, #101014 0%, #08080c 55%, #050507 100%);
+  padding:clamp(26px,4vw,60px) clamp(20px,5vw,70px) clamp(30px,4vh,50px)}
+.head{flex:0 0 auto}
+.eyebrow{font-family:var(--display); font-weight:500; font-size:clamp(9px,1.1vw,11px);
+  letter-spacing:.3em; text-transform:uppercase; color:var(--gold); margin-bottom:clamp(8px,1.4vh,14px);
+  opacity:0; transition:opacity .6s var(--ease)}
+.eyebrow.on{opacity:1}
+h2{font-family:var(--display); font-weight:200; letter-spacing:-.03em; line-height:1.1;
+  font-size:clamp(22px,3.4vw,40px); opacity:0; transform:translateY(12px);
+  transition:opacity .7s var(--ease), transform .7s var(--ease)}
+h2.on{opacity:1; transform:none}
+h2 em{font-style:normal; color:var(--gold-2)}
+.cap{font-size:clamp(13px,1.5vw,17px); color:var(--ink-2); margin-top:10px; min-height:3.4em;
+  max-width:46em; transition:opacity .4s var(--ease)}
+.cap b{font-weight:600; color:var(--ink)}
+.cap i{font-style:normal; color:var(--em-2)}
+.cap u{text-decoration:none; color:var(--gold-2)}
+
+.stagewrap{flex:1 1 auto; display:flex; align-items:center; justify-content:center; min-height:0}
+svg.stage{width:100%; height:100%; max-height:100%; overflow:hidden}
+
+.el{opacity:0; transform:translateY(14px) scale(.985); transform-box:fill-box; transform-origin:center;
+    transition:opacity .55s var(--ease), transform .55s var(--ease)}
+.el.on{opacity:1; transform:none}
+.el.off{opacity:0; transform:translateY(-6px) scale(.995);
+        transition:opacity .3s var(--ease), transform .3s var(--ease)}
+.el[data-d="1"]{transition-delay:.10s} .el[data-d="2"]{transition-delay:.30s}
+.el[data-d="3"]{transition-delay:.50s} .el[data-d="4"]{transition-delay:.70s}
+.el[data-d="5"]{transition-delay:.90s}
+.el.off[data-d]{transition-delay:0s}
+.dim{opacity:.3; transition:opacity .5s var(--ease)}
+
+.trace{stroke-dasharray:var(--len); stroke-dashoffset:var(--len); opacity:0;
+  transition:stroke-dashoffset .9s var(--ease), opacity .35s var(--ease)}
+.trace.on{stroke-dashoffset:0; opacity:1}
+
+.coin{offset-rotate:0deg; opacity:0}
+.coin.run{animation:fly var(--dur,1.4s) linear forwards}
+@keyframes fly{0%{offset-distance:0%; opacity:0}
+  14%{opacity:1}86%{opacity:1}100%{offset-distance:100%; opacity:0}}
+
+/* ── сгорание ── */
+@keyframes lick{
+  0%  {transform:scaleY(.72) scaleX(1.06) skewX(4deg)}
+  35% {transform:scaleY(1.14) scaleX(.9)  skewX(-5deg)}
+  70% {transform:scaleY(.88)  scaleX(1.04) skewX(3deg)}
+  100%{transform:scaleY(1.2)  scaleX(.88) skewX(-2deg)}
+}
+.lick{animation:lick var(--t,.3s) ease-in-out infinite alternate;
+      transform-box:fill-box; transform-origin:bottom center}
+@keyframes fireLife{
+  0%  {opacity:0;  transform:translateY(5px) scale(.35)}
+  14% {opacity:1;  transform:translateY(0) scale(1)}
+  62% {opacity:1;  transform:translateY(-3px) scale(1.08)}
+  100%{opacity:0;  transform:translateY(-18px) scale(.3)}
+}
+.fireLife{animation:fireLife 1.7s cubic-bezier(.3,.1,.5,1) forwards;
+          transform-box:fill-box; transform-origin:bottom center}
+@keyframes glowLife{
+  0%{opacity:0; transform:scale(.4)}18%{opacity:.95; transform:scale(1)}
+  65%{opacity:.8; transform:scale(1.15)}100%{opacity:0; transform:scale(1.5)}
+}
+.glowLife{animation:glowLife 1.7s ease-out forwards; transform-box:fill-box; transform-origin:center}
+@keyframes ember{
+  0%  {opacity:0; transform:translate(0,0) scale(1)}
+  12% {opacity:1}
+  100%{opacity:0; transform:translate(var(--dx),var(--dy)) scale(.12)}
+}
+.ember{animation:ember var(--edur,1.3s) cubic-bezier(.25,.6,.4,1) forwards;
+       transform-box:fill-box; transform-origin:center}
+@keyframes smoke{
+  0%  {opacity:0; transform:translate(0,0) scale(.4)}
+  30% {opacity:.3}
+  100%{opacity:0; transform:translate(var(--sx),var(--sy)) scale(2.4)}
+}
+.smoke{animation:smoke 1.9s ease-out forwards; transform-box:fill-box; transform-origin:center}
+
+.num{font-family:var(--serif); letter-spacing:-.02em}
+.lbl{font-family:var(--display); letter-spacing:.14em; text-transform:uppercase}
+
+
+/* телефон в альбоме: шапка ужимается, схеме отдаётся высота */
+@media (max-height:520px){
+  .slide{padding:12px 18px 14px}
+  .eyebrow{font-size:8px; letter-spacing:.24em; margin-bottom:5px}
+  h2{font-size:clamp(17px,2.6vw,24px)}
+  .cap{font-size:11.5px; margin-top:5px; min-height:3.2em; max-width:62em; line-height:1.4}
+}
+</style>
+<link rel="stylesheet" href="../shared/voice/voice.css">
+<script src="../shared/voice/voice-protocol.js"></script>
+<script src="../shared/voice/voice-slides.js"></script>
+<script src="../shared/voice/voice-scenario.js"></script>
+<script src="../shared/voice/voice-core.js"></script>
+<script src="../shared/voice/voice-deck.js"></script>
+<script src="../shared/voice/voice-route.js"></script>
+<script src="../shared/voice/voice-ui-model.js"></script>
+<script src="../shared/voice/voice-ui.js"></script>
+<script src="../shared/voice/voice-slide.js"></script>
+</head>
+<body>
+<div class="rays"></div>
+<div class="gridfloor"></div>
+<div class="grain"></div>
+
+<section class="slide">
+  <div class="head">
+    <div class="eyebrow" id="eyebrow">Механика · как движутся деньги</div>
+    <h2 id="h2">Механика роста <em>DA</em></h2>
+    <p class="cap" id="cap"></p>
+  </div>
+
+  <div class="stagewrap">
+    <svg class="stage" id="stage" viewBox="0 44 1200 382" role="img" aria-label="Механика роста DA">
+      <defs>
+        <linearGradient id="gNode" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1a1a24"/><stop offset="100%" stop-color="#101018"/>
+        </linearGradient>
+        <linearGradient id="gPool" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(212,168,87,.17)"/><stop offset="100%" stop-color="rgba(63,143,108,.10)"/>
+        </linearGradient>
+        <linearGradient id="gCard" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="rgba(255,255,255,.045)"/><stop offset="100%" stop-color="rgba(255,255,255,.012)"/>
+        </linearGradient>
+        <radialGradient id="gGlow">
+          <stop offset="0%" stop-color="#ffcf7a" stop-opacity=".95"/>
+          <stop offset="40%" stop-color="#f5822a" stop-opacity=".5"/>
+          <stop offset="100%" stop-color="#e04a10" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="gFlame" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="#ffd98a"/><stop offset="45%" stop-color="#f79020"/><stop offset="100%" stop-color="#e2440c" stop-opacity=".15"/>
+        </linearGradient>
+        <linearGradient id="gCore" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="#ffffff"/><stop offset="55%" stop-color="#ffe6a6"/><stop offset="100%" stop-color="#ffb43c" stop-opacity=".2"/>
+        </linearGradient>
+        <radialGradient id="cGold"><stop offset="0%" stop-color="#fbe6ad"/><stop offset="62%" stop-color="#e0b45c"/><stop offset="100%" stop-color="#a5731f"/></radialGradient>
+        <radialGradient id="cGreen"><stop offset="0%" stop-color="#a6efcd"/><stop offset="62%" stop-color="#5cc396"/><stop offset="100%" stop-color="#2c6c50"/></radialGradient>
+        <radialGradient id="gFlash">
+          <stop offset="0%" stop-color="#ffe9b0" stop-opacity="1"/>
+          <stop offset="45%" stop-color="#f0912f" stop-opacity=".55"/>
+          <stop offset="100%" stop-color="#f0912f" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="heat2" x="-120%" y="-160%" width="340%" height="420%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.03 0.06" numOctaves="2" seed="4" result="t2">
+            <animate attributeName="baseFrequency" dur="1.1s" values="0.03 0.06;0.045 0.1;0.03 0.06" repeatCount="indefinite"/>
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="t2" scale="3" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <filter id="heat" x="-60%" y="-90%" width="220%" height="300%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.022 0.05" numOctaves="2" seed="7" result="t">
+            <animate attributeName="baseFrequency" dur="1.7s" values="0.022 0.05;0.03 0.115;0.022 0.05" repeatCount="indefinite"/>
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="t" scale="10" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="var(--em-2)"/>
+        </marker>
+        <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="var(--gold)"/>
+        </marker>
+      </defs>
+
+
+      <g id="sources"></g>
+      <g id="paths" fill="none" stroke="var(--em)" stroke-width="1.1" stroke-dasharray="4 6" opacity=".42"></g>
+      <g id="nodeBox" class="el"></g>
+      <g id="payout"></g>
+      <g id="bridge"></g>
+      <g id="deltas"></g>
+      <g id="greenCoins"></g>
+      <g id="poolBox" class="el"></g>
+      <g id="goldCoins"></g>
+      <g id="fx"></g>
+      <g id="fire" class="el"></g>
+      <g id="tally"></g>
+      <g id="priceBox" class="el"></g>
+      <g id="coins"></g>
+    </svg>
+  </div>
+</section>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const $  = id => document.getElementById(id);
+const mk = (t, a, parent) => { const e = document.createElementNS(NS, t);
+  for (const k in a) if (a[k] !== undefined && a[k] !== null) e.setAttribute(k, a[k]);
+  if (parent) parent.appendChild(e); return e; };
+const fmt = n => Math.round(n).toLocaleString('ru-RU');
+
+/* ══════════ данные ══════════ */
+const SRC = [
+  {t:'покупка NFT',              v:'15%'},
+  {t:'продление NFT',            v:'18%'},
+  {t:'в резерв с вознаграждений',v:'5%'},
+  {t:'комиссия займа',           v:'5%'},
+  {t:'внешние источники', sub:'карта · обменник · RWA', cold:true}
+];
+
+/* ══════════ две раскладки ══════════ */
+const WIDE = {
+  vb:'0 30 1200 424',
+  card:{x:14, y0:52, w:200, h:54, step:66, pad:28, fs:9.5, vfs:21},
+  node:{x:364, y:112, w:206, h:196},
+  pool:{x:740, y:112, w:232, h:196},
+  price:{x:1000, y:140, w:186, h:140},
+  green:{cx:856, cy:84}, gold:{cx:856, cy:368}, sale:{x:856, y:412}, tally:{burn:{x:856, y:438}, pay:{x:588, y:52}},
+  bus:null,
+  arrows:{
+    payout:{d:'M736 148 C 672 148, 646 96, 560 92 L 424 92', lx:588, ly:88, label:'пользователям · вывод'},
+    back:  {d:'M578 216 L 732 216', lx:655, ly:200, label:'передача обеспечения'},
+    mint:  {d:'M578 274 L 732 274', lx:655, ly:258, label:'выпуск DA'}
+  },
+  delta:{u:{x:655, y:236}, d:{x:655, y:296}, fs:15},
+};
+const L = WIDE;   /* единственная раскладка: слайд рассчитан на альбом */
+
+/* ══════════ текст, который сам укладывается ══════════ */
+function textW(el){ try { return el.getComputedTextLength(); } catch(e){ return 0; } }
+
+/* пишет строку в заданную ширину: сначала пробует одну строку,
+   потом перенос по словам, потом уменьшает кегль. Никогда не вылезает. */
+function fitLabel(parent, words, x, cy, maxW, fs, fill, cls){
+  const attempt = (size, lines) => {
+    const g = mk('g', {}, parent);
+    const lh = size * 1.7;
+    const y0 = cy - (lines.length-1)*lh/2 + size*0.36;
+    let over = 0;
+    lines.forEach((ln, i) => {
+      const t = mk('text', {x, y:(y0+i*lh).toFixed(1), class:cls, 'font-size':size, fill}, g);
+      t.textContent = ln;
+      over = Math.max(over, textW(t) - maxW);
+    });
+    return {g, over};
+  };
+  const split = n => {
+    if (n === 1) return [words.join(' ')];
+    const mid = Math.ceil(words.length/2);
+    return [words.slice(0,mid).join(' '), words.slice(mid).join(' ')];
+  };
+  for (const lines of [1, 2]){
+    if (lines === 2 && words.length < 2) continue;
+    for (const size of [fs, fs-0.5, fs-1, fs-1.5, fs-2]){
+      const r = attempt(size, split(lines));
+      if (r.over <= 0) return r.g;
+      r.g.remove();
+    }
+  }
+  return attempt(fs-2.5, split(words.length > 1 ? 2 : 1)).g;
+}
+
+/* ══════════ сборка сцены ══════════ */
+function box(parent, o, fill, stroke, rx){
+  return mk('rect', {x:o.x, y:o.y, width:o.w, height:o.h, rx:rx||16, fill, stroke}, parent);
+}
+function buildCards(){
+  const g = $('sources'); g.textContent = '';
+  const c = L.card;
+  SRC.forEach((it, i) => {
+    const y = c.y0 + i*c.step, cy = y + c.h/2, accent = it.cold ? 'var(--cold)' : 'var(--em-2)';
+    const w = mk('g', {class:'el', 'data-d':i+1}, g);
+    mk('rect', {x:c.x, y, width:c.w, height:c.h, rx:13, fill:'url(#gCard)', stroke:'var(--card-line)'}, w);
+    mk('rect', {x:c.x+13, y:cy-11, width:2.5, height:22, rx:1.25, fill:accent, opacity:.8}, w);
+
+    let valW = 0;
+    if (it.v){
+      const v = mk('text', {x:c.x+c.w-14, y:cy + c.vfs*0.36, 'text-anchor':'end',
+                            class:'num', 'font-size':c.vfs, fill:accent}, w);
+      v.textContent = it.v;
+      valW = textW(v);
+    }
+    const left = c.x + c.pad;
+    const maxW = c.w - c.pad - 14 - valW - (valW ? 16 : 0);
+    if (it.sub){
+      const t1 = mk('text', {x:left, y:cy-5, class:'lbl', 'font-size':c.fs, fill:'var(--ink-3)'}, w);
+      t1.textContent = it.t;
+      const t2 = mk('text', {x:left, y:cy+12, 'font-size':c.fs+2.5, fill:accent}, w);
+      t2.textContent = it.sub;
+      [t1,t2].forEach(t => { let s = +t.getAttribute('font-size');
+        while (textW(t) > maxW && s > 6){ s -= .5; t.setAttribute('font-size', s); } });
+    } else {
+      fitLabel(w, it.t.split(' '), left, cy, maxW, c.fs, 'var(--ink-3)', 'lbl');
+    }
+  });
+}
+function buildPaths(){
+  const g = $('paths'); g.textContent = '';
+  const c = L.card, n = L.node;
+  const nx = n.x + n.w/2, ny = n.y + n.h/2;
+  SRC.forEach((_, i) => {
+    const cy = c.y0 + i*c.step + c.h/2;
+    let d;
+    if (L.bus){                                   // вертикаль: правая шина
+      const bx = L.bus, spread = (i-2)*8;
+      d = `M ${c.x+c.w+8} ${cy} C ${bx} ${cy}, ${bx+spread} ${cy+60}, ${nx+spread*1.6} ${n.y-10}`;
+    } else {                                      // горизонталь: веер в ноду
+      const off = (i-2)*7;
+      d = `M ${c.x+c.w+16} ${cy} C ${c.x+c.w+78} ${cy}, ${n.x-48} ${ny+off*2}, ${n.x-6} ${ny+off}`;
+    }
+    mk('path', {class:'el', id:'p'+(i+1), d}, g);
+  });
+}
+function buildNode(){
+  const g = $('nodeBox'); g.textContent = '';
+  const n = L.node, cx = n.x+n.w/2;
+  box(g, n, 'url(#gNode)', 'var(--line-2)');
+  const t = mk('text', {x:cx, y:n.y+34, 'text-anchor':'middle', class:'lbl',
+                        'font-size':9.5, fill:'var(--ink-3)'}, g);
+  t.textContent = 'нода · накопитель';
+  mk('text', {x:cx, y:n.y+n.h*0.48, 'text-anchor':'middle', class:'num',
+              'font-size':36, fill:'var(--em-2)', id:'nodeVal'}, g).textContent = '0';
+  mk('text', {x:cx, y:n.y+n.h*0.48+22, 'text-anchor':'middle', class:'lbl',
+              'font-size':8.5, fill:'var(--ink-3)'}, g).textContent = 'USDT';
+  mk('text', {x:cx, y:n.y+n.h-28, 'text-anchor':'middle',
+              'font-size':11, fill:'var(--ink-4)'}, g).textContent = 'на цену не влияет';
+}
+function buildPool(){
+  const g = $('poolBox'); g.textContent = '';
+  const p = L.pool, cx = p.x+p.w/2;
+  box(g, p, 'url(#gPool)', 'rgba(212,168,87,.34)');
+  mk('text', {x:cx, y:p.y+32, 'text-anchor':'middle', class:'lbl',
+              'font-size':9.5, fill:'var(--gold)'}, g).textContent = 'пул ликвидности';
+  mk('text', {x:cx, y:p.y+p.h*0.42, 'text-anchor':'middle', class:'num',
+              'font-size':31, fill:'var(--em-2)', id:'poolVal'}, g).textContent = '0';
+  mk('text', {x:cx, y:p.y+p.h*0.42+19, 'text-anchor':'middle', class:'lbl',
+              'font-size':8, fill:'var(--ink-3)'}, g).textContent = 'USDT · обеспечение';
+  mk('text', {x:cx, y:p.y+p.h*0.77, 'text-anchor':'middle', class:'num',
+              'font-size':31, fill:'var(--gold-2)', id:'supVal'}, g).textContent = '0';
+  mk('text', {x:cx, y:p.y+p.h*0.77+19, 'text-anchor':'middle', class:'lbl',
+              'font-size':8, fill:'var(--ink-3)'}, g).textContent = 'DA · токенов';
+}
+function buildPrice(){
+  const g = $('priceBox'); g.textContent = '';
+  const b = L.price, cx = b.x+b.w/2;
+  box(g, b, 'var(--bg-2)', 'var(--line-2)');
+  mk('text', {x:cx, y:b.y+30, 'text-anchor':'middle', class:'lbl',
+              'font-size':9.5, fill:'var(--ink-3)'}, g).textContent = 'цена DA';
+  mk('text', {x:cx, y:b.y+b.h*0.63, 'text-anchor':'middle', class:'num',
+              'font-size':42, fill:'var(--gold-2)', id:'priceVal'}, g).textContent = '1,00';
+  mk('text', {x:cx, y:b.y+b.h*0.83, 'text-anchor':'middle',
+              'font-size':10.5, fill:'var(--ink-4)', id:'priceNote'}, g).textContent = 'обеспечение ÷ токены';
+  mk('text', {x:b.x+b.w-16, y:b.y+b.h*0.63, 'text-anchor':'middle', class:'num',
+              'font-size':22, fill:'var(--em-2)', id:'priceUp', opacity:0}, g).textContent = '↑';
+}
+function arrow(parentId, key, color, marker, pathId){
+  const g = $(parentId), a = L.arrows[key];
+  const t = mk('text', {x:a.lx, y:a.ly, 'text-anchor':'middle', class:'lbl el',
+                        'font-size':8.5, fill:color}, g);
+  t.textContent = a.label;
+  mk('path', {id:pathId, class:'trace', d:a.d, fill:'none', stroke:color,
+              'stroke-width':2.2, 'marker-end':`url(#${marker})`}, g);
+}
+function buildArrows(){
+  $('payout').textContent = ''; $('bridge').textContent = ''; $('deltas').textContent = '';
+  arrow('payout','payout','var(--em-2)','arG','pay1');
+  arrow('bridge','back',  'var(--em-2)','arG','bp2');
+  arrow('bridge','mint',  'var(--gold)','arA','bp1');
+  const d = L.delta;
+  mk('text', {x:d.u.x, y:d.u.y, 'text-anchor':'middle', class:'num el',
+              'font-size':d.fs, fill:'var(--em-2)', id:'dU'}, $('deltas'));
+  mk('text', {x:d.d.x, y:d.d.y, 'text-anchor':'middle', class:'num el',
+              'font-size':d.fs, fill:'var(--gold-2)', id:'dD'}, $('deltas'));
+}
+function buildFire(){
+  const g = $('fire'); g.textContent = '';
+  mk('text', {x:L.sale.x, y:L.sale.y, 'text-anchor':'middle', class:'lbl',
+              'font-size':9.5, fill:'var(--red)'}, g).textContent = 'продажа · сжигание';
+}
+/* итоги операции: сколько сожжено и сколько ушло людям */
+function buildTally(){
+  const g = $('tally'); g.textContent = '';
+  const t = L.tally;
+  mk('text', {x:t.burn.x, y:t.burn.y, 'text-anchor':'middle', class:'num el',
+              'font-size':17, fill:'var(--gold-2)', id:'burnTxt'}, g);
+  mk('text', {x:t.pay.x, y:t.pay.y, 'text-anchor':'middle', class:'num el',
+              'font-size':17, fill:'var(--em-2)', id:'payTxt'}, g);
+  mk('text', {x:t.pay.x, y:t.pay.y + 17, 'text-anchor':'middle', class:'el',
+              'font-size':11, fill:'var(--ink-3)', id:'payNote'}, g);
+}
+function build(){
+  $('stage').setAttribute('viewBox', L.vb);
+  buildCards(); buildPaths(); buildNode(); buildPool(); buildPrice(); buildArrows(); buildFire(); buildTally();
+  document.querySelectorAll('.trace').forEach(p => p.style.setProperty('--len', p.getTotalLength()));
+}
+
+/* ══════════ раскадровка ══════════ */
+const SCENE = [
+ { show:[],
+   cap:"Разберём по шагам, откуда у DA берётся цена и почему она растёт. Здесь нет ни биржи, ни спроса, ни продавцов друг другу. Здесь арифметика, записанная в договоре.",
+   node:0, pool:0, sup:0, price:'', green:0, gold:0 },
+
+ { show:['sources'],
+   cap:"Начинается всё с источников. Пять потоков, из которых система пополняет свой резерв: доля с каждой покупки NFT, доля с каждого продления, удержание с вознаграждений, комиссия займов и внешние поступления.",
+   node:0, pool:0, sup:0, price:'', green:0, gold:0 },
+
+ { show:['sources','nodeBox'], focus:'node',
+   cap:"Все пять потоков ведут в один накопитель. Разработчики называют его нодой. Это копилка, из которой потом будет обеспечен каждый выпущенный DA.",
+   node:0, pool:0, sup:0, price:'', green:0, gold:0 },
+
+ { show:['sources','paths','nodeBox'], focus:'node', flow:true,
+   cap:"Поток идёт непрерывно, день за днём. Каждая покупка, каждое продление, каждая выплата партнёру оставляет здесь свою долю. На сегодня в накопителе <i>458 839 USDT</i>.",
+   node:458839, nodeDur:30000, pool:0, sup:0, price:'', green:0, gold:0 },
+
+ { show:['sources','paths','nodeBox','poolBox'], focus:'pool',
+   cap:"Рядом второй счёт, пул ликвидности. Пока он пуст. И вот что важно: цену определяет именно он, а не накопитель.",
+   node:458839, pool:0, sup:0, price:'', green:0, gold:0 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge'], focus:'bridge', bridge:true,
+   addU:'+100 000 USDT', addD:'+100 000 DA',
+   cap:"Участник забирает добытое. Происходят два действия сразу: в пул уходит <i>обеспечение в USDT</i> и выпускаются <u>токены DA</u> ровно на эту же сумму. Деньги и токены приходят вместе.",
+   node:358839, pool:100000, sup:100000, price:'', green:6, gold:6 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox'], focus:'price',
+   cap:"Формула простая. Обеспечение делим на количество токенов, получаем цену. Сто тысяч на сто тысяч. Ровно один доллар. <b>Выпуск не двигает цену никогда</b>, он добавляет обе части поровну.",
+   node:358839, pool:100000, sup:100000, price:'1,00', note:'100 000 ÷ 100 000', green:6, gold:6 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire'], focus:'fire', burn:2,
+   burnTxt:'сожжено 30 000 DA',
+   cap:"Участник продаёт свои DA. Покупателя здесь нет, токены никому не переходят. Они <b>сгорают</b> и исчезают из обращения полностью. Тридцать тысяч DA только что перестали существовать.",
+   node:358839, pool:100000, sup:100000, price:'1,00', note:'100 000 ÷ 100 000', green:6, gold:6 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire','payout'], focus:'price', payout:true, up:true,
+   payTxt:'выведено 21 000 USDT', payNote:'30% стоимости осталось в пуле · 9 000 USDT',
+   cap:"Сожгли 30 000 DA по цене один доллар, на кошелёк ушло <b>21 000 USDT</b>, это 70 процентов. Обеспечение упало со ста тысяч до 79 000, токенов осталось 70 000. Знаменатель просел сильнее числителя, и цена выросла.",
+   node:358839, pool:79000, sup:70000, price:'1,13', note:'79 000 ÷ 70 000', green:5, gold:4 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire'], focus:'node', flow:true,
+   cap:"А поток и не останавливался. Пока одни продают, накопитель продолжает наполняться с новых покупок, продлений и вознаграждений. Топливо для следующего круга готовится само.",
+   node:520000, nodeDur:14000, pool:79000, sup:70000, price:'1,13', note:'79 000 ÷ 70 000', green:5, gold:4 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire'], focus:'bridge', bridge:true,
+   addU:'+100 000 USDT', addD:'+88 604 DA',
+   cap:"Следующий выпуск. В обеспечение уходит ещё сто тысяч, но токенов по цене 1,13 выпускается уже меньше: восемьдесят восемь тысяч вместо ста. <b>Цена не сдвинулась.</b>",
+   node:420000, pool:179000, sup:158604, price:'1,13', note:'179 000 ÷ 158 604', green:8, gold:7 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire'], focus:'fire', burn:2,
+   burnTxt:'сожжено 40 000 DA',
+   cap:"Приходит время следующих продаж. Снова сжигание, теперь уже сорока тысяч DA. И заметьте: каждый следующий раз сжигается дороже, потому что цена выше предыдущей.",
+   node:420000, pool:179000, sup:158604, price:'1,13', note:'179 000 ÷ 158 604', green:8, gold:7 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire','payout'], focus:'price', payout:true, up:true,
+   payTxt:'выведено 31 600 USDT', payNote:'30% стоимости осталось в пуле · 13 544 USDT',
+   cap:"Сорок тысяч DA по цене 1,13 дали владельцам <b>31 600 USDT</b>. Обеспечение 147 400, токенов 118 604. Цена сделала следующий шаг. <b>Каждый круг поднимает планку, и она уже не опускается.</b>",
+   node:420000, pool:147400, sup:118604, price:'1,24', note:'147 400 ÷ 118 604', green:7, gold:5 },
+
+ /* ── дальше круги идут уже на том обеспечении, что передано ── */
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire'], focus:'fire', burn:2, burnTxt:'сожжено 40 000 DA',
+   cap:"И обратите внимание на главное. Новых денег в пул больше не приходит, работает только то, что уже передано. Сорок тысяч DA уходят в огонь.",
+   node:420000, pool:147400, sup:118604, price:'1,24', note:'147 400 ÷ 118 604', green:7, gold:5 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire']+['payout'], focus:'price', payout:true, up:true, payTxt:'выведено 34 798 USDT', payNote:'30% стоимости осталось в пуле · 14 914 USDT',
+   cap:"Владельцы забрали <b>34 798 USDT</b>. Обеспечение 112 602, токенов 78 604. <b>Цена 1,43.</b> Люди продают, и именно поэтому цена идёт вверх.",
+   node:420000, pool:112602, sup:78604, price:'1,43', note:'112 602 ÷ 78 604', green:6, gold:3 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire'], focus:'bridge', bridge:true, addU:'+100 000 USDT', addD:'+69 807 DA',
+   live:true, liveFrom:320000,
+   cap:"Накопитель тем временем передаёт очередную порцию. Сто тысяч обеспечения дают уже только 69 807 токенов: по цене 1,43 их выпускается меньше. Цена от этого не двигается.",
+   node:320000, pool:212602, sup:148411, price:'1,43', note:'212 602 ÷ 148 411', green:10, gold:7 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire'], focus:'fire', burn:2, burnTxt:'сожжено 55 000 DA', live:true,
+   cap:"Следующая волна продаж. Пятьдесят пять тысяч DA сжигаются.",
+   node:320000, pool:212602, sup:148411, price:'1,43', note:'212 602 ÷ 148 411', green:10, gold:7 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire']+['payout'], focus:'price', payout:true, up:true, payTxt:'выведено 55 152 USDT', payNote:'30% стоимости осталось в пуле · 23 637 USDT', live:true,
+   cap:"Ушло <b>55 152 USDT</b>, осталось 157 450 обеспечения на 93 411 токенов. <b>Цена 1,69.</b> И посмотрите налево: накопитель всё это время считает. Заработанное упирается в лимит дохода, участник продлевает NFT, и доля снова уходит туда. Круг замкнулся.",
+   node:320000, pool:157450, sup:93411, price:'1,69', note:'157 450 ÷ 93 411', green:9, gold:5 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire'], focus:'fire', burn:2, burnTxt:'сожжено 40 000 DA', live:true,
+   cap:"Ещё круг. Сорок тысяч DA в огонь, и заметьте: сжигается их меньше, чем в прошлый раз, а эффект сильнее. Каждый токен теперь дороже.",
+   node:320000, pool:157450, sup:93411, price:'1,69', note:'157 450 ÷ 93 411', green:9, gold:5 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire']+['payout'], focus:'price', payout:true, up:true, payTxt:'выведено 47 196 USDT', payNote:'30% стоимости осталось в пуле · 20 226 USDT', live:true,
+   cap:"<b>47 196 USDT</b> владельцам. Обеспечение 110 254, токенов 53 411. <b>Цена перешла за два доллара.</b>",
+   node:320000, pool:110254, sup:53411, price:'2,06', note:'110 254 ÷ 53 411', green:8, gold:3 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire'], focus:'fire', burn:1, burnTxt:'сожжено 8 000 DA', live:true,
+   cap:"Последний круг в этом примере. Всего восемь тысяч DA, в пять раз меньше первой волны.",
+   node:320000, pool:110254, sup:53411, price:'2,06', note:'110 254 ÷ 53 411', green:8, gold:3 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire']+['payout'], focus:'price', payout:true, up:true, payTxt:'выведено 11 560 USDT', payNote:'30% стоимости осталось в пуле · 4 954 USDT', live:true,
+   cap:"<b>Цена 2,17.</b> С единицы она выросла больше чем вдвое, и ни один доллар новых денег в пул за эти круги не зашёл. Работало только сжигание.",
+   node:320000, pool:98694, sup:45411, price:'2,17', note:'98 694 ÷ 45 411', green:8, gold:2 },
+
+ { show:['sources','paths','nodeBox','poolBox','bridge','priceBox','fire'], focus:null,
+   live:true, liveRate:'auto',
+   cap:"А накопитель всё это время продолжал наполняться и не остановится. Наполнение, выпуск, продажа, сжигание, новая цена. <b>Круг за кругом, пока система живёт.</b>",
+   node:2588777, pool:98694, sup:45411, price:'2,17', note:'98 694 ÷ 45 411', green:8, gold:2 }
+];
+const TOTAL = SCENE.length;
+
+const stage=$('stage'), capEl=$('cap'), h2El=$('h2'), eyeEl=$('eyebrow');
+let step = 0, busy = false, timers = [], flowTimer = null, vbAnim = 0, ready = false;
+
+const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+function clearAllTimers(keepFlow){
+  timers.forEach(clearTimeout); timers = [];
+  if (flowTimer && !keepFlow){ clearInterval(flowTimer); flowTimer = null; }
+}
+
+/* ── живой накопитель ──
+   с кадра передачи нода перестаёт быть числом на слайде и становится процессом:
+   счётчик идёт сам, поток монет не прерывается переключением кадров */
+const LIVE_TARGET = 2588777;
+let live = false, liveVal = 0, liveRAF = null, liveT = 0, liveRate = 4200;
+function liveTick(now){
+  if (!live){ liveRAF = null; return; }
+  const dt = Math.min(0.25, (now - liveT)/1000); liveT = now;
+  liveVal = Math.min(LIVE_TARGET, liveVal + liveRate*dt);
+  const el = $('nodeVal'); if (el) el.textContent = fmt(liveVal);
+  liveRAF = requestAnimationFrame(liveTick);
+}
+function liveOn(from){
+  liveVal = Number(from) || liveVal || 320000; live = true; liveT = performance.now();
+  const el = $('nodeVal'); if (el){ el._anim = (el._anim||0)+1; el.textContent = fmt(liveVal); }
+  if (!liveRAF) liveRAF = requestAnimationFrame(liveTick);
+}
+function liveOff(){ live = false; if (liveRAF){ cancelAnimationFrame(liveRAF); liveRAF = null; } }
+
+
+function money(el, to, dur){
+  if (!el) return;
+  const from = parseFloat((el.textContent||'0').replace(/\s| /g,'').replace(',','.')) || 0;
+  el._anim = (el._anim||0) + 1;
+  const tag = el._anim;
+  if (Math.abs(from-to) < 1 || !dur){ el.textContent = fmt(to); return; }
+  const t0 = performance.now();
+  (function tick(now){
+    if (el._anim !== tag) return;
+    const k = Math.min(1, (now-t0)/dur);
+    el.textContent = fmt(from + (to-from)*(1 - Math.pow(1-k, 2.2)));
+    if (k < 1) requestAnimationFrame(tick);
+  })(t0);
+}
+
+function coin(pathId, dur, kind){
+  const p = $(pathId); if (!p) return;
+  const c = mk('circle', {r:6, fill: kind === 'gold' ? 'url(#cGold)' : 'url(#cGreen)', class:'coin'}, $('coins'));
+  c.style.offsetPath = `path('${p.getAttribute('d')}')`;
+  c.style.setProperty('--dur', dur+'ms');
+  requestAnimationFrame(() => c.classList.add('run'));
+  setTimeout(() => c.remove(), dur+150);
+}
+function startFlow(slow){
+  if (flowTimer) clearInterval(flowTimer);
+  const order = ['p1','p5','p2','p5','p3','p5','p4','p5'];
+  let i = 0;
+  const dur = slow ? 2100 : 1550, gap = slow ? 620 : 420;
+  const f = () => { coin(order[i % order.length], dur + (i%3)*150, 'green'); i++; };
+  f(); flowTimer = setInterval(f, gap);
+}
+function drawRow(gid, n, which){
+  const g = $(gid); g.textContent = '';
+  if (!n) return;
+  const cfg = L[which], gap = 27, r = 10;
+  const x0 = cfg.cx - ((n-1)*gap)/2;
+  for (let i = 0; i < n; i++)
+    mk('circle', {cx:x0+i*gap, cy:cfg.cy, r,
+                  fill: which === 'gold' ? 'url(#cGold)' : 'url(#cGreen)', opacity:.96}, g);
+}
+
+/* ── сгорание ── */
+const LICK = 'M0 0 C -7 -11, -8.5 -22, -3.2 -33 C -1.2 -26, 1.2 -26, 2.4 -33 C 7.6 -22, 6.2 -11, 0 0 Z';
+let burnSeq = 0;
+function burnCoins(n){
+  const src = [...$('goldCoins').children].slice(-n), fx = $('fx');
+  const R = 10, S = 1.28;
+  src.forEach((orig, k) => {
+    const cx = +orig.getAttribute('cx'), cy = +orig.getAttribute('cy');
+    later(() => {
+      orig.setAttribute('opacity', 0);
+      const id = 'brn' + (++burnSeq);
+      const g = mk('g', {}, fx);
+      mk('circle', {cx, cy:cy+2, r:R*2.6, fill:'url(#gGlow)', class:'glowLife'}, g);
+
+      const cp = mk('clipPath', {id}, g);
+      const win = mk('rect', {x:cx-R-2, y:cy-R-1, width:R*2+4, height:R*2+2}, cp);
+      mk('animate', {attributeName:'height', values:`${R*2+2};0`, dur:'1.15s', begin:'0.15s',
+                     fill:'freeze', calcMode:'spline', keySplines:'.4 0 .6 1', keyTimes:'0;1'}, win);
+      mk('circle', {cx, cy, r:R, fill:'url(#cGold)', 'clip-path':`url(#${id})`}, g);
+
+      const edge = mk('ellipse', {cx, cy:cy+R+1, rx:R*0.95, ry:2.4, fill:'#ffe3a8', opacity:.95}, g);
+      mk('animate', {attributeName:'cy', values:`${cy+R+1};${cy-R-1}`, dur:'1.15s', begin:'0.15s',
+                     fill:'freeze', calcMode:'spline', keySplines:'.4 0 .6 1', keyTimes:'0;1'}, edge);
+      mk('animate', {attributeName:'rx', values:`${R*0.95};${R*0.95};2`, dur:'1.15s', begin:'0.15s',
+                     fill:'freeze', keyTimes:'0;.65;1'}, edge);
+      mk('animate', {attributeName:'opacity', values:'.95;.9;0', dur:'1.3s', begin:'0.15s',
+                     fill:'freeze', keyTimes:'0;.7;1'}, edge);
+
+      const anchor = mk('g', {transform:`translate(${cx} ${cy+R*0.9}) scale(${S})`, filter:'url(#heat2)'}, g);
+      const fire = mk('g', {class:'fireLife'}, anchor);
+      [[-8.6,.86,'url(#gFlame)',.42,.34],[-4.4,1.12,'url(#gFlame)',.55,.27],
+       [0,1.46,'url(#gFlame)',.68,.31],[4.4,1.08,'url(#gFlame)',.54,.24],
+       [8.4,.82,'url(#gFlame)',.4,.36],
+       [-2.2,.66,'url(#gCore)',.85,.21],[2.0,.78,'url(#gCore)',.9,.185],
+       [0,.42,'url(#gCore)',1,.155]].forEach(([dx, sc, fill, op, t], i) => {
+        const w = mk('g', {transform:`translate(${dx} 0) scale(${sc})`}, fire);
+        const pth = mk('path', {d:LICK, fill, opacity:op, class:'lick'}, w);
+        pth.style.setProperty('--t', t+'s');
+        pth.style.animationDelay = (-i*70)+'ms';
+      });
+
+      for (let i = 0; i < 16; i++){
+        const e = mk('circle', {cx: cx+(Math.random()-.5)*17, cy: cy+(Math.random()-.5)*9,
+                                r: .9+Math.random()*2.2, fill: i%3 ? '#ffc879' : '#fff2cf', class:'ember'}, g);
+        e.style.setProperty('--dx', ((Math.random()-.5)*58).toFixed(1)+'px');
+        e.style.setProperty('--dy', (-26-Math.random()*44).toFixed(1)+'px');
+        e.style.setProperty('--edur', (900+Math.random()*750).toFixed(0)+'ms');
+        e.style.animationDelay = (120+Math.random()*380).toFixed(0)+'ms';
+      }
+      for (let i = 0; i < 4; i++){
+        const sm = mk('circle', {cx: cx+(Math.random()-.5)*12, cy: cy-12,
+                                 r: 4+Math.random()*3, fill:'rgba(220,215,210,.5)', class:'smoke'}, g);
+        sm.style.setProperty('--sx', ((Math.random()-.5)*34).toFixed(1)+'px');
+        sm.style.setProperty('--sy', (-40-Math.random()*28).toFixed(1)+'px');
+        sm.style.animationDelay = (420+i*130)+'ms';
+      }
+      later(() => g.remove(), 2600);
+    }, k*190);
+  });
+}
+
+/* ══════════ кадр ══════════ */
+function render(dir){
+  const sc = SCENE[step], back = dir === 'back';
+  clearAllTimers(!!sc.live && live);
+  $('fx').textContent = '';
+
+  if (sc.addU){ $('dU').textContent = sc.addU; $('dD').textContent = sc.addD; }
+  ['sources','paths','nodeBox','poolBox','bridge','payout','priceBox','fire','deltas'].forEach(id => {
+    const on = id === 'deltas' ? !!sc.addU : sc.show.includes(id);
+    let nodes;
+    if (id === 'paths')  nodes = document.querySelectorAll('#paths path.el');
+    else if (id === 'sources') nodes = document.querySelectorAll('#sources .el');
+    else if (id === 'bridge' || id === 'payout' || id === 'deltas')
+      nodes = document.querySelectorAll('#'+id+' .el, #'+id+' .trace');
+    else nodes = [$(id)];
+    nodes.forEach(n => { if (n){ n.classList.toggle('on', on); n.classList.toggle('off', !on); } });
+  });
+
+  const LIT = {node:['nodeBox'], pool:['poolBox'], bridge:['nodeBox','poolBox'],
+               price:['priceBox','poolBox'], fire:['poolBox']};
+  const lit = sc.focus ? LIT[sc.focus] : null;
+  ['nodeBox','poolBox','priceBox'].forEach(id =>
+    $(id).classList.toggle('dim', !!(lit && sc.show.includes(id) && !lit.includes(id))));
+  $('sources').classList.remove('dim');
+
+  if (sc.live){
+    if (!live){ liveOn(sc.liveFrom); startFlow(true); }
+    if (!flowTimer) startFlow(true);
+    liveRate = sc.liveRate === 'auto'
+      ? Math.max(1200, (LIVE_TARGET - liveVal) / 110)
+      : (sc.liveRate || 4200);
+  } else {
+    liveOff();
+    money($('nodeVal'), sc.node, back ? 300 : (sc.nodeDur || 900));
+  }
+  money($('poolVal'), sc.pool, back ? 300 : 900);
+  money($('supVal'),  sc.sup,  back ? 300 : 900);
+  $('priceNote').textContent = sc.note || 'обеспечение ÷ токены';
+  const showPrice = () => { if (SCENE[step] === sc) $('priceVal').textContent = sc.price; };
+  $('priceUp').setAttribute('opacity', 0);
+  if (back || !sc.up) showPrice();
+  else { later(showPrice, 950); later(() => $('priceUp').setAttribute('opacity', 1), 1050); }
+
+  /* итог операции проявляется после того, как погасло пламя или улетели монеты */
+  const tally = (id, txt, delay) => {
+    const e = $(id);
+    if (!txt){ e.classList.remove('on'); e.classList.add('off'); return; }
+    e.textContent = txt;
+    if (back){ e.classList.remove('off'); e.classList.add('on'); return; }
+    e.classList.remove('on'); e.classList.add('off');
+    later(() => { e.classList.remove('off'); e.classList.add('on'); }, delay);
+  };
+  tally('burnTxt', sc.burnTxt, 2000);
+  tally('payTxt',  sc.payTxt,  1250);
+  tally('payNote', sc.payNote, 1250);
+
+  drawRow('greenCoins', sc.green, 'green');
+  drawRow('goldCoins',  sc.gold,  'gold');
+
+  if (!back){
+    if (sc.flow) later(() => startFlow(sc.flowSlow), 320);
+    if (sc.bridge) [0,420,840].forEach(t =>
+      later(() => { coin('bp2', 1150, 'green'); coin('bp1', 1150, 'gold'); }, 350+t));
+    if (sc.burn) later(() => burnCoins(sc.burn), 420);
+    if (sc.payout){ later(() => coin('pay1', 1050, 'green'), 220);
+                    later(() => coin('pay1', 1050, 'green'), 560); }
+  }
+
+  capEl.style.opacity = 0;
+  later(() => { capEl.innerHTML = sc.cap; capEl.style.opacity = 1; }, 170);
+  }
+
+/* ══════════ движок слайдов, общий для всей презентации ══════════ */
+window.SlideEngine = (function(){
+  let state = { currentStep:0, totalSteps:1, onStep:null, slideNumber:1, slideTotal:16,
+                isInIframe: window.parent !== window };
+  let wheelAccumulator = 0, wheelTimer = null, lastWheelTime = 0;
+  const WHEEL_THRESHOLD = 80, WHEEL_COOLDOWN = 600;
+
+  function postToParent(type, data){
+    if (!state.isInIframe) return;
+    try { window.parent.postMessage({ source:'slide', type: type, ...data }, '*'); } catch(e){}
+  }
+  function nextStep(){
+    if (state.currentStep < state.totalSteps - 1){
+      state.currentStep++; state.onStep(state.currentStep);
+      postToParent('step-changed', { step: state.currentStep });
+    } else postToParent('slide-end-forward', {});
+  }
+  function prevStep(){
+    if (state.currentStep > 0){
+      state.currentStep--; state.onStep(state.currentStep);
+      postToParent('step-changed', { step: state.currentStep });
+    } else postToParent('slide-end-backward', {});
+  }
+  function reset(){ state.currentStep = 0; state.onStep(0); postToParent('step-changed', { step:0 }); }
+  function goToLastStep(){
+    state.currentStep = state.totalSteps - 1; state.onStep(state.currentStep);
+    postToParent('step-changed', { step: state.currentStep });
+  }
+  function init(opts){
+    state.totalSteps = opts.totalSteps || 1;
+    state.onStep = opts.onStep || function(){};
+    state.slideNumber = opts.slideNumber || 1;
+    state.slideTotal = opts.slideTotal || 16;
+    state.currentStep = 0;
+    state.onStep(0);
+    postToParent('slide-ready', { slideNumber: state.slideNumber, totalSteps: state.totalSteps });
+
+    document.addEventListener('keydown', function(e){
+      const k = e.key, c = e.code;
+      if (k === ' ' || k === 'ArrowRight' || k === 'Enter' || k === 'PageDown' ||
+          c === 'Space' || c === 'ArrowRight' || c === 'Enter' || c === 'PageDown'){
+        e.preventDefault(); nextStep();
+      } else if (k === 'ArrowLeft' || k === 'PageUp' || c === 'ArrowLeft' || c === 'PageUp'){
+        e.preventDefault(); prevStep();
+      } else if (k === 'Escape' || k === 'r' || k === 'R'){
+        e.preventDefault(); reset();
+      }
+    });
+
+    document.addEventListener('wheel', function(e){
+      e.preventDefault();
+      const now = Date.now();
+      if (now - lastWheelTime < WHEEL_COOLDOWN) return;
+      if (Math.sign(e.deltaY) !== Math.sign(wheelAccumulator) && wheelAccumulator !== 0) wheelAccumulator = 0;
+      wheelAccumulator += e.deltaY;
+      if (wheelTimer) clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(function(){ wheelAccumulator = 0; }, 200);
+      if (Math.abs(wheelAccumulator) >= WHEEL_THRESHOLD){
+        if (wheelAccumulator > 0) nextStep(); else prevStep();
+        wheelAccumulator = 0; lastWheelTime = now;
+      }
+    }, { passive:false });
+
+    document.addEventListener('click', function(e){
+      if (e.target.closest('.reset-btn')) return;
+      if (e.target.closest('[data-no-click]')) return;
+      nextStep();
+    });
+
+    window.addEventListener('message', function(e){
+      const msg = e.data;
+      if (!msg || msg.source !== 'deck') return;
+      if (msg.type === 'goto-first-step') reset();
+      else if (msg.type === 'goto-last-step') goToLastStep();
+      else if (msg.type === 'next') nextStep();
+      else if (msg.type === 'prev') prevStep();
+    });
+  }
+  return { init: init, nextStep: nextStep, prevStep: prevStep, reset: reset,
+           getCurrentStep: function(){ return state.currentStep; },
+           getTotalSteps: function(){ return state.totalSteps; } };
+})();
+
+
+/* ══════════ старт ══════════ */
+h2El.innerHTML = 'Механика роста <em>DA</em>';
+capEl.innerHTML = 'Как работает система дефляции';
+setTimeout(() => { eyeEl.classList.add('on'); h2El.classList.add('on'); }, 120);
+
+let prevStepNo = 0;
+function boot(){
+  build();
+  ready = true;
+  setTimeout(() => {
+    SlideEngine.init({
+      totalSteps: TOTAL,
+      slideNumber: 16,
+      slideTotal: 16,
+      onStep: function(n){
+        const dir = n < prevStepNo ? 'back' : 'fwd';
+        prevStepNo = n; step = n;
+        render(dir);
+      }
+    });
+  }, 900);
+}
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(boot); else setTimeout(boot, 400);
+</script>
+<div id="voiceRoot"></div>
+<script src="../shared/voice/voice-autoplay.js"></script>
+<script src="../shared/voice/voice-boot.js"></script>
+</body>
+</html>

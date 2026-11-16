@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Школа · механика DA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08080c;--ink:#f5f5f7;--ink-3:rgba(245,245,247,.5);--ink-4:rgba(245,245,247,.28);
+  --gold:#d4a857;--gold-2:#f0c674;--gold-3:#b8862e;--ease:cubic-bezier(.22,1,.36,1)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);height:100%;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif;
+  color:var(--ink);-webkit-tap-highlight-color:transparent}
+#stack{position:fixed;inset:0}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;pointer-events:none;
+  transition:opacity .5s var(--ease)}
+iframe.on{opacity:1;pointer-events:auto}
+#prog{position:fixed;top:0;left:0;right:0;height:2px;background:rgba(245,245,247,.06);z-index:50}
+#prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-3),var(--gold-2));
+  transition:width .5s var(--ease)}
+#dots{position:fixed;bottom:14px;left:0;right:0;display:flex;gap:8px;justify-content:center;z-index:50}
+#dots b{width:26px;height:3px;border-radius:2px;background:rgba(245,245,247,.16);cursor:pointer;
+  transition:background .3s,transform .3s}
+#dots b.on{background:var(--gold-2);transform:scaleY(1.6)}
+#label{position:fixed;bottom:26px;left:0;right:0;text-align:center;z-index:50;
+  font-family:'Unbounded',sans-serif;font-size:9px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--ink-4);transition:opacity .4s}
+@media (max-width:820px){#label{display:none}}
+</style>
+<link rel="stylesheet" href="../shared/voice/voice.css">
+<script src="../shared/i18n.js"></script>
+<script src="../shared/voice/voice-protocol.js"></script>
+<script src="../shared/voice/voice-preference.js"></script>
+<script src="../shared/voice/voice-slides.js"></script>
+<script src="../shared/voice/voice-scenario.js"></script>
+<script src="../shared/voice/voice-core.js"></script>
+<script src="../shared/voice/voice-deck.js"></script>
+<script src="../shared/voice/voice-route.js"></script>
+<script src="../shared/voice/voice-ui-model.js"></script>
+<script src="../shared/voice/voice-ui.js"></script>
+<script src="../shared/voice/voice-slide.js"></script>
+</head>
+<body>
+<div id="prog"><i></i></div>
+<div id="stack"></div>
+<div id="label"></div>
+<div id="dots"></div>
+<script>
+const SLIDES = [
+  {f:'school_1_machine.html', t:'машина, которая добывает актив'},
+  {f:'school_2_mech.html',    t:'механика роста DA'},
+  {f:'school_3_sell.html',    t:'кому вы продаёте свои DA'},
+  {f:'school_4_levels.html',  t:'что добывает каждый уровень'},
+  {f:'school_5_cycle.html',   t:'один раз за свои деньги'},
+  {f:'school_6_now.html',     t:'где система находится сегодня'}
+];
+const stack = document.getElementById('stack'), dots = document.getElementById('dots'),
+      label = document.getElementById('label'), prog = document.querySelector('#prog i');
+let cur = 0, busy = false;
+const frames = SLIDES.map((s, i) => {
+  const f = document.createElement('iframe');
+  f.src = s.f; f.title = s.t; if (i === 0) f.classList.add('on');
+  stack.appendChild(f);
+  const d = document.createElement('b');
+  d.onclick = () => go(i);
+  dots.appendChild(d);
+  return f;
+});
+function paint(){
+  frames.forEach((f, i) => f.classList.toggle('on', i === cur));
+  [...dots.children].forEach((d, i) => d.classList.toggle('on', i === cur));
+  label.textContent = (cur+1) + ' · ' + SLIDES[cur].t;
+  prog.style.width = ((cur+1)/SLIDES.length*100) + '%';
+}
+function go(i, atEnd){
+  if (busy || i < 0 || i >= SLIDES.length || i === cur) return;
+  busy = true; cur = i; paint();
+  if (window.RwaVoice) window.RwaVoice.onSlideChanged(SLIDES[cur].f);
+  const w = frames[cur].contentWindow;
+  try { w.postMessage({source:'deck', type: atEnd ? 'goto-last-step' : 'goto-first-step'}, '*'); } catch(e){}
+  setTimeout(() => busy = false, 520);
+}
+function send(type){
+  const w = frames[cur].contentWindow;
+  try { w.postMessage({source:'deck', type}, '*'); } catch(e){}
+}
+window.addEventListener('message', e => {
+  const m = e.data; if (!m || m.source !== 'slide') return;
+  if (m.type === 'slide-end-forward') go(cur+1);
+  else if (m.type === 'slide-end-backward') go(cur-1, true);
+});
+document.addEventListener('keydown', e => {
+  if (['ArrowRight',' ','PageDown','Enter'].includes(e.key)){ e.preventDefault(); send('next'); }
+  else if (['ArrowLeft','PageUp'].includes(e.key)){ e.preventDefault(); send('prev'); }
+  else if (/^[1-6]$/.test(e.key)) go(+e.key - 1);
+});
+paint();
+if (window.RwaVoice) window.RwaVoice.onSlideChanged(SLIDES[cur].f);
+</script>
+<div id="voiceRoot"></div>
+<script src="../shared/voice/voice-autoplay.js"></script>
+<script src="../shared/voice/voice-boot.js"></script>
+</body>
+</html>

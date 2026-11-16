@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Один раз за свои деньги</title>
+<script src="../shared/i18n.js"></script>
+<script src="../shared/mobile.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=Tenor+Sans&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08080c; --bg-2:#0d0d12;
+  --ink:#f5f5f7; --ink-2:rgba(245,245,247,.85); --ink-3:rgba(245,245,247,.5); --ink-4:rgba(245,245,247,.3);
+  --line-2:rgba(245,245,247,.15); --card-line:rgba(245,245,247,.10);
+  --gold:#d4a857; --gold-2:#f0c674; --gold-3:#b8862e;
+  --cold:#6f9bd1; --em:#3f8f6c; --em-2:#6fd3a8; --red:#e0713f;
+  --display:'Unbounded',system-ui,sans-serif;
+  --body:'DM Sans',system-ui,sans-serif;
+  --serif:'Tenor Sans',Georgia,serif;
+  --ease:cubic-bezier(0.22,1,0.36,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg); color:var(--ink); font-family:var(--body); font-weight:300;
+  height:100%; overflow:hidden; -webkit-font-smoothing:antialiased; user-select:none;
+  -webkit-tap-highlight-color:transparent}
+.grain{position:fixed; inset:0; pointer-events:none; z-index:300; opacity:.04; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.rays{position:absolute; top:-5%; left:0; right:0; height:70%; pointer-events:none; z-index:0; opacity:.85;
+  background:
+    linear-gradient(100deg, transparent 44%, rgba(240,198,116,.035) 47%, transparent 50%),
+    linear-gradient(94deg, transparent 54%, rgba(240,198,116,.042) 57%, transparent 60%),
+    linear-gradient(86deg, transparent 63%, rgba(240,198,116,.036) 66%, transparent 69%);
+  filter:blur(6px)}
+.gridfloor{position:absolute; left:-20%; right:-20%; bottom:-14%; height:40%; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgba(212,168,87,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212,168,87,.07) 1px, transparent 1px);
+  background-size:56px 34px;
+  transform:perspective(600px) rotateX(58deg);
+  -webkit-mask-image:radial-gradient(ellipse 70% 90% at 50% 100%, #000 30%, transparent 78%);
+  mask-image:radial-gradient(ellipse 70% 90% at 50% 100%, #000 30%, transparent 78%)}
+.slide{position:fixed; inset:0; z-index:1; display:flex; flex-direction:column;
+  background:radial-gradient(ellipse 120% 90% at 50% -10%, #101014 0%, #08080c 55%, #050507 100%);
+  padding:clamp(26px,4vw,60px) clamp(20px,5vw,70px) clamp(30px,4vh,50px)}
+.head{flex:0 0 auto}
+.eyebrow{font-family:var(--display); font-weight:500; font-size:clamp(9px,1.1vw,11px);
+  letter-spacing:.3em; text-transform:uppercase; color:var(--gold); margin-bottom:clamp(8px,1.4vh,14px);
+  opacity:0; transition:opacity .6s var(--ease)}
+.eyebrow.on{opacity:1}
+h2{font-family:var(--display); font-weight:200; letter-spacing:-.03em; line-height:1.1;
+  font-size:clamp(22px,3.4vw,40px); opacity:0; transform:translateY(12px);
+  transition:opacity .7s var(--ease), transform .7s var(--ease)}
+h2.on{opacity:1; transform:none}
+h2 em{font-style:normal; color:var(--gold-2)}
+.cap{font-size:clamp(13px,1.5vw,17px); color:var(--ink-2); margin-top:10px; min-height:3.4em;
+  max-width:46em; transition:opacity .4s var(--ease)}
+.cap b{font-weight:600; color:var(--ink)}
+.cap i{font-style:normal; color:var(--em-2)}
+.cap u{text-decoration:none; color:var(--gold-2)}
+
+.stagewrap{flex:1 1 auto; display:flex; align-items:center; justify-content:center; min-height:0}
+svg.stage{width:100%; height:100%; max-height:100%; overflow:hidden}
+
+.el{opacity:0; transform:translateY(14px) scale(.985); transform-box:fill-box; transform-origin:center;
+    transition:opacity .55s var(--ease), transform .55s var(--ease)}
+.el.on{opacity:1; transform:none}
+.el.off{opacity:0; transform:translateY(-6px) scale(.995);
+        transition:opacity .3s var(--ease), transform .3s var(--ease)}
+.el[data-d="1"]{transition-delay:.10s} .el[data-d="2"]{transition-delay:.30s}
+.el[data-d="3"]{transition-delay:.50s} .el[data-d="4"]{transition-delay:.70s}
+.el[data-d="5"]{transition-delay:.90s}
+.el.off[data-d]{transition-delay:0s}
+.dim{opacity:.3; transition:opacity .5s var(--ease)}
+.el.on.dim{opacity:.3}
+
+.trace{stroke-dasharray:var(--len); stroke-dashoffset:var(--len); opacity:0;
+  transition:stroke-dashoffset .9s var(--ease), opacity .35s var(--ease)}
+.trace.on{stroke-dashoffset:0; opacity:1}
+
+.coin{offset-rotate:0deg; opacity:0}
+.coin.run{animation:fly var(--dur,1.4s) linear forwards}
+@keyframes fly{0%{offset-distance:0%; opacity:0}
+  14%{opacity:1}86%{opacity:1}100%{offset-distance:100%; opacity:0}}
+
+/* ── сгорание ── */
+@keyframes lick{
+  0%  {transform:scaleY(.72) scaleX(1.06) skewX(4deg)}
+  35% {transform:scaleY(1.14) scaleX(.9)  skewX(-5deg)}
+  70% {transform:scaleY(.88)  scaleX(1.04) skewX(3deg)}
+  100%{transform:scaleY(1.2)  scaleX(.88) skewX(-2deg)}
+}
+.lick{animation:lick var(--t,.3s) ease-in-out infinite alternate;
+      transform-box:fill-box; transform-origin:bottom center}
+@keyframes fireLife{
+  0%  {opacity:0;  transform:translateY(5px) scale(.35)}
+  14% {opacity:1;  transform:translateY(0) scale(1)}
+  62% {opacity:1;  transform:translateY(-3px) scale(1.08)}
+  100%{opacity:0;  transform:translateY(-18px) scale(.3)}
+}
+.fireLife{animation:fireLife 1.7s cubic-bezier(.3,.1,.5,1) forwards;
+          transform-box:fill-box; transform-origin:bottom center}
+@keyframes glowLife{
+  0%{opacity:0; transform:scale(.4)}18%{opacity:.95; transform:scale(1)}
+  65%{opacity:.8; transform:scale(1.15)}100%{opacity:0; transform:scale(1.5)}
+}
+.glowLife{animation:glowLife 1.7s ease-out forwards; transform-box:fill-box; transform-origin:center}
+@keyframes ember{
+  0%  {opacity:0; transform:translate(0,0) scale(1)}
+  12% {opacity:1}
+  100%{opacity:0; transform:translate(var(--dx),var(--dy)) scale(.12)}
+}
+.ember{animation:ember var(--edur,1.3s) cubic-bezier(.25,.6,.4,1) forwards;
+       transform-box:fill-box; transform-origin:center}
+@keyframes smoke{
+  0%  {opacity:0; transform:translate(0,0) scale(.4)}
+  30% {opacity:.3}
+  100%{opacity:0; transform:translate(var(--sx),var(--sy)) scale(2.4)}
+}
+.smoke{animation:smoke 1.9s ease-out forwards; transform-box:fill-box; transform-origin:center}
+
+.num{font-family:var(--serif); letter-spacing:-.02em}
+.lbl{font-family:var(--display); letter-spacing:.14em; text-transform:uppercase}
+
+
+/* телефон в альбоме: шапка ужимается, схеме отдаётся высота */
+@media (max-height:520px){
+  .slide{padding:12px 18px 14px}
+  .eyebrow{font-size:8px; letter-spacing:.24em; margin-bottom:5px}
+  h2{font-size:clamp(17px,2.6vw,24px)}
+  .cap{font-size:11.5px; margin-top:5px; min-height:3.2em; max-width:62em; line-height:1.4}
+}
+</style>
+<link rel="stylesheet" href="../shared/voice/voice.css">
+<script src="../shared/voice/voice-protocol.js"></script>
+<script src="../shared/voice/voice-slides.js"></script>
+<script src="../shared/voice/voice-scenario.js"></script>
+<script src="../shared/voice/voice-core.js"></script>
+<script src="../shared/voice/voice-deck.js"></script>
+<script src="../shared/voice/voice-route.js"></script>
+<script src="../shared/voice/voice-ui-model.js"></script>
+<script src="../shared/voice/voice-ui.js"></script>
+<script src="../shared/voice/voice-slide.js"></script>
+</head>
+<body>
+<div class="rays"></div>
+<div class="gridfloor"></div>
+<div class="grain"></div>
+
+<section class="slide">
+  <div class="head">
+    <div class="eyebrow" id="eyebrow">Школа · лимит дохода и круговорот</div>
+    <h2 id="h2">Один раз <em>за свои деньги</em></h2>
+    <p class="cap" id="cap"></p>
+  </div>
+
+  <div class="stagewrap">
+    <svg class="stage" id="stage" viewBox="0 44 1200 382" role="img" aria-label="Механика роста DA">
+      <defs>
+        <linearGradient id="gNode" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1a1a24"/><stop offset="100%" stop-color="#101018"/>
+        </linearGradient>
+        <linearGradient id="gPool" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(212,168,87,.17)"/><stop offset="100%" stop-color="rgba(63,143,108,.10)"/>
+        </linearGradient>
+        <linearGradient id="gCard" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="rgba(255,255,255,.045)"/><stop offset="100%" stop-color="rgba(255,255,255,.012)"/>
+        </linearGradient>
+        <radialGradient id="gGlow">
+          <stop offset="0%" stop-color="#ffcf7a" stop-opacity=".95"/>
+          <stop offset="40%" stop-color="#f5822a" stop-opacity=".5"/>
+          <stop offset="100%" stop-color="#e04a10" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="gFlame" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="#ffd98a"/><stop offset="45%" stop-color="#f79020"/><stop offset="100%" stop-color="#e2440c" stop-opacity=".15"/>
+        </linearGradient>
+        <linearGradient id="gCore" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="#ffffff"/><stop offset="55%" stop-color="#ffe6a6"/><stop offset="100%" stop-color="#ffb43c" stop-opacity=".2"/>
+        </linearGradient>
+        <linearGradient id="gLiquid" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="#2f7d5e"/><stop offset="100%" stop-color="#6fd3a8" stop-opacity=".75"/>
+        </linearGradient>
+        <radialGradient id="cGold"><stop offset="0%" stop-color="#fbe6ad"/><stop offset="62%" stop-color="#e0b45c"/><stop offset="100%" stop-color="#a5731f"/></radialGradient>
+        <radialGradient id="cGreen"><stop offset="0%" stop-color="#a6efcd"/><stop offset="62%" stop-color="#5cc396"/><stop offset="100%" stop-color="#2c6c50"/></radialGradient>
+        <radialGradient id="gFlash">
+          <stop offset="0%" stop-color="#ffe9b0" stop-opacity="1"/>
+          <stop offset="45%" stop-color="#f0912f" stop-opacity=".55"/>
+          <stop offset="100%" stop-color="#f0912f" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="heat2" x="-120%" y="-160%" width="340%" height="420%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.03 0.06" numOctaves="2" seed="4" result="t2">
+            <animate attributeName="baseFrequency" dur="1.1s" values="0.03 0.06;0.045 0.1;0.03 0.06" repeatCount="indefinite"/>
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="t2" scale="3" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <filter id="heat" x="-60%" y="-90%" width="220%" height="300%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.022 0.05" numOctaves="2" seed="7" result="t">
+            <animate attributeName="baseFrequency" dur="1.7s" values="0.022 0.05;0.03 0.115;0.022 0.05" repeatCount="indefinite"/>
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="t" scale="10" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="var(--em-2)"/>
+        </marker>
+        <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="var(--gold)"/>
+        </marker>
+      </defs>
+
+
+
+      <g id="scale" class="el"></g>
+      <g id="ring"></g>
+      <g id="sum" class="el"></g>
+
+    </svg>
+  </div>
+</section>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const $  = id => document.getElementById(id);
+const mk = (t, a, parent) => { const e = document.createElementNS(NS, t);
+  for (const k in a) if (a[k] !== undefined && a[k] !== null) e.setAttribute(k, a[k]);
+  if (parent) parent.appendChild(e); return e; };
+const fmt = n => Math.round(n).toLocaleString('ru-RU');
+function textW(el){ try { return el.getComputedTextLength(); } catch(e){ return 0; } }
+
+/* подпись, которая сама укладывается в заданную ширину */
+function fitLabel(parent, words, x, cy, maxW, fs, fill, cls, anchor){
+  const attempt = (size, lines) => {
+    const g = mk('g', {}, parent);
+    const lh = size * 1.7;
+    const y0 = cy - (lines.length-1)*lh/2 + size*0.36;
+    let over = 0;
+    lines.forEach((ln, i) => {
+      const t = mk('text', {x, y:(y0+i*lh).toFixed(1), class:cls, 'font-size':size,
+                            fill, 'text-anchor':anchor||'start'}, g);
+      t.textContent = ln;
+      over = Math.max(over, textW(t) - maxW);
+    });
+    return {g, over};
+  };
+  const split = n => {
+    if (n === 1) return [words.join(' ')];
+    const mid = Math.ceil(words.length/2);
+    return [words.slice(0,mid).join(' '), words.slice(mid).join(' ')];
+  };
+  for (const lines of [1, 2]){
+    if (lines === 2 && words.length < 2) continue;
+    for (const size of [fs, fs-0.5, fs-1, fs-1.5, fs-2]){
+      const r = attempt(size, split(lines));
+      if (r.over <= 0) return r.g;
+      r.g.remove();
+    }
+  }
+  return attempt(fs-2.5, split(words.length > 1 ? 2 : 1)).g;
+}
+
+
+const L = {
+  vb:'40 92 1120 330',
+  scale:{x:150, y:150, w:900, h:56},
+  ring:{cx:600, cy:258, rx:300, ry:138},
+  nodes:[
+    {t:'NFT добывает DA',            s:'круг за кругом'},
+    {t:'вы получаете выплату',       s:'из пула обеспечения'},
+    {t:'лимит дохода уменьшается',   s:'на сумму выплаты'},
+    {t:'NFT продлевается',           s:'из заработанного, не из кармана'},
+    {t:'доля уходит в накопитель',   s:'18% с каждого продления'}
+  ],
+  sums:[
+    {v:'3 839 765 $', t:'вложено в NFT всей сетью'},
+    {v:'9 608 760 $', t:'система должна выплатить по лимитам'},
+    {v:'× 2,5',       t:'на каждый вложенный доллар'}
+  ]
+};
+
+function build(){
+  $('stage').setAttribute('viewBox', L.vb);
+
+  /* шкала лимита дохода */
+  const gs = $('scale'); gs.textContent = '';
+  const s = L.scale;
+  mk('text', {x:s.x, y:s.y-20, class:'lbl', 'font-size':9.5, fill:'var(--gold)'}, gs)
+    .textContent = 'NFT шестого уровня · 1 100 $';
+  mk('rect', {x:s.x, y:s.y, width:s.w, height:s.h, rx:14, fill:'url(#gCard)',
+              stroke:'var(--card-line)'}, gs);
+  const wIn = s.w * (1100/2700);
+  mk('rect', {x:s.x+4, y:s.y+4, width:wIn-8, height:s.h-8, rx:11,
+              fill:'rgba(111,155,209,.20)', stroke:'rgba(111,155,209,.35)'}, gs);
+  mk('text', {x:s.x+wIn/2, y:s.y+s.h/2+7, 'text-anchor':'middle', class:'num',
+              'font-size':19, fill:'var(--cold)'}, gs).textContent = 'вложено 1 100 $';
+  mk('line', {x1:s.x+wIn, x2:s.x+wIn, y1:s.y-6, y2:s.y+s.h+6, stroke:'var(--cold)',
+              'stroke-width':1.5, 'stroke-dasharray':'4 4', opacity:.6}, gs);
+  mk('text', {x:s.x+wIn+(s.w-wIn)/2, y:s.y+s.h/2+7, 'text-anchor':'middle', class:'num',
+              'font-size':19, fill:'var(--em-2)'}, gs).textContent = 'ещё 1 600 $ дохода';
+  mk('text', {x:s.x+s.w, y:s.y+s.h+26, 'text-anchor':'end', class:'lbl', 'font-size':9,
+              fill:'var(--ink-3)'}, gs).textContent = 'лимит дохода 2 700 $ · в 2,5 раза больше цены NFT';
+
+  /* круговорот */
+  const gr = $('ring'); gr.textContent = '';
+  const R = L.ring, n = L.nodes.length;
+  L.nodes.forEach((it, i) => {
+    const pt = t => [R.cx + Math.cos(t)*R.rx, R.cy + Math.sin(t)*R.ry];
+    const a = -Math.PI/2 + i*2*Math.PI/n;
+    const [x, y] = pt(a);
+    /* дуга к следующему узлу */
+    const a2 = -Math.PI/2 + (i+1)*2*Math.PI/n;
+    const pad = 0.34;
+    const p1 = pt(a+pad), p2 = pt(a2-pad);
+    const arc = mk('path', {class:'trace', id:'arc'+i, fill:'none', stroke:'var(--em-2)',
+      'stroke-width':1.8, opacity:.75, 'marker-end':'url(#arG)',
+      d:`M ${p1[0].toFixed(1)} ${p1[1].toFixed(1)} A ${R.rx} ${R.ry} 0 0 1 ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`}, gr);
+    /* узел */
+    const g = mk('g', {class:'el', 'data-d':Math.min(5,i+1), id:'nd'+i}, gr);
+    const w = 248, h = 56;
+    const bx = x - w/2, by = y - h/2;
+    mk('rect', {x:bx, y:by, width:w, height:h, rx:12, fill:'var(--bg-2)',
+                stroke:'var(--card-line)'}, g);
+    mk('rect', {x:bx+12, y:y-9, width:2.5, height:18, rx:1.25, fill:'var(--em-2)', opacity:.8}, g);
+    fitLabel(g, it.t.split(' '), bx+26, y-8, w-42, 12.5, 'var(--ink)', '');
+    fitLabel(g, it.s.split(' '), bx+26, y+13, w-42, 10, 'var(--ink-3)', '');
+  });
+
+  /* итоговые суммы */
+  const gm = $('sum'); gm.textContent = '';
+  const W = 330, gap = 40, tot = L.sums.length*W + (L.sums.length-1)*gap;
+  let x0 = 600 - tot/2;
+  L.sums.forEach((it, i) => {
+    const x = x0 + i*(W+gap);
+    mk('text', {x:x+W/2, y:236, 'text-anchor':'middle', class:'num', 'font-size':40,
+                fill: i===2 ? 'var(--gold-2)' : 'var(--em-2)'}, gm).textContent = it.v;
+    fitLabel(gm, it.t.split(' '), x+W/2, 268, W-20, 12, 'var(--ink-3)', '', 'middle');
+  });
+}
+
+/* ══════════ раскадровка ══════════ */
+const SCENE = [
+ { show:['scale'],
+   cap:"Частый вопрос: сколько раз придётся платить. Смотрим на шестой уровень. NFT стоит 1 100 долларов, а лимит дохода по нему <b>2 700</b>." },
+
+ { show:['scale'], lit:true,
+   cap:"То есть система рассчитана так, чтобы вернуть вам вложенное и сверх того ещё столько же с половиной. Лимит это не ограничение прибыли, это <b>обязательство платформы перед вами</b>." },
+
+ { show:['ring'], arcs:1,
+   cap:"Когда лимит выбран, NFT продлевается. И вот ключевой момент: продление идёт <b>из заработанного на платформе</b>, а не из вашего кармана." },
+
+ { show:['ring'], arcs:5,
+   cap:"Дальше круг замыкается. Доля с продления уходит в накопитель, из накопителя обеспечивается новый DA, ваше NFT продолжает добычу. <b>Деньги не выходят из системы, они в ней вращаются.</b>" },
+
+ { show:['sum'],
+   cap:"В масштабе всей сети это выглядит так. Люди вложили в NFT 3,8 миллиона долларов, а по лимитам дохода система должна выплатить 9,6 миллиона." },
+
+ { show:['sum'], lit:true,
+   cap:"<b>Своими деньгами человек платит один раз в жизни.</b> Всё дальнейшее он получает здесь, а NFT продолжает добывать растущий актив десятилетиями." }
+];
+const TOTAL = SCENE.length;
+
+const stage=$('stage'), capEl=$('cap'), h2El=$('h2'), eyeEl=$('eyebrow');
+let step = 0, timers = [], ready = false;
+const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+function clearAllTimers(){ timers.forEach(clearTimeout); timers = []; }
+
+function render(dir){
+  const sc = SCENE[step], back = dir === 'back';
+  clearAllTimers();
+  ['scale','ring','sum'].forEach(id => {
+    const on = sc.show.includes(id);
+    const nodes = (id === 'ring') ? document.querySelectorAll('#ring .el') : [$(id)];
+    nodes.forEach(n => { if (n){ n.classList.toggle('on', on); n.classList.toggle('off', !on); } });
+  });
+  const arcs = sc.show.includes('ring') ? (sc.arcs || 0) : 0;
+  for (let i = 0; i < L.nodes.length; i++){
+    const a = $('arc'+i);
+    if (!a) continue;
+    if (back){ a.classList.toggle('on', i < arcs); }
+    else later(() => a.classList.toggle('on', i < arcs), 420 + i*220);
+  }
+  capEl.style.opacity = 0;
+  later(() => { capEl.innerHTML = sc.cap; capEl.style.opacity = 1; }, 170);
+}
+/* ══════════ движок слайдов, общий для всей презентации ══════════ */
+window.SlideEngine = (function(){
+  let state = { currentStep:0, totalSteps:1, onStep:null, slideNumber:1, slideTotal:16,
+                isInIframe: window.parent !== window };
+  let wheelAccumulator = 0, wheelTimer = null, lastWheelTime = 0;
+  const WHEEL_THRESHOLD = 80, WHEEL_COOLDOWN = 600;
+
+  function postToParent(type, data){
+    if (!state.isInIframe) return;
+    try { window.parent.postMessage({ source:'slide', type: type, ...data }, '*'); } catch(e){}
+  }
+  function nextStep(){
+    if (state.currentStep < state.totalSteps - 1){
+      state.currentStep++; state.onStep(state.currentStep);
+      postToParent('step-changed', { step: state.currentStep });
+    } else postToParent('slide-end-forward', {});
+  }
+  function prevStep(){
+    if (state.currentStep > 0){
+      state.currentStep--; state.onStep(state.currentStep);
+      postToParent('step-changed', { step: state.currentStep });
+    } else postToParent('slide-end-backward', {});
+  }
+  function reset(){ state.currentStep = 0; state.onStep(0); postToParent('step-changed', { step:0 }); }
+  function goToLastStep(){
+    state.currentStep = state.totalSteps - 1; state.onStep(state.currentStep);
+    postToParent('step-changed', { step: state.currentStep });
+  }
+  function init(opts){
+    state.totalSteps = opts.totalSteps || 1;
+    state.onStep = opts.onStep || function(){};
+    state.slideNumber = opts.slideNumber || 1;
+    state.slideTotal = opts.slideTotal || 16;
+    state.currentStep = 0;
+    state.onStep(0);
+    postToParent('slide-ready', { slideNumber: state.slideNumber, totalSteps: state.totalSteps });
+
+    document.addEventListener('keydown', function(e){
+      const k = e.key, c = e.code;
+      if (k === ' ' || k === 'ArrowRight' || k === 'Enter' || k === 'PageDown' ||
+          c === 'Space' || c === 'ArrowRight' || c === 'Enter' || c === 'PageDown'){
+        e.preventDefault(); nextStep();
+      } else if (k === 'ArrowLeft' || k === 'PageUp' || c === 'ArrowLeft' || c === 'PageUp'){
+        e.preventDefault(); prevStep();
+      } else if (k === 'Escape' || k === 'r' || k === 'R'){
+        e.preventDefault(); reset();
+      }
+    });
+
+    document.addEventListener('wheel', function(e){
+      e.preventDefault();
+      const now = Date.now();
+      if (now - lastWheelTime < WHEEL_COOLDOWN) return;
+      if (Math.sign(e.deltaY) !== Math.sign(wheelAccumulator) && wheelAccumulator !== 0) wheelAccumulator = 0;
+      wheelAccumulator += e.deltaY;
+      if (wheelTimer) clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(function(){ wheelAccumulator = 0; }, 200);
+      if (Math.abs(wheelAccumulator) >= WHEEL_THRESHOLD){
+        if (wheelAccumulator > 0) nextStep(); else prevStep();
+        wheelAccumulator = 0; lastWheelTime = now;
+      }
+    }, { passive:false });
+
+    document.addEventListener('click', function(e){
+      if (e.target.closest('.reset-btn')) return;
+      if (e.target.closest('[data-no-click]')) return;
+      nextStep();
+    });
+
+    window.addEventListener('message', function(e){
+      const msg = e.data;
+      if (!msg || msg.source !== 'deck') return;
+      if (msg.type === 'goto-first-step') reset();
+      else if (msg.type === 'goto-last-step') goToLastStep();
+      else if (msg.type === 'next') nextStep();
+      else if (msg.type === 'prev') prevStep();
+    });
+  }
+  return { init: init, nextStep: nextStep, prevStep: prevStep, reset: reset,
+           getCurrentStep: function(){ return state.currentStep; },
+           getTotalSteps: function(){ return state.totalSteps; } };
+})();
+
+/* ══════════ старт ══════════ */
+setTimeout(() => { eyeEl.classList.add('on'); h2El.classList.add('on'); }, 120);
+let prevStepNo = 0;
+function boot(){
+  build(); ready = true;
+  setTimeout(() => {
+    SlideEngine.init({
+      totalSteps: TOTAL, slideNumber: 5, slideTotal: 6,
+      onStep: function(n){
+        const dir = n < prevStepNo ? 'back' : 'fwd';
+        prevStepNo = n; step = n; render(dir);
+      }
+    });
+  }, 700);
+}
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(boot); else setTimeout(boot, 400);
+</script>
+<div id="voiceRoot"></div>
+<script src="../shared/voice/voice-autoplay.js"></script>
+<script src="../shared/voice/voice-boot.js"></script>
+</body>
+</html>

@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02 — Мост в реальный мир</title>
+<script src="../shared/i18n.js"></script>
+<script src="../shared/mobile.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Tenor+Sans&display=swap" rel="stylesheet">
+
+<style>
+/* === COMMON CSS (inline для работы из file://) === */
+:root {
+  --bg: #08080c;
+  --bg-2: #0d0d12;
+  --ink: #f5f5f7;
+  --ink-2: rgba(245, 245, 247, 0.85);
+  --ink-3: rgba(245, 245, 247, 0.5);
+  --line: rgba(245, 245, 247, 0.08);
+  --gold: #d4a857;
+  --gold-2: #f0c674;
+  --gold-3: #b8862e;
+  --gold-glow: rgba(212, 168, 87, 0.4);
+  --cold: #6f9bd1;
+  --cold-glow: rgba(111, 155, 209, 0.35);
+  --display: 'Unbounded', system-ui, sans-serif;
+  --body: 'DM Sans', system-ui, sans-serif;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+/* === Глобальные правила: скрыть служебный UI === */
+.step-indicator,
+.nav-hint,
+.reset-btn,
+.slide-num,
+.slide-tag {
+  display: none !important;
+}
+
+/* Базовый слайд-контейнер */
+.slide {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* === Фото-фоны === */
+.photo-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transform: scale(1.04);
+  transition: opacity 1.4s var(--ease),
+              transform 12s linear;
+  z-index: 1;
+}
+.photo-bg.visible {
+  opacity: 1;
+  transform: scale(1.0);
+}
+
+.photo-bg#bg_before { background-image: url('../images/02_before_finance.jpg'); }
+.photo-bg#bg_after { background-image: url('../images/02_after_people.jpg'); }
+
+/* === Зернистость === */
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 200;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* === ЛОКАЛЬНЫЕ СТИЛИ СЛАЙДА 02 === */
+
+/* Затенение под текст слева — покрывает всю левую колонку сверху донизу */
+.left-glow {
+  position: absolute;
+  inset: 0;
+  width: 55%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse 50% 70% at 22% 50%, rgba(8,8,12,0.85) 0%, rgba(8,8,12,0.55) 40%, transparent 75%),
+    linear-gradient(90deg, rgba(8,8,12,0.5) 0%, rgba(8,8,12,0.2) 35%, transparent 60%);
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s var(--ease);
+}
+.left-glow.intensified { opacity: 1; }
+
+/* === ВСПЫШКА ПРИ ПЕРЕХОДЕ === */
+
+.golden-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 220, 130, 0.85) 0%, rgba(212, 168, 87, 0.5) 35%, transparent 75%);
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+}
+.golden-flash.flashing {
+  animation: goldenFlashAnim 1.2s var(--ease);
+}
+@keyframes goldenFlashAnim {
+  0% { opacity: 0; transform: scale(0.5); }
+  30% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(2); }
+}
+
+/* === ЕДИНАЯ КОМПОЗИЦИЯ (БЫЛО / СТАЛО) === */
+/* Колонка слева: якорь сверху (как заголовок главы), раскрытие снизу */
+
+.composition {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  opacity: 0;
+  transition: opacity 0.9s var(--ease);
+  pointer-events: none;
+}
+.composition.shown {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* === ЯКОРЬ-ЗАСТАВКА «Раньше» / «Сейчас» (верхняя зона) === */
+
+.anchor {
+  position: absolute;
+  top: clamp(60px, 9vh, 130px);
+  left: clamp(40px, 5vw, 90px);
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
+}
+.anchor.shown {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.anchor-word {
+  font-family: 'Tenor Sans', serif;
+  font-weight: 400;
+  font-size: clamp(56px, 7vw, 130px);
+  line-height: 0.9;
+  letter-spacing: 0.06em;
+  margin-bottom: 18px;
+}
+
+.anchor-word.cold {
+  color: #fff;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.95),
+    0 2px 6px rgba(0,0,0,0.95),
+    0 4px 30px rgba(0,0,0,0.85),
+    0 0 60px rgba(111, 155, 209, 0.3);
+}
+
+.anchor-word.warm {
+  color: #fff;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.95),
+    0 2px 6px rgba(0,0,0,0.95),
+    0 4px 30px rgba(0,0,0,0.85),
+    0 0 60px rgba(212, 168, 87, 0.35);
+}
+
+.anchor-sub {
+  font-family: 'Tenor Sans', serif;
+  font-weight: 400;
+  font-size: clamp(18px, 2vw, 32px);
+  line-height: 1.1;
+  letter-spacing: 0.14em;
+}
+.anchor-sub.cold {
+  color: var(--cold);
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.95),
+    0 2px 12px rgba(0,0,0,0.9),
+    0 0 30px var(--cold-glow);
+}
+.anchor-sub.warm {
+  color: var(--gold-2);
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.95),
+    0 2px 12px rgba(0,0,0,0.9),
+    0 0 30px var(--gold-glow);
+}
+
+/* === БЛОК РАСКРЫТИЯ (средняя зона, появляется на шагах 1/3) === */
+/* На шаге 3 под этим блоком будет финальная плашка — поэтому он не привязан к низу */
+
+.reveal-block {
+  position: absolute;
+  bottom: clamp(180px, 26vh, 320px);
+  left: clamp(40px, 5vw, 90px);
+  max-width: calc(100vw - clamp(80px, 10vw, 180px));
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2.5vh, 28px);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.9s var(--ease) 0.1s, transform 0.9s var(--ease) 0.1s;
+}
+.reveal-block.shown {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Для БЫЛО (где список длиннее и нет финальной плашки) — оставляем у самого низа */
+#revealBefore {
+  bottom: clamp(70px, 9vh, 110px);
+}
+
+/* Большая цифра 1% / 100% */
+.big-number {
+  font-family: 'Tenor Sans', serif;
+  font-weight: 400;
+  font-size: clamp(64px, 8vw, 140px);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  margin-top: clamp(8px, 1vh, 16px);
+}
+.big-number.cold {
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.95),
+    0 2px 8px rgba(0,0,0,0.95),
+    0 4px 30px rgba(0,0,0,0.85),
+    0 0 60px rgba(111, 155, 209, 0.4);
+}
+.big-number.warm {
+  color: #fff;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.95),
+    0 2px 8px rgba(0,0,0,0.95),
+    0 4px 30px rgba(0,0,0,0.85),
+    0 0 50px rgba(212, 168, 87, 0.7),
+    0 0 100px rgba(212, 168, 87, 0.4);
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+@keyframes pulseGlow {
+  0%, 100% {
+    text-shadow:
+      0 1px 0 rgba(0,0,0,0.95),
+      0 2px 8px rgba(0,0,0,0.95),
+      0 4px 30px rgba(0,0,0,0.85),
+      0 0 50px rgba(212, 168, 87, 0.7),
+      0 0 100px rgba(212, 168, 87, 0.4);
+  }
+  50% {
+    text-shadow:
+      0 1px 0 rgba(0,0,0,0.95),
+      0 2px 8px rgba(0,0,0,0.95),
+      0 4px 30px rgba(0,0,0,0.85),
+      0 0 70px rgba(212, 168, 87, 0.9),
+      0 0 140px rgba(212, 168, 87, 0.6);
+  }
+}
+
+/* Список людей/категорий */
+.people-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.person-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--display);
+  font-weight: 300;
+  font-size: clamp(22px, 2vw, 32px);
+  letter-spacing: -0.01em;
+  color: #fff;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.9),
+    0 2px 8px rgba(0,0,0,0.95),
+    0 4px 20px rgba(0,0,0,0.7);
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+}
+.person-item.shown {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.person-icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.person-icon.lock {
+  color: var(--cold);
+  font-size: 18px;
+  filter: drop-shadow(0 0 8px var(--cold-glow));
+}
+
+/* Каскадные задержки для списков */
+.person-item.delay-1 { transition-delay: 0.0s; }
+.person-item.delay-2 { transition-delay: 0.15s; }
+.person-item.delay-3 { transition-delay: 0.3s; }
+
+/* Крупная одиночная фраза «Доступ. Есть у каждого.» — одна строка */
+.hero-statement {
+  font-family: 'Tenor Sans', serif;
+  font-weight: 400;
+  font-size: clamp(28px, 3.4vw, 60px);
+  line-height: 1.0;
+  letter-spacing: -0.01em;
+  color: #fff;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.95),
+    0 2px 8px rgba(0,0,0,0.95),
+    0 4px 20px rgba(0,0,0,0.85),
+    0 0 60px rgba(0,0,0,0.6);
+  white-space: nowrap;
+}
+.hero-statement em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--gold-2);
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.95),
+    0 2px 10px rgba(0,0,0,0.95),
+    0 0 30px rgba(212,168,87,0.6),
+    0 0 70px rgba(212,168,87,0.4);
+}
+
+/* === ФИНАЛЬНАЯ ПЛАШКА «RWA NFT растворил ограничения» === */
+/* Появляется на шаге 4 как финальный аккорд. С пробегающим бликом. */
+
+.final-pill {
+  position: absolute;
+  bottom: clamp(70px, 9vh, 110px);
+  left: clamp(40px, 5vw, 90px);
+  max-width: calc(100vw - clamp(80px, 10vw, 180px));
+  display: inline-block;
+  padding: 16px 32px;
+  background: linear-gradient(180deg, rgba(212,168,87,0.32), rgba(212,168,87,0.14));
+  border: 1px solid rgba(240,198,116,0.7);
+  border-radius: 100px;
+  backdrop-filter: blur(24px);
+  box-shadow: 0 6px 30px rgba(0,0,0,0.5), 0 0 50px rgba(212,168,87,0.25);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(20px) scale(0.96);
+  transition: opacity 1s var(--ease), transform 1s var(--ease);
+  z-index: 16;
+  pointer-events: none;
+}
+.final-pill.shown {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.pill-text {
+  position: relative;
+  z-index: 2;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(18px, 1.8vw, 28px);
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.6);
+  white-space: nowrap;
+}
+.pill-text em {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--gold-2);
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.9),
+    0 0 20px rgba(212,168,87,0.6);
+}
+
+/* Золотой блик пробегает по плашке каждые 4 секунды (как у кнопки слайда 01) */
+.final-pill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.15) 45%,
+    rgba(255, 220, 150, 0.55) 50%,
+    rgba(255, 255, 255, 0.15) 55%,
+    transparent 70%
+  );
+  animation: pillShine 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes pillShine {
+  0%, 100% { left: -100%; }
+  50% { left: 100%; }
+}
+
+/* Финальный месседж */
+.bottom-message {
+  font-family: var(--display);
+  font-weight: 300;
+  font-size: clamp(20px, 2.2vw, 34px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.9),
+    0 2px 6px rgba(0,0,0,0.95),
+    0 4px 16px rgba(0,0,0,0.85),
+    0 0 40px rgba(0,0,0,0.5);
+}
+.bottom-message em {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--gold-2);
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.9),
+    0 2px 8px rgba(0,0,0,0.95),
+    0 0 30px rgba(212,168,87,0.6),
+    0 0 60px rgba(212,168,87,0.4);
+}
+</style>
+<link rel="stylesheet" href="../shared/voice/voice.css">
+<script src="../shared/voice/voice-protocol.js"></script>
+<script src="../shared/voice/voice-slides.js"></script>
+<script src="../shared/voice/voice-scenario.js"></script>
+<script src="../shared/voice/voice-core.js"></script>
+<script src="../shared/voice/voice-deck.js"></script>
+<script src="../shared/voice/voice-route.js"></script>
+<script src="../shared/voice/voice-ui-model.js"></script>
+<script src="../shared/voice/voice-ui.js"></script>
+<script src="../shared/voice/voice-slide.js"></script>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<section class="slide">
+
+  <!-- Фото-фоны: БЫЛО и СТАЛО -->
+  <div class="photo-bg" id="bg_before"></div>
+  <div class="photo-bg" id="bg_after"></div>
+
+  <!-- Затенение под текстом слева -->
+  <div class="left-glow" id="leftGlow"></div>
+
+  <!-- Золотая вспышка при переходе -->
+  <div class="golden-flash" id="goldenFlash"></div>
+
+  <!-- ============================================ -->
+  <!-- КОМПОЗИЦИЯ "БЫЛО" (шаги 0 и 1)              -->
+  <!-- ============================================ -->
+  <div class="composition" id="compBefore">
+
+    <!-- Якорь-заставка (видна с шага 0) -->
+    <div class="anchor anchor-before" id="anchorBefore">
+      <div class="anchor-word cold" data-i18n="s02.before.word">Раньше</div>
+      <div class="anchor-sub cold" data-i18n="s02.before.sub">Доступ был у избранных</div>
+    </div>
+
+    <!-- Раскрытие (появляется на шаге 1) -->
+    <div class="reveal-block" id="revealBefore">
+      <div class="big-number cold">1%</div>
+      <div class="people-list">
+        <div class="person-item delay-1" data-list="before-1">
+          <span class="person-icon lock">🔒</span>
+          <span data-i18n="s02.banks">Банки</span>
+        </div>
+        <div class="person-item delay-2" data-list="before-2">
+          <span class="person-icon lock">🔒</span>
+          <span data-i18n="s02.funds">Фонды</span>
+        </div>
+        <div class="person-item delay-3" data-list="before-3">
+          <span class="person-icon lock">🔒</span>
+          <span data-i18n="s02.millionaires">Миллионеры</span>
+        </div>
+      </div>
+      <div class="bottom-message" data-i18n="s02.before.note">Надёжные активы только<br>для крупного капитала.</div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- КОМПОЗИЦИЯ "СТАЛО" (шаги 2 и 3)             -->
+  <!-- ============================================ -->
+  <div class="composition" id="compAfter">
+
+    <!-- Якорь-заставка (видна с шага 2) -->
+    <div class="anchor anchor-after" id="anchorAfter">
+      <div class="anchor-word warm" data-i18n="s02.now.word">Сейчас</div>
+      <div class="anchor-sub warm" data-i18n="s02.now.sub">Границы стираются</div>
+    </div>
+
+    <!-- Раскрытие (появляется на шаге 3) -->
+    <div class="reveal-block" id="revealAfter">
+      <div class="big-number warm">100%</div>
+      <div class="hero-statement" data-i18n="s02.hero">Доступ. <em>Есть у каждого.</em></div>
+    </div>
+
+    <!-- ФИНАЛЬНАЯ ПЛАШКА (появляется на шаге 4) -->
+    <div class="final-pill" id="finalPill">
+      <span class="pill-text" data-i18n="s02.pill"><em>RWA NFT</em> растворил ограничения</span>
+    </div>
+  </div>
+
+</section>
+
+<script>
+/* ========================================================================
+   SLIDE ENGINE — встроенная общая логика навигации
+   ======================================================================== */
+window.SlideEngine = (function() {
+  let state = {
+    currentStep: 0,
+    totalSteps: 1,
+    onStep: null,
+    slideNumber: 2,
+    slideTotal: 16,
+    isInIframe: window.parent !== window
+  };
+
+  let wheelAccumulator = 0;
+  let wheelTimer = null;
+  let lastWheelTime = 0;
+  const WHEEL_THRESHOLD = 80;
+  const WHEEL_COOLDOWN = 600;
+
+  function init(opts) {
+    state.totalSteps = opts.totalSteps || 1;
+    state.onStep = opts.onStep || (() => {});
+    state.slideNumber = opts.slideNumber || 1;
+    state.slideTotal = opts.slideTotal || 16;
+    state.currentStep = 0;
+    state.onStep(0);
+    postToParent('slide-ready', {
+      slideNumber: state.slideNumber,
+      totalSteps: state.totalSteps
+    });
+    attachKeyboard();
+    attachWheel();
+    attachClick();
+    attachMessageFromParent();
+  }
+
+  function nextStep() {
+    if (state.currentStep < state.totalSteps - 1) {
+      state.currentStep++;
+      state.onStep(state.currentStep);
+      postToParent('step-changed', { step: state.currentStep });
+    } else {
+      postToParent('slide-end-forward', {});
+    }
+  }
+
+  function prevStep() {
+    if (state.currentStep > 0) {
+      state.currentStep--;
+      state.onStep(state.currentStep);
+      postToParent('step-changed', { step: state.currentStep });
+    } else {
+      postToParent('slide-end-backward', {});
+    }
+  }
+
+  function reset() {
+    state.currentStep = 0;
+    state.onStep(0);
+    postToParent('step-changed', { step: 0 });
+  }
+
+  function goToLastStep() {
+    state.currentStep = state.totalSteps - 1;
+    state.onStep(state.currentStep);
+    postToParent('step-changed', { step: state.currentStep });
+  }
+
+  function postToParent(type, data) {
+    if (!state.isInIframe) return;
+    try {
+      window.parent.postMessage({ source: 'slide', type, ...data }, '*');
+    } catch (e) {}
+  }
+
+  function attachMessageFromParent() {
+    window.addEventListener('message', (e) => {
+      const msg = e.data;
+      if (!msg || msg.source !== 'deck') return;
+      if (msg.type === 'goto-first-step') reset();
+      else if (msg.type === 'goto-last-step') goToLastStep();
+      else if (msg.type === 'next') nextStep();
+      else if (msg.type === 'prev') prevStep();
+    });
+  }
+
+  function attachKeyboard() {
+    document.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'ArrowRight' || e.key === 'Enter' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextStep();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevStep();
+      } else if (e.key === 'Escape' || e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        reset();
+      }
+    });
+  }
+
+  function attachWheel() {
+    document.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const now = Date.now();
+      if (now - lastWheelTime < WHEEL_COOLDOWN) return;
+
+      if (Math.sign(e.deltaY) !== Math.sign(wheelAccumulator) && wheelAccumulator !== 0) {
+        wheelAccumulator = 0;
+      }
+      wheelAccumulator += e.deltaY;
+
+      if (wheelTimer) clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(() => { wheelAccumulator = 0; }, 200);
+
+      if (Math.abs(wheelAccumulator) >= WHEEL_THRESHOLD) {
+        if (wheelAccumulator > 0) nextStep();
+        else prevStep();
+        wheelAccumulator = 0;
+        lastWheelTime = now;
+      }
+    }, { passive: false });
+  }
+
+  function attachClick() {
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.reset-btn')) return;
+      if (e.target.closest('[data-no-click]')) return;
+      nextStep();
+    });
+  }
+
+  return {
+    init, nextStep, prevStep, reset,
+    getCurrentStep: () => state.currentStep,
+    getTotalSteps: () => state.totalSteps
+  };
+})();
+</script>
+
+<script>
+  // === ЛОГИКА СЛАЙДА 02 ===
+  // 5 шагов:
+  //   0: композиция БЫЛО — anchor «Раньше / Доступ только у богатых»
+  //   1: та же композиция БЫЛО + раскрытие: 1% + список Банки/Фонды/Миллионеры + «Надёжные активы только для крупного капитала»
+  //   2: золотая вспышка + смена фото на СТАЛО + anchor «Сейчас / Границы стираются»
+  //   3: та же композиция СТАЛО + раскрытие: 100% + «Доступ. Есть у каждого.»
+  //   4: финальная плашка-аккорд «RWA NFT растворил ограничения» с пробегающим бликом
+
+  const bgBefore = document.getElementById('bg_before');
+  const bgAfter = document.getElementById('bg_after');
+  const leftGlow = document.getElementById('leftGlow');
+  const goldenFlash = document.getElementById('goldenFlash');
+
+  const compBefore = document.getElementById('compBefore');
+  const anchorBefore = document.getElementById('anchorBefore');
+  const revealBefore = document.getElementById('revealBefore');
+
+  const compAfter = document.getElementById('compAfter');
+  const anchorAfter = document.getElementById('anchorAfter');
+  const revealAfter = document.getElementById('revealAfter');
+  const finalPill = document.getElementById('finalPill');
+
+  let prevStep = 0;
+
+  function renderStep(step) {
+    // === Фоны ===
+    bgBefore.classList.toggle('visible', step < 2);
+    bgAfter.classList.toggle('visible', step >= 2);
+
+    // === Затенение слева — всегда видно ===
+    leftGlow.classList.add('intensified');
+
+    // === Композиции (контейнеры) ===
+    compBefore.classList.toggle('shown', step <= 1);
+    compAfter.classList.toggle('shown', step >= 2);
+
+    // === Якоря (заставки) ===
+    anchorBefore.classList.toggle('shown', step <= 1);
+    anchorAfter.classList.toggle('shown', step >= 2);
+
+    // === Блоки раскрытия ===
+    revealBefore.classList.toggle('shown', step === 1);
+    revealAfter.classList.toggle('shown', step >= 3);
+
+    // === Финальная плашка (шаг 4) ===
+    finalPill.classList.toggle('shown', step === 4);
+
+    // === Списки людей (только в раскрытии БЫЛО) ===
+    document.querySelectorAll('[data-list^="before-"]').forEach((item) => {
+      item.classList.toggle('shown', step === 1);
+    });
+
+    // === Золотая вспышка при переходе с шага 1 на 2 ===
+    if (prevStep === 1 && step === 2) {
+      goldenFlash.classList.remove('flashing');
+      void goldenFlash.offsetWidth; // перезапуск анимации
+      goldenFlash.classList.add('flashing');
+    }
+
+    prevStep = step;
+  }
+
+  // Инициализация
+  SlideEngine.init({
+    totalSteps: 5,
+    slideNumber: 2,
+    slideTotal: 16,
+    onStep: renderStep
+  });
+</script>
+<div id="voiceRoot"></div>
+<script src="../shared/voice/voice-autoplay.js"></script>
+<script src="../shared/voice/voice-boot.js"></script>
+</body>
+</html>

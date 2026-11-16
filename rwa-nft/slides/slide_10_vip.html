@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10 — VIP Limited Edition</title>
+<script src="../shared/i18n.js"></script>
+<script src="../shared/mobile.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Tenor+Sans&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #08080c;
+  --ink: #f5f5f7;
+  --gold: #d4a857;
+  --gold-2: #f0c674;
+  --gold-3: #b8862e;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  overflow: hidden;
+  height: 100vh; width: 100vw;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+.step-indicator, .nav-hint, .reset-btn, .slide-num, .slide-tag { display: none !important; }
+.slide { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+
+/* === ФОН === */
+.stage-bg {
+  position: absolute; inset: 0;
+  background: #050505;
+  z-index: 1;
+}
+/* Облака дыма убраны — на этом слайде они создавали контраст с чёрным фоном видео */
+.smoke-cloud { display: none; }
+
+.grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 200;
+  opacity: 0.04; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* === EYEBROW === */
+.eyebrow {
+  position: absolute; top: clamp(20px, 3vh, 40px); left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  z-index: 25; opacity: 0;
+  transition: opacity 1.4s var(--ease), transform 1.4s var(--ease);
+  text-align: center; white-space: nowrap;
+}
+.eyebrow.shown { opacity: 1; transform: translateX(-50%) translateY(0); }
+.eyebrow-line {
+  display: inline-block;
+  width: clamp(40px, 5vw, 70px); height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold) 50%, transparent);
+  vertical-align: middle; margin: 0 clamp(14px, 1.5vw, 22px); opacity: 0.7;
+}
+.eyebrow-text {
+  font-family: 'Unbounded', sans-serif; font-weight: 500;
+  font-size: clamp(11px, 1vw, 14px); letter-spacing: 0.4em; text-transform: uppercase;
+  color: var(--gold-2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9), 0 0 20px rgba(212, 168, 87, 0.4);
+  vertical-align: middle;
+}
+
+/* === ЗАГОЛОВОК === */
+.title-block {
+  position: absolute;
+  top: clamp(60px, 9vh, 110px);
+  left: 0; right: 0;
+  text-align: center;
+  z-index: 20;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
+}
+.title-block.shown {
+  opacity: 1;
+  transform: translateY(0);
+}
+.title-main {
+  font-family: 'Unbounded', sans-serif;
+  font-weight: 200;
+  font-size: clamp(28px, 4vw, 56px);
+  letter-spacing: -0.005em;
+  line-height: 1.05;
+  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 3px 24px rgba(0,0,0,0.7);
+}
+.title-main em {
+  font-style: normal;
+  font-weight: 300;
+  color: #f0c674;
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.95),
+    0 2px 0 rgba(0, 0, 0, 0.8),
+    0 3px 12px rgba(0, 0, 0, 0.9),
+    0 0 24px rgba(212, 168, 87, 0.45),
+    0 0 40px rgba(212, 168, 87, 0.25);
+}
+
+/* === СЦЕНА С КАРТАМИ === */
+.cards-stage {
+  position: absolute;
+  top: clamp(160px, 20vh, 220px);
+  left: 0; right: 0;
+  bottom: clamp(170px, 23vh, 250px);
+  z-index: 15;
+}
+
+.nft-card-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* Видео 4:3, ширину подбираем под размер слайда */
+  width: clamp(420px, 42vw, 620px);
+  aspect-ratio: 4 / 3;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.9s var(--ease), transform 1s var(--ease);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.card-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  /* Приближаем карту в кадре сильнее: поля видео уходят за пределы контейнера */
+  transform: scale(1.65);
+  transform-origin: 50% 50%;
+}
+
+/* Vignette по краям карты — растворяем границы прямоугольника в чёрный фон */
+.nft-card-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background:
+    radial-gradient(ellipse 78% 72% at center, transparent 55%, rgba(5, 5, 5, 0.5) 80%, #050505 100%);
+}
+
+/* Шаги 2-3: VIP по центру */
+.cards-stage[data-state="2"] .nft-card-wrap.vip,
+.cards-stage[data-state="3"] .nft-card-wrap.vip {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+
+/* Шаг 4: VIP смещается влево, Ambassador появляется справа */
+.cards-stage[data-state="4"] .nft-card-wrap.vip {
+  opacity: 1;
+  transform: translate(calc(-50% - clamp(180px, 22vw, 320px)), -50%);
+}
+.cards-stage[data-state="4"] .nft-card-wrap.ambassador {
+  opacity: 1;
+  transform: translate(calc(-50% + clamp(180px, 22vw, 320px)), -50%);
+}
+
+/* Блик-полоса поверх карт удалена — видео самодостаточно */
+.card-shine-overlay { display: none; }
+
+/* Подпись под картой */
+.card-caption {
+  position: absolute;
+  bottom: clamp(-26px, -3vh, -18px);
+  left: 0; right: 0;
+  text-align: center;
+  font-family: 'Unbounded', sans-serif;
+  font-size: clamp(10px, 0.9vw, 13px);
+  letter-spacing: 0.28em;
+  color: rgba(245, 245, 247, 0.5);
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9);
+}
+.card-caption strong {
+  color: var(--gold-2);
+  font-weight: 500;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 0 14px rgba(212, 168, 87, 0.4);
+}
+
+/* === ПЛАШКА 10% ВНИЗУ === */
+.bottom-banner {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(20px, 3vh, 36px);
+  transform: translateX(-50%) translateY(12px);
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  gap: clamp(24px, 3vw, 48px);
+  padding: clamp(18px, 2.4vh, 28px) clamp(28px, 3.5vw, 52px);
+  background:
+    radial-gradient(ellipse 70% 80% at 20% 50%, rgba(212, 168, 87, 0.15) 0%, transparent 60%),
+    linear-gradient(135deg, #1a1420 0%, #100c18 60%, #08060c 100%);
+  border: 1px solid rgba(212, 168, 87, 0.5);
+  border-radius: 16px;
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, 0.85),
+    0 0 60px rgba(212, 168, 87, 0.2),
+    inset 0 1px 0 rgba(212, 168, 87, 0.4);
+  opacity: 0;
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+  max-width: 84vw;
+  overflow: hidden;
+}
+.bottom-banner.shown {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Пробегающий блик по всей плашке */
+.bottom-banner::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -120%;
+  width: 100%; height: 100%;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 240, 196, 0.18) 50%, transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+}
+.bottom-banner.shown::after {
+  animation: bannerShine 7s var(--ease) infinite;
+  animation-delay: 1s;
+}
+@keyframes bannerShine {
+  0%   { left: -120%; opacity: 0; }
+  10%  { opacity: 1; }
+  40%  { opacity: 1; }
+  50%  { left: 120%; opacity: 0; }
+  100% { left: 120%; opacity: 0; }
+}
+
+.pct-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.pct {
+  font-family: 'Tenor Sans', serif;
+  font-size: clamp(48px, 5.5vw, 88px);
+  line-height: 0.85;
+  background: linear-gradient(135deg,
+    #fff8d8 0%,
+    #fff0c4 25%,
+    #f0c674 55%,
+    #d4a857 80%,
+    #b8862e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter:
+    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 0 30px rgba(212, 168, 87, 0.55));
+  position: relative;
+}
+
+/* Блик на цифре 10% */
+.pct::after {
+  content: '10%';
+  position: absolute;
+  top: 0; left: 0;
+  background: linear-gradient(115deg,
+    transparent 35%,
+    rgba(255, 255, 240, 0.9) 49%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 240, 0.9) 51%,
+    transparent 65%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 250% 100%;
+  background-position: -100% 0;
+  animation: pctShine 5s var(--ease) infinite;
+  animation-delay: 2s;
+  pointer-events: none;
+}
+@keyframes pctShine {
+  0%   { background-position: -100% 0; }
+  40%  { background-position: 200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.pct-label {
+  font-family: 'Unbounded', sans-serif;
+  font-weight: 500;
+  font-size: clamp(9px, 0.8vw, 11px);
+  letter-spacing: 0.25em;
+  color: rgba(212, 168, 87, 0.65);
+  text-transform: uppercase;
+  margin-top: clamp(6px, 0.8vh, 10px);
+}
+
+.pct-divider {
+  width: 1px;
+  height: clamp(60px, 8vh, 90px);
+  background: linear-gradient(180deg, transparent, rgba(212, 168, 87, 0.4), transparent);
+  flex-shrink: 0;
+}
+
+.pct-text {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  font-size: clamp(15px, 1.35vw, 19px);
+  line-height: 1.45;
+  color: rgba(245, 245, 247, 0.85);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.9);
+  max-width: clamp(280px, 32vw, 460px);
+}
+.pct-text strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.pct-text em {
+  font-style: normal;
+  color: var(--gold-2);
+  font-weight: 500;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.95), 0 0 16px rgba(212, 168, 87, 0.5);
+}
+</style>
+<link rel="stylesheet" href="../shared/voice/voice.css">
+<script src="../shared/voice/voice-protocol.js"></script>
+<script src="../shared/voice/voice-slides.js"></script>
+<script src="../shared/voice/voice-scenario.js"></script>
+<script src="../shared/voice/voice-core.js"></script>
+<script src="../shared/voice/voice-deck.js"></script>
+<script src="../shared/voice/voice-route.js"></script>
+<script src="../shared/voice/voice-ui-model.js"></script>
+<script src="../shared/voice/voice-ui.js"></script>
+<script src="../shared/voice/voice-slide.js"></script>
+</head>
+<body>
+
+<section class="slide">
+  <div class="stage-bg"></div>
+  <div class="smoke-cloud c1"></div>
+  <div class="smoke-cloud c2"></div>
+  <div class="grain"></div>
+
+  <div class="eyebrow" id="eyebrow">
+    <span class="eyebrow-line"></span><span class="eyebrow-text" data-i18n="s10.eyebrow">Высшая точка карьеры</span><span class="eyebrow-line"></span>
+  </div>
+
+  <div class="title-block" id="titleBlock">
+    <div class="title-main">NFT <em>Limited Edition</em></div>
+  </div>
+
+  <!-- СЦЕНА С КАРТАМИ -->
+  <div class="cards-stage" id="cardsStage" data-state="0">
+
+    <!-- VIP CARD -->
+    <div class="nft-card-wrap vip">
+      <video class="card-video" src="../videos/vip.mp4" autoplay muted loop playsinline preload="auto"></video>
+      <div class="card-shine-overlay"></div>
+      <div class="card-caption" data-i18n="s10.cap1"><strong>VIP</strong> · 100 на мир</div>
+    </div>
+
+    <!-- AMBASSADOR CARD -->
+    <div class="nft-card-wrap ambassador">
+      <video class="card-video" src="../videos/ambasador.mp4" autoplay muted loop playsinline preload="auto"></video>
+      <div class="card-shine-overlay"></div>
+      <div class="card-caption" data-i18n="s10.cap2"><strong>Ambassador</strong> · 100 на мир</div>
+    </div>
+
+  </div>
+
+  <!-- ПЛАШКА 10% -->
+  <div class="bottom-banner" id="bottomBanner">
+    <div class="pct-wrap">
+      <div class="pct">10%</div>
+      <div class="pct-label" data-i18n="s10.pct">от дохода компании</div>
+    </div>
+    <div class="pct-divider"></div>
+    <div class="pct-text" data-i18n="s10.dist">распределяется между владельцами <em>200 лимитированных NFT</em> по всему миру.</div>
+  </div>
+
+</section>
+
+<script>
+const SlideEngine = (function(){
+  let total = 1, current = 1, onStep = null;
+  let wheelAcc = 0, lastWheel = 0;
+  let atEndArmed = false, atStartArmed = false;
+
+  function emit(type){
+    try { window.parent.postMessage({ source: 'slide', type: type }, '*'); } catch(e){}
+  }
+  function go(n){
+    if(n < 1){
+      if (atStartArmed) { emit('slide-end-backward'); atStartArmed = false; }
+      else atStartArmed = true;
+      return;
+    }
+    if(n > total){
+      if (atEndArmed) { emit('slide-end-forward'); atEndArmed = false; }
+      else atEndArmed = true;
+      return;
+    }
+    atEndArmed = (n === total);
+    atStartArmed = (n === 1);
+    current = n;
+    if(onStep) onStep(current);
+  }
+  function next(){ go(current + 1); }
+  function prev(){ go(current - 1); }
+  function reset(){ atEndArmed = false; atStartArmed = true; current = 0; go(1); }
+
+  function init(opts){
+    total = opts.totalSteps || 1;
+    onStep = opts.onStep || null;
+    document.addEventListener('keydown', e => {
+      if(['ArrowRight','PageDown','Space','Enter'].includes(e.code)){ e.preventDefault(); next(); }
+      else if(['ArrowLeft','PageUp'].includes(e.code)){ e.preventDefault(); prev(); }
+      else if(e.code === 'Escape' || e.key === 'r' || e.key === 'R'){ e.preventDefault(); reset(); }
+    });
+    document.addEventListener('wheel', e => {
+      const now = Date.now();
+      if(now - lastWheel < 600) return;
+      wheelAcc += e.deltaY;
+      if(Math.abs(wheelAcc) > 80){
+        if(wheelAcc > 0) next(); else prev();
+        wheelAcc = 0; lastWheel = now;
+      }
+    }, { passive: true });
+    document.addEventListener('click', () => next());
+    window.addEventListener('message', e => {
+      const msg = e.data;
+      if (!msg || msg.source !== 'deck') return;
+      if (msg.type === 'goto-last-step') go(total);
+    });
+    go(1);
+  }
+  return { init, next, prev, go, reset };
+})();
+
+const els = {
+  eyebrow:        document.getElementById('eyebrow'),
+  titleBlock:     document.getElementById('titleBlock'),
+  cardsStage:     document.getElementById('cardsStage'),
+  bottomBanner:   document.getElementById('bottomBanner'),
+};
+
+function step(n){
+  els.eyebrow.classList.toggle('shown', n >= 1);
+  els.titleBlock.classList.toggle('shown', n >= 1);
+  els.bottomBanner.classList.toggle('shown', n >= 3);
+  els.cardsStage.setAttribute('data-state', String(n));
+}
+
+function start(){
+  requestAnimationFrame(() => {
+    SlideEngine.init({
+      totalSteps: 4,
+      slideNumber: 10,
+      slideTotal: 14,
+      onStep: (n) => { window._currentStep = n; step(n); }
+    });
+  });
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  requestAnimationFrame(start);
+} else {
+  window.addEventListener('DOMContentLoaded', () => requestAnimationFrame(start));
+}
+</script>
+<div id="voiceRoot"></div>
+<script src="../shared/voice/voice-autoplay.js"></script>
+<script src="../shared/voice/voice-boot.js"></script>
+</body>
+</html>

@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>04 — Что внутри ключа</title>
+<script src="../shared/i18n.js"></script>
+<script src="../shared/mobile.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Tenor+Sans&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #08080c;
+  --ink: #f5f5f7;
+  --ink-2: rgba(245, 245, 247, 0.85);
+  --gold: #d4a857;
+  --gold-2: #f0c674;
+  --gold-3: #b8862e;
+  --gold-glow: rgba(212, 168, 87, 0.4);
+  --display: 'Unbounded', system-ui, sans-serif;
+  --body: 'DM Sans', system-ui, sans-serif;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  overflow: hidden;
+  height: 100vh; width: 100vw;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+.step-indicator, .nav-hint, .reset-btn, .slide-num, .slide-tag { display: none !important; }
+.slide { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+
+/* === ТЕАТРАЛЬНАЯ СЦЕНА === */
+.stage-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(212, 168, 87, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at center, #0c0b14 0%, #050508 100%);
+  z-index: 1;
+}
+.smoke-cloud {
+  position: absolute; border-radius: 50%;
+  pointer-events: none; filter: blur(60px);
+  opacity: 0.4; mix-blend-mode: screen;
+  z-index: 2;
+}
+.smoke-cloud.c1 { width: 60vw; height: 60vw; top: -10vw; left: -20vw;
+  background: radial-gradient(circle, rgba(120, 100, 140, 0.5) 0%, rgba(80, 70, 100, 0.2) 50%, transparent 70%);
+  animation: cloudDrift1 40s ease-in-out infinite; }
+.smoke-cloud.c2 { width: 70vw; height: 70vw; top: 10vh; right: -25vw;
+  background: radial-gradient(circle, rgba(100, 90, 130, 0.4) 0%, rgba(60, 50, 80, 0.2) 50%, transparent 70%);
+  animation: cloudDrift2 50s ease-in-out infinite; }
+.smoke-cloud.c3 { width: 50vw; height: 50vw; bottom: -20vw; left: 30vw;
+  background: radial-gradient(circle, rgba(140, 120, 160, 0.4) 0%, rgba(70, 60, 90, 0.15) 50%, transparent 70%);
+  animation: cloudDrift3 60s ease-in-out infinite; }
+@keyframes cloudDrift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(8vw,5vh) scale(1.1)} }
+@keyframes cloudDrift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-8vw,-3vh) scale(1.1)} }
+@keyframes cloudDrift3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(5vw,-8vh) scale(1.15)} }
+
+.smoke-bottom {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
+  background:
+    radial-gradient(ellipse 80% 100% at 50% 100%, rgba(80, 70, 100, 0.5) 0%, transparent 70%),
+    linear-gradient(180deg, transparent 0%, rgba(40, 35, 50, 0.4) 60%, rgba(30, 25, 40, 0.6) 100%);
+  z-index: 3; pointer-events: none;
+}
+.spotlight {
+  position: absolute; top: -10%; left: 50%; transform: translateX(-50%);
+  width: 80%; height: 70%;
+  background: radial-gradient(ellipse at 50% 0%, rgba(212, 168, 87, 0.15) 0%, rgba(212, 168, 87, 0.05) 30%, transparent 60%);
+  z-index: 4; pointer-events: none;
+}
+.grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 200;
+  opacity: 0.05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* === EYEBROW === */
+.eyebrow {
+  position: absolute; top: clamp(20px, 3.5vh, 45px); left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  z-index: 20; opacity: 0;
+  transition: opacity 1.4s var(--ease), transform 1.4s var(--ease);
+  text-align: center; white-space: nowrap;
+}
+.eyebrow.shown { opacity: 1; transform: translateX(-50%) translateY(0); }
+.eyebrow-line {
+  display: inline-block;
+  width: clamp(40px, 5vw, 70px); height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold) 50%, transparent);
+  vertical-align: middle; margin: 0 clamp(14px, 1.5vw, 22px); opacity: 0.7;
+}
+.eyebrow-text {
+  font-family: 'Unbounded', sans-serif; font-weight: 500;
+  font-size: clamp(11px, 1vw, 14px); letter-spacing: 0.4em; text-transform: uppercase;
+  color: var(--gold-2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9), 0 0 20px rgba(212, 168, 87, 0.4);
+  vertical-align: middle;
+}
+
+/* === ГЛАВНАЯ КАРТА === */
+.master-card-wrap {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  z-index: 25; opacity: 0;
+  transition: opacity 1.4s var(--ease), transform 1.4s var(--ease);
+  will-change: transform;
+}
+.master-card-wrap.shown {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.master-card {
+  position: relative;
+  width: clamp(280px, 28vw, 460px);
+  height: clamp(175px, 17.5vw, 287px);
+  border-radius: 18px; overflow: hidden;
+  box-shadow:
+    0 20px 80px rgba(0,0,0,0.9),
+    0 0 100px rgba(212, 168, 87, 0.5),
+    0 0 200px rgba(212, 168, 87, 0.25),
+    inset 0 1px 0 rgba(255, 220, 130, 0.6),
+    inset 0 -1px 0 rgba(0,0,0,0.6);
+  animation: masterPulse 4s ease-in-out infinite;
+}
+@keyframes masterPulse {
+  0%,100% { box-shadow: 0 20px 80px rgba(0,0,0,0.9), 0 0 100px rgba(212, 168, 87, 0.5), 0 0 200px rgba(212, 168, 87, 0.25), inset 0 1px 0 rgba(255, 220, 130, 0.6), inset 0 -1px 0 rgba(0,0,0,0.6); }
+  50% { box-shadow: 0 20px 80px rgba(0,0,0,0.9), 0 0 130px rgba(212, 168, 87, 0.75), 0 0 250px rgba(212, 168, 87, 0.4), inset 0 1px 0 rgba(255, 220, 130, 0.7), inset 0 -1px 0 rgba(0,0,0,0.6); }
+}
+.master-card-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 50% 60% at 25% 20%, rgba(255, 220, 130, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 70% 35%, rgba(25, 22, 32, 0.5) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 85% 75%, rgba(18, 15, 25, 0.6) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 30% at 30% 80%, rgba(28, 24, 35, 0.4) 0%, transparent 55%),
+    linear-gradient(135deg, #020205 0%, #06060c 40%, #020204 100%);
+}
+.master-card-shine {
+  position: absolute; inset: 0;
+  background: linear-gradient(125deg, rgba(255,220,130,0) 0%, rgba(255,220,130,0.12) 35%, rgba(255,220,130,0.05) 50%, rgba(255,220,130,0) 100%);
+  pointer-events: none; z-index: 2;
+}
+.master-card::before {
+  content: ''; position: absolute; top: 0; left: -120%;
+  width: 100%; height: 100%;
+  background: linear-gradient(115deg, transparent 25%, rgba(255, 220, 130, 0.12) 42%, rgba(255, 230, 150, 0.45) 50%, rgba(255, 220, 130, 0.12) 58%, transparent 75%);
+  pointer-events: none; z-index: 4;
+  animation: masterShine 6s ease-in-out infinite;
+}
+@keyframes masterShine { 0%,100% { left: -120%; } 50% { left: 120%; } }
+.master-decoration {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 80% at 75% 60%, rgba(60, 50, 70, 0.6) 0%, rgba(30, 25, 40, 0.3) 40%, transparent 65%),
+    radial-gradient(ellipse 30% 50% at 85% 30%, rgba(40, 35, 50, 0.5) 0%, transparent 60%);
+  z-index: 1; pointer-events: none; border-radius: 18px;
+}
+
+/* Шестерёнки внутри карты */
+.gears-layer { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0;
+  transition: opacity 1.5s var(--ease) 0.6s; }
+.master-card-wrap.shown .gears-layer { opacity: 0.5; }
+.gear { position: absolute; filter: drop-shadow(0 0 8px rgba(212, 168, 87, 0.5)); }
+.gear svg { display: block; width: 100%; height: 100%; }
+.gear-1 { top: 22%; right: 16%; width: 35%; max-width: 110px; aspect-ratio: 1; animation: rot 22s linear infinite; }
+.gear-2 { top: 52%; right: 28%; width: 25%; max-width: 80px; aspect-ratio: 1; animation: rot 16s linear infinite reverse; }
+.gear-3 { top: 38%; right: 7%; width: 20%; max-width: 65px; aspect-ratio: 1; animation: rot 12s linear infinite; }
+@keyframes rot { to { transform: rotate(360deg); } }
+.gears-glow { position: absolute; top: 35%; right: 18%; width: 35%; height: 50%;
+  background: radial-gradient(ellipse, rgba(212, 168, 87, 0.18) 0%, transparent 70%);
+  filter: blur(20px); pointer-events: none; z-index: 1;
+  opacity: 0; transition: opacity 1.5s var(--ease) 0.8s; }
+.master-card-wrap.shown .gears-glow { opacity: 1; }
+
+/* Брендинг карты */
+.master-brand-block { position: absolute; top: clamp(18px, 2.2vh, 34px); left: clamp(22px, 2.6vw, 40px);
+  display: flex; align-items: center; gap: clamp(10px, 1.1vw, 16px); z-index: 5; }
+.master-globe-svg { width: clamp(34px, 3.5vw, 52px); height: clamp(34px, 3.5vw, 52px);
+  filter: drop-shadow(0 0 16px rgba(212, 168, 87, 0.5)); }
+.master-brand-text-block { display: flex; flex-direction: column; }
+.master-brand-name { font-family: 'Tenor Sans', serif; font-weight: 400;
+  font-size: clamp(20px, 2vw, 32px); letter-spacing: 0.06em; line-height: 1; color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7), 0 0 20px rgba(212, 168, 87, 0.3); }
+.master-brand-name em { font-style: normal; color: var(--gold-2);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7), 0 0 24px rgba(212, 168, 87, 0.6); }
+.master-brand-sub { margin-top: 3px; font-family: var(--body); font-weight: 400;
+  font-size: clamp(8px, 0.75vw, 11px); letter-spacing: 0.3em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 2px rgba(0,0,0,0.7); }
+.master-defi-icons { position: absolute; bottom: clamp(14px, 1.8vh, 26px); right: clamp(22px, 2.6vw, 40px);
+  display: flex; align-items: center; gap: clamp(7px, 0.75vw, 12px); z-index: 5; }
+.defi-icon { font-family: 'Tenor Sans', serif; font-size: clamp(12px, 1.25vw, 18px); color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7), 0 0 10px rgba(212, 168, 87, 0.4); }
+.defi-icon.defi-text { font-family: var(--body); font-weight: 500;
+  font-size: clamp(10px, 0.95vw, 14px); letter-spacing: 0.18em; margin: 0 3px; }
+.defi-icon.defi-diamond { color: var(--gold-2); }
+
+/* === МИНИ-СЦЕНЫ ВОКРУГ КАРТЫ === */
+.scene {
+  position: absolute;
+  z-index: 22;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+  pointer-events: none;
+}
+.scene.shown {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Холст сцены — фиксированный размер, внутри играют анимации */
+.scene-canvas {
+  width: clamp(140px, 15vw, 240px);
+  height: clamp(95px, 10vw, 160px);
+  position: relative;
+  filter: drop-shadow(0 6px 20px rgba(0,0,0,0.5));
+}
+
+.scene-word {
+  margin-top: clamp(6px, 0.9vh, 12px);
+  font-family: 'Tenor Sans', serif; font-weight: 400;
+  font-size: clamp(15px, 1.5vw, 22px); letter-spacing: 0.08em;
+  color: var(--gold-2);
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.95),
+    0 2px 10px rgba(0,0,0,0.85),
+    0 0 30px rgba(212, 168, 87, 0.5);
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Перелив при появлении (1 раз) */
+.scene.fresh .scene-canvas {
+  animation: sceneGlow 1.6s var(--ease);
+}
+@keyframes sceneGlow {
+  0%   { filter: drop-shadow(0 6px 20px rgba(0,0,0,0.5)) drop-shadow(0 0 0 rgba(240,198,116,0)); }
+  50%  { filter: drop-shadow(0 6px 20px rgba(0,0,0,0.5)) drop-shadow(0 0 30px rgba(240,198,116,1)); }
+  100% { filter: drop-shadow(0 6px 20px rgba(0,0,0,0.5)) drop-shadow(0 0 0 rgba(240,198,116,0)); }
+}
+
+/* === ПОЗИЦИИ 5 СЦЕН ВОКРУГ КАРТЫ === */
+/*
+ Карта clamp(280-460px) по горизонтали, центр экрана.
+ Сцены — на «орбите»:
+  s1: право-низ      (Доступ)
+  s2: лево-верх      (Доход)
+  s3: право-верх     (Капитал)
+  s4: лево-низ       (Бизнес)
+  s5: низ-центр      (Наследие)
+*/
+
+/*
+ НОВЫЙ ПОДХОД: сцены позиционируются ОТ КРАЁВ ЭКРАНА с симметричными отступами,
+ а не от центра карты. Это даёт равномерное распределение по слайду
+ и адаптивность под разные viewport.
+ Композиция:
+  Верхняя пара (Доступ, Доход):   top: ~22vh
+  Нижняя пара (Капитал, Бизнес):  bottom: ~22vh
+  Наследие (низ-центр):           bottom: ~10vh
+  Карта в центре (top: 50%)
+  Финал внизу:                    bottom: 3vh
+*/
+
+.scene-1 { /* Доступ — право-низ */
+  bottom: clamp(120px, 22vh, 240px);
+  right: clamp(40px, 7vw, 140px);
+  transform: scale(0.7);
+}
+.scene-1.shown { transform: scale(1); }
+
+.scene-2 { /* Доход — лево-верх */
+  top: clamp(120px, 22vh, 240px);
+  left: clamp(40px, 7vw, 140px);
+  transform: scale(0.7);
+}
+.scene-2.shown { transform: scale(1); }
+
+.scene-3 { /* Капитал — право-верх */
+  top: clamp(120px, 22vh, 240px);
+  right: clamp(40px, 7vw, 140px);
+  transform: scale(0.7);
+}
+.scene-3.shown { transform: scale(1); }
+
+.scene-4 { /* Бизнес — лево-низ */
+  bottom: clamp(120px, 22vh, 240px);
+  left: clamp(40px, 7vw, 140px);
+  transform: scale(0.7);
+}
+.scene-4.shown { transform: scale(1); }
+
+.scene-5 { /* Наследие — верх-центр, между eyebrow и картой */
+  top: clamp(70px, 11vh, 150px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.7);
+}
+.scene-5.shown {
+  transform: translateX(-50%) scale(1);
+}
+
+/* === SCENE 1: ДОСТУП (отель + насос + ветряк) === */
+.scene-1 .item {
+  position: absolute;
+  opacity: 1; /* Внутри уменьшенной сцены — сразу показываем */
+}
+.scene-1 .hotel  { left: 0%;   bottom: 0%; width: 32%; }
+.scene-1 .pump   { left: 36%;  bottom: 4%; width: 30%; }
+.scene-1 .wind   { right: 0%;  bottom: 0%; width: 26%; }
+
+.scene-1 .wind .blades-rotor {
+  animation: spinBlades 5s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes spinBlades { to { transform: rotate(360deg); } }
+
+.scene-1 .pump .arm {
+  animation: pumpRock 3s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes pumpRock {
+  0%, 100% { transform: rotate(-10deg); }
+  50%      { transform: rotate(10deg); }
+}
+
+/* Окна отеля мигают тонко */
+.scene-1 .hotel .window {
+  animation: winFlicker 4s ease-in-out infinite;
+}
+.scene-1 .hotel .w1 { animation-delay: 0s; }
+.scene-1 .hotel .w2 { animation-delay: 0.7s; }
+.scene-1 .hotel .w3 { animation-delay: 1.4s; }
+.scene-1 .hotel .w4 { animation-delay: 2.1s; }
+@keyframes winFlicker {
+  0%, 100% { opacity: 0.9; }
+  50%      { opacity: 0.55; }
+}
+
+/* === SCENE 2: ДОХОД (банковская карта + падающие монеты) === */
+.scene-2 .bank-card {
+  position: absolute;
+  left: 50%; bottom: 0%;
+  transform: translateX(-50%);
+  width: 80%;
+}
+.scene-2 .coin-fall {
+  position: absolute;
+  top: 0;
+  width: clamp(14px, 1.6vw, 22px);
+  height: clamp(14px, 1.6vw, 22px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff0c4 0%, #f0c674 35%, #d4a857 70%, #8a5e1f 100%);
+  box-shadow:
+    0 0 12px rgba(212, 168, 87, 0.9),
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    inset 0 -1px 0 rgba(0,0,0,0.4);
+  opacity: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Tenor Sans', serif;
+  font-size: 60%;
+  color: #6d4514;
+  font-weight: 700;
+}
+.scene-2.shown .coin-fall { animation: coinDrop 2.5s linear infinite; }
+.scene-2 .coin-fall.c1 { left: 38%; animation-delay: 0.0s; }
+.scene-2 .coin-fall.c2 { left: 50%; animation-delay: 0.7s; }
+.scene-2 .coin-fall.c3 { left: 62%; animation-delay: 1.4s; }
+.scene-2 .coin-fall.c4 { left: 45%; animation-delay: 2.1s; }
+@keyframes coinDrop {
+  0%   { top: -10%; opacity: 0; transform: scale(0.6); }
+  10%  { opacity: 1; transform: scale(1); }
+  60%  { opacity: 1; }
+  80%  { top: 55%; opacity: 0.3; transform: scale(0.9); }
+  100% { top: 60%; opacity: 0; transform: scale(0.8); }
+}
+
+/* === SCENE 3: КАПИТАЛ (стопка слитков) === */
+.scene-3 .ingot {
+  position: absolute;
+  width: 22%;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.scene-3.shown .ingot { opacity: 1; transform: translateY(0); }
+/* Нижний ряд — 3 слитка плотнее */
+.scene-3 .ingot-b1 { left: 17%;  bottom: 8%; transition-delay: 0.2s; }
+.scene-3 .ingot-b2 { left: 39%;  bottom: 8%; transition-delay: 0.45s; }
+.scene-3 .ingot-b3 { left: 61%;  bottom: 8%; transition-delay: 0.7s; }
+/* Средний — 2 */
+.scene-3 .ingot-m1 { left: 28%;  bottom: 36%; transition-delay: 1.05s; }
+.scene-3 .ingot-m2 { left: 50%;  bottom: 36%; transition-delay: 1.3s; }
+/* Верх — 1 */
+.scene-3 .ingot-t1 { left: 39%;  bottom: 64%; transition-delay: 1.65s; }
+
+/* === SCENE 4: БИЗНЕС (растущая сеть) === */
+.scene-4 .node {
+  position: absolute;
+  width: clamp(20px, 2.4vw, 32px);
+  height: clamp(20px, 2.4vw, 32px);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.scene-4.shown .node { opacity: 1; transform: scale(1); }
+.scene-4 .node svg { width: 100%; height: 100%; display: block;
+  filter: drop-shadow(0 0 8px rgba(212, 168, 87, 0.7)); }
+.scene-4 .links-svg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none;
+}
+.scene-4 .links-svg line {
+  opacity: 0;
+  transition: opacity 0.5s var(--ease);
+}
+.scene-4.shown .links-svg line { opacity: 0.7; }
+/* Корень */
+.scene-4 .n-root { left: 50%; top: 6%; transform: translateX(-50%) scale(0.5); transition-delay: 0.2s; }
+.scene-4.shown .n-root { transform: translateX(-50%) scale(1); }
+/* L2 */
+.scene-4 .n-l2-1 { left: 24%; top: 42%; transition-delay: 0.7s; }
+.scene-4 .n-l2-2 { left: 64%; top: 42%; transition-delay: 0.85s; }
+/* L3 */
+.scene-4 .n-l3-1 { left: 8%;  top: 76%; transition-delay: 1.3s; }
+.scene-4 .n-l3-2 { left: 34%; top: 76%; transition-delay: 1.45s; }
+.scene-4 .n-l3-3 { left: 54%; top: 76%; transition-delay: 1.6s; }
+.scene-4 .n-l3-4 { left: 80%; top: 76%; transition-delay: 1.75s; }
+/* Линии (отдельные delays) */
+.scene-4 .link-l1-l2 { transition-delay: 1.0s; }
+.scene-4 .link-l2-l3 { transition-delay: 1.85s; }
+
+/* === SCENE 5: НАСЛЕДИЕ === */
+.scene-5 .hand {
+  position: absolute;
+  width: 32%;
+  opacity: 0;
+  transition: opacity 0.8s var(--ease);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.7));
+}
+.scene-5.shown .hand { opacity: 1; }
+.scene-5.shown .hand-giver { transition-delay: 0.2s; }
+.scene-5.shown .hand-receiver { transition-delay: 0.4s; }
+.scene-5 .hand-giver { left: 2%; top: 28%; transform: rotate(-10deg); }
+.scene-5 .hand-receiver { right: 2%; top: 28%; transform: rotate(10deg) scaleX(-1); }
+
+.scene-5 .gift {
+  position: absolute;
+  top: 28%;
+  width: 22%;
+  height: 30%;
+  border-radius: 4px;
+  background:
+    radial-gradient(ellipse 50% 60% at 25% 20%, rgba(255, 220, 130, 0.18) 0%, transparent 55%),
+    linear-gradient(135deg, #020205 0%, #06060c 50%, #020204 100%);
+  border: 1px solid rgba(212, 168, 87, 0.45);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.7), 0 0 14px rgba(212, 168, 87, 0.5);
+  opacity: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Tenor Sans', serif;
+  font-size: clamp(7px, 0.7vw, 10px);
+  letter-spacing: 0.05em;
+  color: var(--gold-2);
+  left: 18%;
+}
+.scene-5.shown .gift {
+  animation: giftPass 3s var(--ease) 0.8s infinite;
+}
+@keyframes giftPass {
+  0%   { left: 18%; opacity: 0; transform: scale(0.85); }
+  15%  { opacity: 1; }
+  50%  { left: 39%; opacity: 1; transform: scale(1) translateY(-8px); }
+  85%  { opacity: 1; }
+  100% { left: 60%; opacity: 0; transform: scale(0.85); }
+}
+
+/* === ФИНАЛЬНАЯ ФРАЗА === */
+.final {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(40px, 7vh, 100px);
+  transform: translate(-50%, 20px);
+  z-index: 30;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 1.4s var(--ease), transform 1.4s var(--ease);
+  width: 90%; max-width: 1100px;
+  pointer-events: none;
+}
+.final.shown { opacity: 1; transform: translate(-50%, 0); }
+.final-line-1 {
+  font-family: 'Unbounded', sans-serif; font-weight: 200;
+  font-size: clamp(18px, 2vw, 30px); letter-spacing: -0.01em;
+  color: rgba(245, 245, 247, 0.55);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9), 0 2px 12px rgba(0,0,0,0.8);
+  margin-bottom: 10px;
+}
+.final-line-2 {
+  font-family: 'Unbounded', sans-serif; font-weight: 300;
+  font-size: clamp(26px, 3vw, 48px); letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 3px 16px rgba(0,0,0,0.85), 0 0 40px rgba(212, 168, 87, 0.2);
+  line-height: 1.2;
+}
+.final-line-2 em {
+  font-style: normal; color: var(--gold-2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 3px 16px rgba(0,0,0,0.85), 0 0 40px rgba(212, 168, 87, 0.6);
+  position: relative;
+}
+.final-line-2 em::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -4px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-2), transparent);
+  opacity: 0.5;
+}
+</style>
+<link rel="stylesheet" href="../shared/voice/voice.css">
+<script src="../shared/voice/voice-protocol.js"></script>
+<script src="../shared/voice/voice-slides.js"></script>
+<script src="../shared/voice/voice-scenario.js"></script>
+<script src="../shared/voice/voice-core.js"></script>
+<script src="../shared/voice/voice-deck.js"></script>
+<script src="../shared/voice/voice-route.js"></script>
+<script src="../shared/voice/voice-ui-model.js"></script>
+<script src="../shared/voice/voice-ui.js"></script>
+<script src="../shared/voice/voice-slide.js"></script>
+</head>
+<body>
+
+<section class="slide">
+  <div class="stage-bg"></div>
+  <div class="smoke-cloud c1"></div>
+  <div class="smoke-cloud c2"></div>
+  <div class="smoke-cloud c3"></div>
+  <div class="smoke-bottom"></div>
+  <div class="spotlight"></div>
+  <div class="grain"></div>
+
+  <div class="eyebrow" id="eyebrow">
+    <span class="eyebrow-line"></span><span class="eyebrow-text" data-i18n="s04.eyebrow">Что внутри ключа</span><span class="eyebrow-line"></span>
+  </div>
+
+  <!-- ОБЩИЕ ГРАДИЕНТЫ -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="goldV" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"  stop-color="#fff0c4"/>
+        <stop offset="40%" stop-color="#f0c674"/>
+        <stop offset="80%" stop-color="#d4a857"/>
+        <stop offset="100%" stop-color="#6d4514"/>
+      </linearGradient>
+      <linearGradient id="goldH" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%"  stop-color="#8a5e1f"/>
+        <stop offset="50%" stop-color="#f0c674"/>
+        <stop offset="100%" stop-color="#8a5e1f"/>
+      </linearGradient>
+      <linearGradient id="ingotTop" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fff0c4"/>
+        <stop offset="100%" stop-color="#d4a857"/>
+      </linearGradient>
+      <linearGradient id="ingotFront" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f0c674"/>
+        <stop offset="60%" stop-color="#d4a857"/>
+        <stop offset="100%" stop-color="#6d4514"/>
+      </linearGradient>
+      <linearGradient id="ingotSide" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#b8862e"/>
+        <stop offset="100%" stop-color="#6d4514"/>
+      </linearGradient>
+      <radialGradient id="bulb" cx="0.4" cy="0.4">
+        <stop offset="0%"  stop-color="#fff5cc"/>
+        <stop offset="50%" stop-color="#f0c674"/>
+        <stop offset="100%" stop-color="#8a5e1f"/>
+      </radialGradient>
+    </defs>
+  </svg>
+
+  <!-- ГЛАВНАЯ КАРТА -->
+  <div class="master-card-wrap" id="masterCard">
+    <div class="master-card">
+      <div class="master-card-bg"></div>
+      <div class="master-decoration"></div>
+      <div class="gears-glow"></div>
+      <div class="gears-layer">
+        <div class="gear gear-1">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <g fill="none" stroke="#d4a857" stroke-width="1.6">
+              <circle cx="50" cy="50" r="30"/><circle cx="50" cy="50" r="12"/>
+              <g>
+                <rect x="46" y="4" width="8" height="14"/><rect x="46" y="82" width="8" height="14"/>
+                <rect x="4" y="46" width="14" height="8"/><rect x="82" y="46" width="14" height="8"/>
+                <rect x="18" y="18" width="10" height="8" transform="rotate(45 23 22)"/>
+                <rect x="72" y="18" width="10" height="8" transform="rotate(-45 77 22)"/>
+                <rect x="18" y="74" width="10" height="8" transform="rotate(-45 23 78)"/>
+                <rect x="72" y="74" width="10" height="8" transform="rotate(45 77 78)"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="gear gear-2">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <g fill="none" stroke="#f0c674" stroke-width="1.6" opacity="0.9">
+              <circle cx="50" cy="50" r="28"/><circle cx="50" cy="50" r="10"/>
+              <g>
+                <rect x="46" y="6" width="8" height="12"/><rect x="46" y="82" width="8" height="12"/>
+                <rect x="6" y="46" width="12" height="8"/><rect x="82" y="46" width="12" height="8"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="gear gear-3">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <g fill="none" stroke="#d4a857" stroke-width="2">
+              <circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="9"/>
+              <g>
+                <rect x="44" y="2" width="12" height="16"/><rect x="44" y="82" width="12" height="16"/>
+                <rect x="2" y="44" width="16" height="12"/><rect x="82" y="44" width="16" height="12"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <div class="master-card-shine"></div>
+
+      <div class="master-brand-block">
+        <svg class="master-globe-svg" viewBox="0 0 76 76" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="38" cy="38" r="34" fill="none" stroke="rgba(212,168,87,0.7)" stroke-width="1.2"/>
+          <ellipse cx="38" cy="38" rx="34" ry="14" fill="none" stroke="rgba(212,168,87,0.5)" stroke-width="0.8"/>
+          <ellipse cx="38" cy="38" rx="14" ry="34" fill="none" stroke="rgba(212,168,87,0.5)" stroke-width="0.8"/>
+          <line x1="4" y1="38" x2="72" y2="38" stroke="rgba(212,168,87,0.5)" stroke-width="0.8"/>
+          <line x1="38" y1="4" x2="38" y2="72" stroke="rgba(212,168,87,0.5)" stroke-width="0.8"/>
+        </svg>
+        <div class="master-brand-text-block">
+          <div class="master-brand-name">RWA <em>NFT</em></div>
+          <div class="master-brand-sub">Own Your Future</div>
+        </div>
+      </div>
+
+      <div class="master-defi-icons">
+        <span class="defi-icon">₮</span>
+        <span class="defi-icon defi-diamond">◆</span>
+        <span class="defi-icon defi-text">DEFI</span>
+        <span class="defi-icon">⛁</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 1: ДОСТУП -->
+  <div class="scene scene-1" id="scene1">
+    <div class="scene-canvas">
+      <!-- Отель -->
+      <div class="item hotel">
+        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+          <!-- Фронтон -->
+          <polygon points="20,30 50,8 80,30" fill="#0d0a08" stroke="url(#goldV)" stroke-width="1.5"/>
+          <!-- Звезда на фронтоне -->
+          <polygon points="50,16 51.5,20 56,20 52.5,22.5 54,27 50,24 46,27 47.5,22.5 44,20 48.5,20"
+                   fill="url(#goldV)"/>
+          <!-- Основной корпус -->
+          <rect x="20" y="30" width="60" height="80" fill="#1a1410" stroke="url(#goldV)" stroke-width="1.5"/>
+          <!-- Колонны -->
+          <rect x="24" y="42" width="2.5" height="60" fill="url(#goldV)" opacity="0.7"/>
+          <rect x="38" y="42" width="2.5" height="60" fill="url(#goldV)" opacity="0.7"/>
+          <rect x="59" y="42" width="2.5" height="60" fill="url(#goldV)" opacity="0.7"/>
+          <rect x="73" y="42" width="2.5" height="60" fill="url(#goldV)" opacity="0.7"/>
+          <!-- Окна -->
+          <rect class="window w1" x="29" y="46" width="7" height="10" fill="#f0c674"/>
+          <rect class="window w2" x="46" y="46" width="7" height="10" fill="#f0c674"/>
+          <rect class="window w3" x="63" y="46" width="7" height="10" fill="#f0c674"/>
+          <rect class="window w2" x="29" y="62" width="7" height="10" fill="#f0c674"/>
+          <rect class="window w4" x="46" y="62" width="7" height="10" fill="#f0c674"/>
+          <rect class="window w1" x="63" y="62" width="7" height="10" fill="#f0c674"/>
+          <rect class="window w3" x="29" y="78" width="7" height="10" fill="#f0c674"/>
+          <rect class="window w1" x="46" y="78" width="7" height="10" fill="#f0c674"/>
+          <rect class="window w4" x="63" y="78" width="7" height="10" fill="#f0c674"/>
+          <!-- Дверь -->
+          <rect x="44" y="94" width="12" height="16" fill="#3a2a14" stroke="url(#goldV)" stroke-width="0.8"/>
+          <!-- Основание -->
+          <rect x="14" y="108" width="72" height="4" fill="url(#goldH)"/>
+        </svg>
+      </div>
+
+      <!-- Нефтяной насос — стационарная башня + балансир -->
+      <div class="item pump">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- Основание -->
+          <rect x="10" y="82" width="80" height="6" fill="url(#goldH)"/>
+          <!-- Башня -->
+          <polygon points="38,88 62,88 56,45 44,45" fill="#1a1410" stroke="url(#goldV)" stroke-width="1.3"/>
+          <line x1="40" y1="76" x2="60" y2="76" stroke="url(#goldV)" stroke-width="0.8"/>
+          <line x1="41" y1="65" x2="59" y2="65" stroke="url(#goldV)" stroke-width="0.8"/>
+          <line x1="42" y1="55" x2="58" y2="55" stroke="url(#goldV)" stroke-width="0.8"/>
+          <!-- Точка опоры коромысла -->
+          <circle cx="50" cy="45" r="3.5" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.8"/>
+          <!-- Коромысло (анимируется качанием вокруг точки опоры) -->
+          <g class="arm">
+            <!-- Балка -->
+            <rect x="15" y="42" width="70" height="6" rx="1" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.8"/>
+            <!-- Голова лошади -->
+            <polygon points="82,36 92,45 82,54" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.8"/>
+            <!-- Противовес -->
+            <circle cx="20" cy="45" r="8" fill="url(#goldV)" stroke="#6d4514" stroke-width="1"/>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Ветряк — башня стационарна, гондола стационарна, ТОЛЬКО лопасти крутятся -->
+      <div class="item wind">
+        <svg viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
+          <!-- Башня -->
+          <polygon points="36,110 44,110 42,42 38,42" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.7"/>
+          <!-- Основание -->
+          <ellipse cx="40" cy="112" rx="14" ry="3" fill="#1a1410" opacity="0.7"/>
+          <!-- Гондола (стационарная) -->
+          <ellipse cx="40" cy="40" rx="9" ry="5" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.8"/>
+          <!--
+            Лопасти вращаются вокруг центра ротора (40, 40).
+            КРИТИЧНО: помещаем их в группу с transform-box: fill-box и transform-origin: center,
+            и используем translate ВНУТРИ дочерней группы, а вращаем родительскую.
+          -->
+          <g class="blades-rotor" style="transform-origin: 40px 40px; transform-box: view-box;">
+            <!-- 3 лопасти, начинаются от центра -->
+            <ellipse cx="40" cy="14" rx="3" ry="26" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.6"/>
+            <ellipse cx="40" cy="14" rx="3" ry="26" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.6" transform="rotate(120 40 40)"/>
+            <ellipse cx="40" cy="14" rx="3" ry="26" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.6" transform="rotate(240 40 40)"/>
+            <!-- Втулка -->
+            <circle cx="40" cy="40" r="3" fill="#6d4514"/>
+            <circle cx="40" cy="40" r="1.5" fill="url(#goldV)"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="scene-word" data-i18n="s04.rwa">Доступ к RWA</div>
+  </div>
+
+  <!-- SCENE 2: ДОХОД -->
+  <div class="scene scene-2" id="scene2">
+    <div class="scene-canvas">
+      <div class="coin-fall c1">$</div>
+      <div class="coin-fall c2">$</div>
+      <div class="coin-fall c3">$</div>
+      <div class="coin-fall c4">$</div>
+      <div class="bank-card">
+        <svg viewBox="0 0 340 220" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="40" width="320" height="170" rx="14" fill="#0d0a08" stroke="url(#goldV)" stroke-width="1.5"/>
+          <rect x="18" y="48" width="304" height="154" rx="10" fill="none" stroke="rgba(212,168,87,0.25)" stroke-width="1"/>
+          <!-- Слот -->
+          <rect x="80" y="40" width="180" height="6" rx="2" fill="#000" stroke="url(#goldH)" stroke-width="1.2"/>
+          <!-- Логотип -->
+          <text x="170" y="108" text-anchor="middle" font-family="Tenor Sans" font-size="24" letter-spacing="3" fill="#f0c674">RWA NFT</text>
+          <text x="170" y="128" text-anchor="middle" font-family="DM Sans" font-size="9" letter-spacing="4" fill="rgba(255,255,255,0.55)">OWN YOUR FUTURE</text>
+          <!-- Чип -->
+          <rect x="40" y="148" width="44" height="34" rx="4" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.8"/>
+          <line x1="48" y1="148" x2="48" y2="182" stroke="#6d4514" stroke-width="0.5"/>
+          <line x1="56" y1="148" x2="56" y2="182" stroke="#6d4514" stroke-width="0.5"/>
+          <line x1="68" y1="148" x2="68" y2="182" stroke="#6d4514" stroke-width="0.5"/>
+          <line x1="76" y1="148" x2="76" y2="182" stroke="#6d4514" stroke-width="0.5"/>
+          <line x1="40" y1="156" x2="84" y2="156" stroke="#6d4514" stroke-width="0.5"/>
+          <line x1="40" y1="166" x2="84" y2="166" stroke="#6d4514" stroke-width="0.5"/>
+          <line x1="40" y1="174" x2="84" y2="174" stroke="#6d4514" stroke-width="0.5"/>
+          <!-- Глобус -->
+          <circle cx="290" cy="165" r="14" fill="none" stroke="rgba(212,168,87,0.6)" stroke-width="1"/>
+          <ellipse cx="290" cy="165" rx="14" ry="6" fill="none" stroke="rgba(212,168,87,0.5)" stroke-width="0.8"/>
+          <ellipse cx="290" cy="165" rx="6" ry="14" fill="none" stroke="rgba(212,168,87,0.5)" stroke-width="0.8"/>
+        </svg>
+      </div>
+    </div>
+    <div class="scene-word" data-i18n="s04.income">Доход</div>
+  </div>
+
+  <!-- SCENE 3: КАПИТАЛ -->
+  <div class="scene scene-3" id="scene3">
+    <div class="scene-canvas">
+      <div class="ingot ingot-b1"><svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="20,30 100,30 88,12 32,12" fill="url(#ingotTop)" stroke="#6d4514" stroke-width="0.8"/>
+        <polygon points="20,30 100,30 106,70 14,70" fill="url(#ingotFront)" stroke="#6d4514" stroke-width="1"/>
+        <polygon points="100,30 88,12 94,52 106,70" fill="url(#ingotSide)" stroke="#6d4514" stroke-width="0.8"/>
+        <polygon points="32,12 44,12 40,18 28,18" fill="rgba(255,250,220,0.6)"/>
+      </svg></div>
+      <div class="ingot ingot-b2"><svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="20,30 100,30 88,12 32,12" fill="url(#ingotTop)" stroke="#6d4514" stroke-width="0.8"/>
+        <polygon points="20,30 100,30 106,70 14,70" fill="url(#ingotFront)" stroke="#6d4514" stroke-width="1"/>
+        <polygon points="100,30 88,12 94,52 106,70" fill="url(#ingotSide)" stroke="#6d4514" stroke-width="0.8"/>
+        <polygon points="32,12 44,12 40,18 28,18" fill="rgba(255,250,220,0.6)"/>
+      </svg></div>
+      <div class="ingot ingot-b3"><svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="20,30 100,30 88,12 32,12" fill="url(#ingotTop)" stroke="#6d4514" stroke-width="0.8"/>
+        <polygon points="20,30 100,30 106,70 14,70" fill="url(#ingotFront)" stroke="#6d4514" stroke-width="1"/>
+        <polygon points="100,30 88,12 94,52 106,70" fill="url(#ingotSide)" stroke="#6d4514" stroke-width="0.8"/>
+        <polygon points="32,12 44,12 40,18 28,18" fill="rgba(255,250,220,0.6)"/>
+      </svg></div>
+      <div class="ingot ingot-m1"><svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="20,30 100,30 88,12 32,12" fill="url(#ingotTop)" stroke="#6d4514" stroke-width="0.8"/>
+        <polygon points="20,30 100,30 106,70 14,70" fill="url(#ingotFront)" stroke="#6d4514" stroke-width="1"/>
+        <polygon points="100,30 88,12 94,52 106,70" fill="url(#ingotSide)" stroke="#6d4514" stroke-width="0.8"/>
+        <polygon points="32,12 44,12 40,18 28,18" fill="rgba(255,250,220,0.6)"/>
+      </svg></div>
+      <div class="ingot ingot-m2"><svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="20,30 100,30 88,12 32,12" fill="url(#ingotTop)" stroke="#6d4514" stroke-width="0.8"/>
+        <polygon points="20,30 100,30 106,70 14,70" fill="url(#ingotFront)" stroke="#6d4514" stroke-width="1"/>
+        <polygon points="100,30 88,12 94,52 106,70" fill="url(#ingotSide)" stroke="#6d4514" stroke-width="0.8"/>
+        <polygon points="32,12 44,12 40,18 28,18" fill="rgba(255,250,220,0.6)"/>
+      </svg></div>
+      <div class="ingot ingot-t1"><svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="20,30 100,30 88,12 32,12" fill="url(#ingotTop)" stroke="#6d4514" stroke-width="0.8"/>
+        <polygon points="20,30 100,30 106,70 14,70" fill="url(#ingotFront)" stroke="#6d4514" stroke-width="1"/>
+        <polygon points="100,30 88,12 94,52 106,70" fill="url(#ingotSide)" stroke="#6d4514" stroke-width="0.8"/>
+        <polygon points="32,12 44,12 40,18 28,18" fill="rgba(255,250,220,0.6)"/>
+      </svg></div>
+    </div>
+    <div class="scene-word" data-i18n="s04.capital">Капитал</div>
+  </div>
+
+  <!-- SCENE 4: БИЗНЕС -->
+  <div class="scene scene-4" id="scene4">
+    <div class="scene-canvas">
+      <svg class="links-svg" id="links4" preserveAspectRatio="none"></svg>
+      <div class="node n-root">
+        <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="30" cy="30" r="26" fill="#1a1410" stroke="url(#goldV)" stroke-width="2"/>
+          <circle cx="30" cy="30" r="14" fill="url(#bulb)"/>
+          <circle cx="25" cy="26" r="3" fill="rgba(255,250,220,0.7)"/>
+        </svg>
+      </div>
+      <div class="node n-l2-1"><svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="30" cy="30" r="24" fill="#1a1410" stroke="url(#goldV)" stroke-width="1.6"/>
+        <circle cx="30" cy="30" r="12" fill="url(#bulb)"/>
+      </svg></div>
+      <div class="node n-l2-2"><svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="30" cy="30" r="24" fill="#1a1410" stroke="url(#goldV)" stroke-width="1.6"/>
+        <circle cx="30" cy="30" r="12" fill="url(#bulb)"/>
+      </svg></div>
+      <div class="node n-l3-1"><svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="30" cy="30" r="22" fill="#1a1410" stroke="url(#goldV)" stroke-width="1.4"/>
+        <circle cx="30" cy="30" r="10" fill="url(#bulb)"/>
+      </svg></div>
+      <div class="node n-l3-2"><svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="30" cy="30" r="22" fill="#1a1410" stroke="url(#goldV)" stroke-width="1.4"/>
+        <circle cx="30" cy="30" r="10" fill="url(#bulb)"/>
+      </svg></div>
+      <div class="node n-l3-3"><svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="30" cy="30" r="22" fill="#1a1410" stroke="url(#goldV)" stroke-width="1.4"/>
+        <circle cx="30" cy="30" r="10" fill="url(#bulb)"/>
+      </svg></div>
+      <div class="node n-l3-4"><svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="30" cy="30" r="22" fill="#1a1410" stroke="url(#goldV)" stroke-width="1.4"/>
+        <circle cx="30" cy="30" r="10" fill="url(#bulb)"/>
+      </svg></div>
+    </div>
+    <div class="scene-word" data-i18n="s04.business">Бизнес</div>
+  </div>
+
+  <!-- SCENE 5: НАСЛЕДИЕ -->
+  <div class="scene scene-5" id="scene5">
+    <div class="scene-canvas">
+      <div class="hand hand-giver">
+        <svg viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 30 140 Q 30 100 60 90 Q 70 88 78 92 L 78 60 Q 80 50 90 50 Q 100 50 100 60 L 100 88 L 110 88 L 110 50 Q 112 40 122 40 Q 132 40 132 50 L 132 88 L 142 88 L 142 58 Q 144 48 154 48 Q 164 48 164 58 L 164 90 L 174 90 L 174 70 Q 176 60 186 60 Q 196 60 196 70 L 196 130 Q 196 170 156 180 L 80 180 Q 30 178 30 140 Z"
+                fill="url(#goldV)" stroke="#6d4514" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M 60 130 Q 80 134 100 132" stroke="#6d4514" stroke-width="0.8" fill="none" opacity="0.4"/>
+          <path d="M 60 145 Q 90 150 130 146" stroke="#6d4514" stroke-width="0.8" fill="none" opacity="0.4"/>
+          <path d="M 40 130 Q 45 110 60 100" stroke="rgba(255,250,220,0.6)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="hand hand-receiver">
+        <svg viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 30 140 Q 30 100 60 90 Q 70 88 78 92 L 78 60 Q 80 50 90 50 Q 100 50 100 60 L 100 88 L 110 88 L 110 50 Q 112 40 122 40 Q 132 40 132 50 L 132 88 L 142 88 L 142 58 Q 144 48 154 48 Q 164 48 164 58 L 164 90 L 174 90 L 174 70 Q 176 60 186 60 Q 196 60 196 70 L 196 130 Q 196 170 156 180 L 80 180 Q 30 178 30 140 Z"
+                fill="url(#goldV)" stroke="#6d4514" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M 60 130 Q 80 134 100 132" stroke="#6d4514" stroke-width="0.8" fill="none" opacity="0.4"/>
+          <path d="M 60 145 Q 90 150 130 146" stroke="#6d4514" stroke-width="0.8" fill="none" opacity="0.4"/>
+          <path d="M 40 130 Q 45 110 60 100" stroke="rgba(255,250,220,0.6)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="gift">RWA</div>
+    </div>
+    <div class="scene-word" data-i18n="s04.legacy">Наследие</div>
+  </div>
+
+  <!-- ФИНАЛЬНАЯ ФРАЗА -->
+  <div class="final" id="final">
+    <div class="final-line-1" data-i18n="s04.f1">Это не картинка.</div>
+    <div class="final-line-2" data-i18n="s04.f2">Это <em>ваша финансовая империя</em>.</div>
+  </div>
+</section>
+
+<script>
+// =====================================================
+// SlideEngine — совместим с index.html
+// =====================================================
+const SlideEngine = (function(){
+  let total = 1, current = 1, onStep = null;
+  let wheelAcc = 0, lastWheel = 0;
+  let atEndArmed = false;
+  let atStartArmed = false;
+
+  function emit(type){
+    try { window.parent.postMessage({ source: 'slide', type: type }, '*'); } catch(e){}
+  }
+
+  function go(n){
+    if(n < 1){
+      if (atStartArmed) { emit('slide-end-backward'); atStartArmed = false; }
+      else atStartArmed = true;
+      return;
+    }
+    if(n > total){
+      if (atEndArmed) { emit('slide-end-forward'); atEndArmed = false; }
+      else atEndArmed = true;
+      return;
+    }
+    atEndArmed   = (n === total);
+    atStartArmed = (n === 1);
+    current = n;
+    if(onStep) onStep(current);
+  }
+  function next(){ go(current + 1); }
+  function prev(){ go(current - 1); }
+  function reset(){ atEndArmed = false; atStartArmed = true; current = 0; go(1); }
+
+  function init(opts){
+    total = opts.totalSteps || 1;
+    onStep = opts.onStep || null;
+    document.addEventListener('keydown', e => {
+      if(['ArrowRight','PageDown','Space','Enter'].includes(e.code)){ e.preventDefault(); next(); }
+      else if(['ArrowLeft','PageUp'].includes(e.code)){ e.preventDefault(); prev(); }
+      else if(e.code === 'Escape' || e.key === 'r' || e.key === 'R'){ e.preventDefault(); reset(); }
+    });
+    document.addEventListener('wheel', e => {
+      const now = Date.now();
+      if(now - lastWheel < 600) return;
+      wheelAcc += e.deltaY;
+      if(Math.abs(wheelAcc) > 80){
+        if(wheelAcc > 0) next(); else prev();
+        wheelAcc = 0; lastWheel = now;
+      }
+    }, { passive: true });
+    document.addEventListener('click', () => next());
+
+    window.addEventListener('message', e => {
+      const msg = e.data;
+      if (!msg || msg.source !== 'deck') return;
+      if (msg.type === 'goto-last-step') go(total);
+    });
+
+    go(1);
+  }
+  return { init, next, prev, go, reset };
+})();
+
+// =====================================================
+// Связи сети (Бизнес)
+// =====================================================
+function buildSceneLinks(){
+  const linksSvg = document.getElementById('links4');
+  if (!linksSvg) return;
+  linksSvg.innerHTML = '';
+
+  const canvas = document.querySelector('.scene-4 .scene-canvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width, h = rect.height;
+  linksSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+  // Размер узла
+  const nodeSize = Math.max(20, Math.min(32, w * 0.13));
+  const half = nodeSize / 2;
+
+  // Координаты центров узлов
+  const root = { x: w * 0.50, y: h * 0.06 + half };
+  const l21  = { x: w * 0.24 + half, y: h * 0.42 + half };
+  const l22  = { x: w * 0.64 + half, y: h * 0.42 + half };
+  const l31  = { x: w * 0.08 + half, y: h * 0.76 + half };
+  const l32  = { x: w * 0.34 + half, y: h * 0.76 + half };
+  const l33  = { x: w * 0.54 + half, y: h * 0.76 + half };
+  const l34  = { x: w * 0.80 + half, y: h * 0.76 + half };
+
+  // Корень имеет transform translateX(-50%) — left:50% это центр X, top это верхний край
+  root.y = h * 0.06 + half;
+  root.x = w * 0.50;
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const pairs = [
+    [root, l21, 'link-l1-l2'],
+    [root, l22, 'link-l1-l2'],
+    [l21,  l31, 'link-l2-l3'],
+    [l21,  l32, 'link-l2-l3'],
+    [l22,  l33, 'link-l2-l3'],
+    [l22,  l34, 'link-l2-l3'],
+  ];
+  pairs.forEach(([a, b, cls]) => {
+    const line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', a.x);
+    line.setAttribute('y1', a.y);
+    line.setAttribute('x2', b.x);
+    line.setAttribute('y2', b.y);
+    line.setAttribute('stroke', 'url(#goldV)');
+    line.setAttribute('stroke-width', '1.2');
+    line.setAttribute('fill', 'none');
+    line.setAttribute('class', cls);
+    linksSvg.appendChild(line);
+  });
+}
+
+// =====================================================
+// Шаги
+// =====================================================
+// 1: карта + eyebrow
+// 2: + Доход      (лево-верх)
+// 3: + Капитал    (право-верх)
+// 4: + Бизнес     (лево-низ)
+// 5: + Доступ     (право-низ)
+// 6: + Наследие
+// 7: финальная фраза
+
+const els = {
+  eyebrow: document.getElementById('eyebrow'),
+  card: document.getElementById('masterCard'),
+  final: document.getElementById('final'),
+  /* порядок появления: Доход -> Капитал -> Бизнес -> Доступ -> Наследие */
+  scenes: [
+    null,
+    document.getElementById('scene2'),
+    document.getElementById('scene3'),
+    document.getElementById('scene4'),
+    document.getElementById('scene1'),
+    document.getElementById('scene5'),
+  ],
+};
+
+let prevStep = 0;
+
+function showScene(idx, fresh){
+  const s = els.scenes[idx];
+  if (!s) return;
+  s.classList.add('shown');
+  if (fresh){
+    s.classList.remove('fresh');
+    void s.offsetWidth;
+    s.classList.add('fresh');
+    setTimeout(() => s.classList.remove('fresh'), 1700);
+  }
+}
+
+function hideScene(idx){
+  const s = els.scenes[idx];
+  if (!s) return;
+  s.classList.remove('shown');
+  s.classList.remove('fresh');
+}
+
+function step(n){
+  // Сброс крупных состояний
+  els.eyebrow.classList.remove('shown');
+  els.final.classList.remove('shown');
+
+  if (n >= 1){
+    els.eyebrow.classList.add('shown');
+    els.card.classList.add('shown');
+  }
+
+  // Сцены: 2→1, 3→2, 4→3, 5→4, 6→5
+  for (let i = 1; i <= 5; i++){
+    const appearAt = i + 1; // сцена 1 на шаге 2, сцена 2 на шаге 3, ...
+    if (n >= appearAt){
+      const isFresh = (n === appearAt && n > prevStep);
+      showScene(i, isFresh);
+    } else {
+      hideScene(i);
+    }
+  }
+
+  if (n >= 7){
+    els.final.classList.add('shown');
+  }
+
+  prevStep = n;
+}
+
+function start(){
+  buildSceneLinks();
+  SlideEngine.init({
+    totalSteps: 7,
+    slideNumber: 4,
+    slideTotal: 16,
+    onStep: (n) => { window._currentStep = n; step(n); }
+  });
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  requestAnimationFrame(start);
+} else {
+  window.addEventListener('DOMContentLoaded', () => requestAnimationFrame(start));
+}
+
+window.addEventListener('resize', () => {
+  buildSceneLinks();
+  step(window._currentStep || 1);
+});
+</script>
+<div id="voiceRoot"></div>
+<script src="../shared/voice/voice-autoplay.js"></script>
+<script src="../shared/voice/voice-boot.js"></script>
+</body>
+</html>

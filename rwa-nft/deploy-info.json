@@ -1,0 +1,16 @@
+{
+  "framework": "Astro 7",
+  "frameworkVersion": "7.4.12",
+  "base": "/rwa-nft/",
+  "site": "https://devnos.github.io",
+  "sourceCommit": "886dd305c00b2f85772e6f9b0e460518d1c7265f",
+  "releaseId": "r13ec20720d83-8c7b771ef6",
+  "audioRecordings": 172,
+  "languages": [
+    "ru",
+    "en"
+  ],
+  "runtimeManifestSha256": "3fce07f9246f1707f362f86810ade1109d2f51fc1beea1a92700ae33f6e328d5",
+  "runtimeScenarioSha256": "d74d18311cac43dbb95a97d0b6aa1e545731f4209f45f99bd8fb7b95f31a585a",
+  "builtAt": "2026-11-16T07:57:31.621993+00:00"
+}

@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>06 — Система дохода</title>
+<script src="../shared/i18n.js"></script>
+<script src="../shared/mobile.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Tenor+Sans&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #08080c;
+  --ink: #f5f5f7;
+  --ink-2: rgba(245, 245, 247, 0.85);
+  --gold: #d4a857;
+  --gold-2: #f0c674;
+  --gold-3: #b8862e;
+  --cold: #6f9bd1;
+  --cold-2: #88b4e0;
+  --display: 'Unbounded', system-ui, sans-serif;
+  --body: 'DM Sans', system-ui, sans-serif;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  overflow: hidden;
+  height: 100vh; width: 100vw;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+.step-indicator, .nav-hint, .reset-btn, .slide-num, .slide-tag { display: none !important; }
+.slide { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+
+/* === СЦЕНА === */
+.stage-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(212, 168, 87, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at center, #0c0b14 0%, #050508 100%);
+  z-index: 1;
+}
+.smoke-cloud {
+  position: absolute; border-radius: 50%;
+  pointer-events: none; filter: blur(60px);
+  opacity: 0.32; mix-blend-mode: screen;
+  z-index: 2;
+}
+.smoke-cloud.c1 { width: 60vw; height: 60vw; top: -10vw; left: -20vw;
+  background: radial-gradient(circle, rgba(120, 100, 140, 0.5) 0%, rgba(80, 70, 100, 0.2) 50%, transparent 70%);
+  animation: cloudDrift1 40s ease-in-out infinite; }
+.smoke-cloud.c2 { width: 70vw; height: 70vw; top: 10vh; right: -25vw;
+  background: radial-gradient(circle, rgba(100, 90, 130, 0.4) 0%, rgba(60, 50, 80, 0.2) 50%, transparent 70%);
+  animation: cloudDrift2 50s ease-in-out infinite; }
+@keyframes cloudDrift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(8vw,5vh) scale(1.1)} }
+@keyframes cloudDrift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-8vw,-3vh) scale(1.1)} }
+
+.grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 200;
+  opacity: 0.05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* === EYEBROW === */
+.eyebrow {
+  position: absolute; top: clamp(18px, 3vh, 40px); left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  z-index: 20; opacity: 0;
+  transition: opacity 1.4s var(--ease), transform 1.4s var(--ease);
+  text-align: center; white-space: nowrap;
+}
+.eyebrow.shown { opacity: 1; transform: translateX(-50%) translateY(0); }
+.eyebrow-line {
+  display: inline-block;
+  width: clamp(40px, 5vw, 70px); height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold) 50%, transparent);
+  vertical-align: middle; margin: 0 clamp(14px, 1.5vw, 22px); opacity: 0.7;
+}
+.eyebrow-text {
+  font-family: 'Unbounded', sans-serif; font-weight: 500;
+  font-size: clamp(13px, 1.15vw, 17px); letter-spacing: 0.4em; text-transform: uppercase;
+  color: var(--gold-2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9), 0 0 20px rgba(212, 168, 87, 0.4);
+  vertical-align: middle;
+}
+
+/* === NFT КАРТА — ФИКСИРОВАННАЯ ПОЗИЦИЯ (наверху, как в финальной картине) === */
+.nft-card-wrap {
+  position: absolute;
+  /* Сдвинута выше центра — место для выводных карт снизу */
+  top: 32%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.85);
+  z-index: 26;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
+}
+.nft-card-wrap.shown {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.nft-card {
+  position: relative;
+  width: clamp(280px, 26vw, 440px);
+  height: clamp(175px, 16.3vw, 275px);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.85),
+    0 0 90px rgba(212, 168, 87, 0.5),
+    0 0 180px rgba(212, 168, 87, 0.25),
+    inset 0 1px 0 rgba(255, 220, 130, 0.6),
+    inset 0 -1px 0 rgba(0,0,0,0.6);
+  animation: nftPulse 4s ease-in-out infinite;
+}
+@keyframes nftPulse {
+  0%,100% { box-shadow: 0 20px 60px rgba(0,0,0,0.85), 0 0 90px rgba(212, 168, 87, 0.5), 0 0 180px rgba(212, 168, 87, 0.25), inset 0 1px 0 rgba(255, 220, 130, 0.6), inset 0 -1px 0 rgba(0,0,0,0.6); }
+  50% { box-shadow: 0 20px 60px rgba(0,0,0,0.85), 0 0 110px rgba(212, 168, 87, 0.7), 0 0 220px rgba(212, 168, 87, 0.4), inset 0 1px 0 rgba(255, 220, 130, 0.7), inset 0 -1px 0 rgba(0,0,0,0.6); }
+}
+.nft-card-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 50% 60% at 25% 20%, rgba(255, 220, 130, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 70% 35%, rgba(25, 22, 32, 0.5) 0%, transparent 60%),
+    linear-gradient(135deg, #020205 0%, #06060c 40%, #020204 100%);
+}
+.nft-card::before {
+  content: ''; position: absolute; top: 0; left: -120%;
+  width: 100%; height: 100%;
+  background: linear-gradient(115deg, transparent 25%, rgba(255, 220, 130, 0.15) 50%, transparent 75%);
+  pointer-events: none; z-index: 4;
+  animation: nftShine 6s ease-in-out infinite;
+}
+@keyframes nftShine { 0%,100% { left: -120%; } 50% { left: 120%; } }
+
+/* === Перевёртыш центрального NFT === */
+.nftflip { perspective: 1200px; cursor: pointer; }
+.nftflip-inner {
+  position: relative;
+  width: clamp(280px, 26vw, 440px);
+  height: clamp(175px, 16.3vw, 275px);
+  transform-style: preserve-3d;
+  transition: transform 0.9s var(--ease);
+}
+.nftflip.flipped .nftflip-inner { transform: rotateY(180deg); }
+.nftflip .nff {
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  border-radius: 18px;
+}
+.nff-front .nft-card { width: 100%; height: 100%; }
+.nff-back {
+  transform: rotateY(180deg);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 80% at 50% 40%, #171208 0%, #060508 70%);
+  border: 1px solid rgba(240, 198, 116, 0.6);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.85), 0 0 90px rgba(212, 168, 87, 0.45);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: clamp(4px, 0.8vh, 10px);
+}
+.nff-back svg { width: 46%; height: 68%; }
+.nff-back-hint {
+  font-family: 'Tenor Sans', serif;
+  font-size: clamp(13px, 1.15vw, 17px);
+  letter-spacing: 0.1em;
+  color: var(--gold-2);
+  text-shadow: 0 0 14px rgba(212, 168, 87, 0.5);
+}
+/* живая иконка: искры стекаются в сияющий центр */
+.nftflip.flipped .src-spark { animation: srcSparkFly 2s ease-in infinite; opacity: 0; }
+.nftflip.flipped .src-spark.p1 { animation-delay: 0s;   offset-path: path('M22 22 L60 60'); }
+.nftflip.flipped .src-spark.p2 { animation-delay: 0.4s; offset-path: path('M60 14 L60 60'); }
+.nftflip.flipped .src-spark.p3 { animation-delay: 0.8s; offset-path: path('M98 22 L60 60'); }
+.nftflip.flipped .src-spark.p4 { animation-delay: 1.2s; offset-path: path('M104 64 L60 60'); }
+.nftflip.flipped .src-spark.p5 { animation-delay: 1.6s; offset-path: path('M38 104 L60 60'); }
+@keyframes srcSparkFly {
+  0%   { offset-distance: 0%;   opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+.nftflip.flipped .src-core-glow {
+  animation: srcCoreGlow 2.5s ease-in-out infinite;
+  transform-box: fill-box; transform-origin: center;
+}
+@keyframes srcCoreGlow {
+  0%,100% { opacity: 0.4; transform: scale(0.85); }
+  50%     { opacity: 0.9; transform: scale(1.15); }
+}
+
+.nft-brand-block {
+  position: absolute; top: clamp(16px, 2vh, 26px); left: clamp(20px, 2.3vw, 36px);
+  display: flex; align-items: center; gap: clamp(8px, 1vw, 14px); z-index: 5;
+}
+.nft-globe {
+  width: clamp(28px, 3vw, 44px); height: clamp(28px, 3vw, 44px);
+  filter: drop-shadow(0 0 14px rgba(212, 168, 87, 0.5));
+}
+.nft-brand-text { display: flex; flex-direction: column; }
+.nft-brand-name {
+  font-family: 'Tenor Sans', serif;
+  font-size: clamp(18px, 1.85vw, 29px);
+  letter-spacing: 0.06em; line-height: 1; color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7), 0 0 20px rgba(212, 168, 87, 0.3);
+}
+.nft-brand-name em {
+  font-style: normal; color: var(--gold-2);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7), 0 0 24px rgba(212, 168, 87, 0.6);
+}
+.nft-brand-sub {
+  margin-top: 3px;
+  font-family: var(--body); font-weight: 400;
+  font-size: clamp(9px, 0.8vw, 12px);
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.nft-defi {
+  position: absolute; bottom: clamp(12px, 1.5vh, 22px); right: clamp(20px, 2.3vw, 36px);
+  display: flex; align-items: center; gap: clamp(6px, 0.7vw, 10px); z-index: 5;
+}
+.defi-icon {
+  font-family: 'Tenor Sans', serif;
+  font-size: clamp(13px, 1.3vw, 18px);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7), 0 0 10px rgba(212, 168, 87, 0.4);
+}
+.defi-icon.defi-text {
+  font-family: var(--body); font-weight: 500;
+  font-size: clamp(11px, 1vw, 14px); letter-spacing: 0.18em; margin: 0 3px;
+}
+.defi-icon.defi-diamond { color: var(--gold-2); }
+
+/* === КАРТОЧКИ ПОТОКОВ — ФИКСИРОВАННЫЕ ПОЗИЦИИ === */
+.stream {
+  position: absolute;
+  z-index: 22;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+}
+.stream.shown {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.stream-card {
+  position: relative;
+  /* Размер зависит и от высоты: столбец из трёх карточек стоит с шагом 19%,
+     и если считать только от ширины, на низком экране карточки налезают
+     друг на друга вместе с подписями. */
+  width: clamp(112px, min(13.4vw, 18vh), 220px);
+  height: clamp(112px, min(13.4vw, 18vh), 220px);
+  border-radius: 12px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 60% 70% at 30% 25%, rgba(212, 168, 87, 0.10) 0%, transparent 55%),
+    linear-gradient(135deg, #14101a 0%, #0a0810 60%, #060508 100%);
+  border: 1px solid rgba(212, 168, 87, 0.35);
+  box-shadow:
+    0 8px 24px rgba(0,0,0,0.7),
+    0 0 30px rgba(212, 168, 87, 0.15),
+    inset 0 1px 0 rgba(212, 168, 87, 0.3);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: space-evenly;
+  padding: clamp(10px, 1.2vh, 16px) clamp(8px, 1vw, 14px);
+}
+.stream-card::before {
+  content: ''; position: absolute; top: 0; left: -120%;
+  width: 100%; height: 100%;
+  background: linear-gradient(115deg, transparent 30%, rgba(212, 168, 87, 0.1) 50%, transparent 70%);
+  pointer-events: none; z-index: 1;
+  animation: streamShine 8s ease-in-out infinite;
+}
+@keyframes streamShine { 0%,100% { left: -120%; } 50% { left: 120%; } }
+
+/* монеты FinFlow капают на карту */
+.fp-coin { animation: fpCoinDrop 2.6s linear infinite; }
+.fp-coin.k2 { animation-delay: 0.85s; }
+.fp-coin.k3 { animation-delay: 1.7s; }
+@keyframes fpCoinDrop {
+  0%   { transform: translateY(-14px) scale(0.5); opacity: 0; }
+  15%  { opacity: 1; transform: translateY(0) scale(1); }
+  70%  { opacity: 1; }
+  100% { transform: translateY(40px) scale(0.8); opacity: 0; }
+}
+/* бегущий блик по карте FinFlow */
+.fp-shine { animation: fpShineRun 4.5s ease-in-out infinite; }
+@keyframes fpShineRun {
+  0%, 55% { transform: translateX(0) skewX(-18deg); }
+  100%    { transform: translateX(190px) skewX(-18deg); }
+}
+/* === Настоящий 3D-переворот для DA и VIP (как у flip3d, но цикл) ===
+   Оборот 1.2s (на 0.3s медленнее карточек), пауза на каждой стороне 2.8s. Цикл 8s. */
+.spin3d { width: 100%; height: 100%; perspective: 900px; }
+.spin-inner {
+  position: relative; width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  animation: spinTurn 8s var(--ease) infinite;
+}
+.spin-face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+.spin-face svg { display: block; }
+.spin-back { transform: rotateY(180deg); }
+@keyframes spinTurn {
+  0%, 35%   { transform: rotateY(0deg); }
+  50%, 85%  { transform: rotateY(180deg); }
+  100%      { transform: rotateY(360deg); }
+}
+/* VIP стартует со сдвигом фазы, чтобы не крутились синхронно с DA */
+.vp-spin { animation-delay: -3s; }
+.stream-2 .stream-icon { width: clamp(66px, min(8.2vw, 11vh), 136px); height: clamp(66px, min(8.2vw, 11vh), 136px);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6)); }
+.stream-2 .stream-icon svg { filter: none; }
+
+/* RWA: окна мерцают, качалка качает, ветряк крутится */
+.rw-win { animation: rwWin 4s ease-in-out infinite; }
+.rw-win.w2 { animation-delay: 0.8s; }
+.rw-win.w3 { animation-delay: 1.6s; }
+.rw-win.w4 { animation-delay: 2.4s; }
+@keyframes rwWin { 0%,100% { opacity: 0.9; } 50% { opacity: 0.35; } }
+.rw-pump {
+  transform-box: fill-box; transform-origin: 64px 74px;
+  transform-origin: 50% 50%;
+  animation: rwPump 3.2s ease-in-out infinite;
+}
+@keyframes rwPump { 0%,100% { transform: rotate(-9deg); } 50% { transform: rotate(9deg); } }
+.rw-blades {
+  transform-origin: 101px 62px; /* ось = ступица, не bbox */
+  animation: rwSpin 6s linear infinite;
+}
+@keyframes rwSpin { to { transform: rotate(360deg); } }
+.stream-3 .stream-icon { width: clamp(66px, min(8.2vw, 11vh), 136px); height: clamp(66px, min(8.2vw, 11vh), 136px);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6)); }
+.stream-3 .stream-icon svg { filter: none; }
+
+/* Партнёрка: сеть зажигается волной, искры дохода стекаются вверх */
+.pn-node { transform-box: fill-box; transform-origin: center; animation: pnPop 5.5s var(--ease) infinite; }
+.pn-node.n1a { animation-delay: 0.25s; }
+.pn-node.n1b { animation-delay: 0.4s; }
+.pn-node.n1c { animation-delay: 0.55s; }
+.pn-node.n2a { animation-delay: 0.8s; }
+.pn-node.n2b { animation-delay: 0.9s; }
+.pn-node.n2c { animation-delay: 1.0s; }
+.pn-node.n2d { animation-delay: 1.1s; }
+.pn-node.n2e { animation-delay: 1.2s; }
+@keyframes pnPop {
+  0%       { opacity: 0; transform: scale(0.3); }
+  8%, 92%  { opacity: 1; transform: scale(1); }
+  100%     { opacity: 1; transform: scale(1); }
+}
+.pn-halo { animation: pnHalo 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes pnHalo { 0%,100% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.12); } }
+.pn-spark { opacity: 0; animation: pnSparkUp 5.5s ease-in infinite; }
+.pn-spark.q1 { offset-path: path('M 14 98 L 28 66 L 60 30'); animation-delay: 2.2s; }
+.pn-spark.q2 { offset-path: path('M 60 98 L 60 70 L 60 30');  animation-delay: 2.7s; }
+.pn-spark.q3 { offset-path: path('M 106 98 L 92 66 L 60 30'); animation-delay: 3.2s; }
+@keyframes pnSparkUp {
+  0%, 40% { offset-distance: 0%; opacity: 0; }
+  45%     { opacity: 1; }
+  62%     { offset-distance: 100%; opacity: 1; }
+  66%     { offset-distance: 100%; opacity: 0; }
+  100%    { offset-distance: 100%; opacity: 0; }
+}
+.stream-4 .stream-icon { width: clamp(66px, min(8.2vw, 11vh), 136px); height: clamp(66px, min(8.2vw, 11vh), 136px);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6)); }
+.stream-4 .stream-icon svg { filter: none; }
+
+/* Карьера: лесенка -> подарки снизу вверх -> кубок -> всё гаснет -> заново.
+   Один цикл 6s, у всех элементов общая шкала без delay (гаснут одновременно). */
+.cr-stairs {
+  stroke-dasharray: 175; /* точная длина лесенки: подарок стартует сразу за ней */
+  stroke-dashoffset: 175;
+  animation: crStairsDraw 6s var(--ease) infinite;
+}
+@keyframes crStairsDraw {
+  0%        { stroke-dashoffset: 175; opacity: 1; }
+  26%, 95%  { stroke-dashoffset: 0; opacity: 1; }
+  97%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+.cr-gift { opacity: 0; transform-box: fill-box; transform-origin: center bottom;
+  animation: 6s var(--ease) infinite; }
+.cr-gift.g1 { animation-name: crGift1; }
+.cr-gift.g2 { animation-name: crGift2; }
+.cr-gift.g3 { animation-name: crGift3; }
+@keyframes crGift1 {
+  0%, 26%  { opacity: 0; transform: scale(0.2) translateY(6px); }
+  34%, 95% { opacity: 1; transform: scale(1) translateY(0); }
+  97%, 100%{ opacity: 0; transform: scale(1); }
+}
+@keyframes crGift2 {
+  0%, 40%  { opacity: 0; transform: scale(0.2) translateY(6px); }
+  48%, 95% { opacity: 1; transform: scale(1) translateY(0); }
+  97%, 100%{ opacity: 0; transform: scale(1); }
+}
+@keyframes crGift3 {
+  0%, 54%  { opacity: 0; transform: scale(0.2) translateY(6px); }
+  62%, 95% { opacity: 1; transform: scale(1) translateY(0); }
+  97%, 100%{ opacity: 0; transform: scale(1); }
+}
+.cr-cup { opacity: 0; transform-box: fill-box; transform-origin: center bottom;
+  animation: crCup 6s var(--ease) infinite; }
+@keyframes crCup {
+  0%, 66%  { opacity: 0; transform: scale(0.3); }
+  74%      { opacity: 1; transform: scale(1.12); }
+  78%, 95% { opacity: 1; transform: scale(1); }
+  97%, 100%{ opacity: 0; transform: scale(1); }
+}
+.stream-5 .stream-icon { width: clamp(66px, min(8.2vw, 11vh), 136px); height: clamp(66px, min(8.2vw, 11vh), 136px);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6)); }
+.stream-5 .stream-icon svg { filter: none; }
+
+/* VIP: карта вращается, лицо VIP+5 звёзд <-> оборот 10% от платформы */
+.vp-shine { animation: vpShineRun 3.8s ease-in-out infinite; }
+@keyframes vpShineRun {
+  0%, 45% { transform: translateX(0) skewX(-18deg); }
+  100%    { transform: translateX(185px) skewX(-18deg); }
+}
+.stream-6 .stream-icon { width: clamp(66px, min(8.2vw, 11vh), 136px); height: clamp(66px, min(8.2vw, 11vh), 136px);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6)); }
+.stream-6 .stream-icon svg { filter: none; }
+
+/* дыхание иконок: живое золото */
+.stream-icon svg {
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.6)) drop-shadow(0 0 10px rgba(212,168,87,0.18));
+  animation: iconBreathe 4.5s ease-in-out infinite;
+}
+@keyframes iconBreathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.035); }
+}
+
+/* FinPro: карта крупнее, подпись ниже */
+.stream-1 .stream-icon { width: clamp(66px, min(8.2vw, 11vh), 136px); height: clamp(66px, min(8.2vw, 11vh), 136px);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6)); }
+.stream-1 .stream-icon svg { filter: none; }
+.stream-1 .stream-name { margin-top: clamp(6px, 1.2vh, 14px); }
+
+.stream-icon {
+  /* Иконка живёт внутри карточки вместе с подписью, поэтому её размер тоже
+     считается от высоты: иначе на низком экране она занимает всю карточку
+     и подпись обрезается нижней кромкой. */
+  width: clamp(58px, min(7.5vw, 10.1vh), 124px);
+  height: clamp(58px, min(7.5vw, 10.1vh), 124px);
+  z-index: 2;
+  filter: drop-shadow(0 3px 10px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(212, 168, 87, 0.4));
+}
+.stream-icon svg { width: 100%; height: 100%; display: block; }
+
+.stream-name {
+  font-family: 'Tenor Sans', serif;
+  font-size: clamp(13px, 1.2vw, 17px);
+  letter-spacing: 0.04em;
+  color: var(--gold-2);
+  text-align: center;
+  line-height: 1.15;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9), 0 0 14px rgba(212, 168, 87, 0.4);
+  z-index: 2;
+}
+
+/*
+  ФИКСИРОВАННЫЕ ПОЗИЦИИ 6 ПОТОКОВ:
+  - 3 слева (FinPro, DA, RWA) — вокруг верхней половины
+  - 3 справа (Партнёрка, Карьера, VIP Club) — вокруг верхней половины
+  - Все позиции относительно ВЕРХНЕЙ ЧАСТИ слайда (NFT висит на top: 32%)
+  - Внизу остаётся ВОЗДУХ для выводных карт
+*/
+
+/* === Элитные уголки слайда === */
+.frame-corner {
+  position: fixed; width: 42px; height: 42px;
+  border: 1px solid rgba(212, 168, 87, 0.45);
+  pointer-events: none; z-index: 30;
+}
+.frame-corner.tl { top: 24px; left: 24px; border-right: none; border-bottom: none; }
+.frame-corner.tr { top: 24px; right: 24px; border-left: none; border-bottom: none; }
+.frame-corner.bl { bottom: 24px; left: 24px; border-right: none; border-top: none; }
+.frame-corner.br { bottom: 24px; right: 24px; border-left: none; border-top: none; }
+
+/* === FinPro: карточка-перевёртыш (видео FinFlow + калькулятор) === */
+.flip3d { position: relative; perspective: 1000px; cursor: pointer; }
+.flip-inner {
+  position: relative;
+  /* тот же расчёт, что у обычной карточки потока */
+  width: clamp(112px, min(13.4vw, 18vh), 220px);
+  height: clamp(112px, min(13.4vw, 18vh), 220px);
+  transform-style: preserve-3d;
+  transition: transform 0.9s var(--ease);
+}
+.flip3d.flipped .flip-inner { transform: rotateY(180deg); }
+/* перевёрнутая лицевая грань не должна перехватывать клики по кнопкам */
+.flip3d.flipped .flip-front { pointer-events: none; }
+.fp-actions { pointer-events: auto; }
+.flip-face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  border-radius: 12px; overflow: hidden;
+}
+.flip-front .stream-card { width: 100%; height: 100%; border: none; }
+.flip-front {
+  border: 1px solid rgba(212, 168, 87, 0.35);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.55),
+    0 0 22px rgba(212, 168, 87, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.flip-back {
+  transform: rotateY(180deg);
+  background: #050505;
+  border: 1px solid rgba(240, 198, 116, 0.6);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.7), 0 0 36px rgba(212, 168, 87, 0.35);
+}
+.flip-back video {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+.fp-actions {
+  /* Кнопки выезжают из-под карточки вправо и встают рядом с ней,
+     чтобы не закрывать видео на обороте. */
+  position: absolute; left: 100%; top: 50%; z-index: 6;
+  display: flex; flex-direction: column; gap: clamp(7px, 1.1vh, 13px);
+  opacity: 0; pointer-events: none;
+  transform: translate(-42%, -50%) scale(0.92);
+  transition: opacity 0.5s var(--ease), transform 0.7s var(--ease);
+}
+.flip3d.flipped .fp-actions {
+  opacity: 1; pointer-events: auto;
+  transform: translate(clamp(10px, 1vw, 18px), -50%) scale(1);
+  transition-delay: 0.34s;   /* ждём середину переворота */
+}
+.fp-act {
+  width: clamp(112px, min(11vw, 15vh), 172px);
+  padding: 0.7em 0.7em; pointer-events: auto;
+  font-family: 'Tenor Sans', serif;
+  font-size: clamp(12px, min(1.2vw, 2.1vh), 17px); letter-spacing: 0.04em;
+  color: var(--gold-2); cursor: pointer;
+  background: rgba(8, 8, 12, 0.78); backdrop-filter: blur(6px);
+  border: 1px solid rgba(212, 168, 87, 0.45); border-radius: 7px;
+  transition: all 0.3s var(--ease);
+}
+.fp-act:hover {
+  background: rgba(212, 168, 87, 0.22);
+  border-color: var(--gold-2);
+  color: #fff;
+}
+.flip-back-hint {
+  position: absolute; bottom: 6px; left: 0; right: 0;
+  text-align: center;
+  font-family: 'Tenor Sans', serif;
+  font-size: clamp(11px, 1vw, 14px);
+  letter-spacing: 0.12em;
+  color: var(--gold-2);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 12px rgba(212, 168, 87, 0.5);
+  pointer-events: none;
+}
+.flip3d.flipped { animation: flipGlow 3s ease-in-out infinite; }
+@keyframes flipGlow {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(212, 168, 87, 0.25)); }
+  50% { filter: drop-shadow(0 0 24px rgba(240, 198, 116, 0.5)); }
+}
+
+/* === Модал калькулятора FinFlow === */
+.calc-modal {
+  position: fixed; inset: 0; z-index: 400;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(4, 4, 7, 0.82);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.calc-modal.open { display: flex; }
+/*
+  Адаптивный шелл: почти во весь экран, но с постоянными безопасными полями,
+  в которых остаются видны угловые иконки управления лаунчера.
+*/
+/*
+  Поля рассчитаны под угловые элементы лаунчера (все в фиксированных px):
+  колонна навигации справа: right 36px + 38px ширины = 74px  -> отступ 80px даёт зазор 6px;
+  шеврон/домик снизу: bottom 44px + 30px = 74px              -> отступ 86px;
+  фуллскрин сверху: top 44px + 30px = 74px                   -> отступ 80px.
+  Пиксельные поля одинаковы на любом мониторе, как и сами иконки.
+*/
+.calc-shell {
+  position: absolute;
+  top: 80px; bottom: 86px; left: 80px; right: 80px;
+  border-radius: 18px; overflow: hidden;
+  border: 1px solid rgba(240, 198, 116, 0.5);
+  background: #0A0E14;
+  box-shadow: 0 30px 90px rgba(0,0,0,0.85), 0 0 60px rgba(212, 168, 87, 0.2);
+  animation: calcIn 0.55s var(--ease);
+}
+@keyframes calcIn {
+  from { opacity: 0; transform: scale(0.95) translateY(18px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+/*
+  Адаптивный масштаб контента: чем больше монитор, тем крупнее калькулятор.
+  iframe растянут на обратный коэффициент и отскейлен, всё остаётся кликабельным.
+*/
+.calc-shell { --cs: 1.0; }
+@media (min-width: 1700px) { .calc-shell { --cs: 1.1; } }
+@media (min-width: 2100px) { .calc-shell { --cs: 1.18; } }
+@media (min-width: 2500px) { .calc-shell { --cs: 1.25; } }
+/* слайды рангов и VIP внутри модала показываем чуть мельче калькуляторов */
+#careerModal .calc-shell, #vipModal .calc-shell, #nftModal .calc-shell,
+#mathModal .calc-shell { --cs: 0.88; }
+@media (min-width: 1700px) { #careerModal .calc-shell, #vipModal .calc-shell, #nftModal .calc-shell,
+  #mathModal .calc-shell { --cs: 0.94; } }
+@media (min-width: 2100px) { #careerModal .calc-shell, #vipModal .calc-shell, #nftModal .calc-shell,
+  #mathModal .calc-shell { --cs: 1.0; } }
+.calc-shell iframe {
+  width: calc(100% / var(--cs)); height: calc(100% / var(--cs));
+  transform: scale(var(--cs)); transform-origin: top left;
+  border: 0; display: block;
+}
+.calc-close {
+  position: absolute; top: 14px; right: 14px; z-index: 5;
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid rgba(240, 198, 116, 0.55);
+  background: rgba(8, 8, 12, 0.85);
+  color: var(--gold-2); font-size: 17px; line-height: 1;
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+  backdrop-filter: blur(8px);
+}
+.calc-close:hover {
+  background: rgba(212, 168, 87, 0.2);
+  box-shadow: 0 0 18px rgba(212, 168, 87, 0.4);
+}
+
+/* Слева — относительно центра NFT (top: 32%) */
+.stream-1 { /* FinPro — лево-верх */
+  top: 10%;
+  left: clamp(40px, 6vw, 130px);
+}
+.stream-2 { /* DA — лево-середина */
+  top: 30.5%;
+  left: clamp(20px, 3vw, 80px);
+}
+.stream-3 { /* RWA — лево-низ (всё ещё в верхней половине) */
+  top: 51%;
+  left: clamp(40px, 6vw, 130px);
+}
+/* Справа */
+.stream-4 { /* Партнёрка — право-верх */
+  top: 10%;
+  right: clamp(40px, 6vw, 130px);
+}
+.stream-5 { /* Карьера — право-середина */
+  top: 30.5%;
+  right: clamp(20px, 3vw, 80px);
+}
+.stream-6 { /* VIP Club — право-низ */
+  top: 51%;
+  right: clamp(40px, 6vw, 130px);
+}
+
+/* === ВЫХОДНЫЕ КАРТЫ (внизу, появляются на шаге 8) === */
+.output-cards {
+  position: absolute;
+  bottom: clamp(110px, 17vh, 220px);
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  z-index: 24;
+  display: flex;
+  gap: clamp(20px, 3.5vw, 60px);
+  opacity: 0;
+  transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
+  pointer-events: none;
+}
+.output-cards.shown {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.out-card {
+  position: relative;
+  width: clamp(180px, 17vw, 280px);
+  height: clamp(113px, 10.7vw, 176px);
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.bank-out {
+  background:
+    radial-gradient(ellipse 60% 80% at 70% 80%, rgba(60, 50, 70, 0.5) 0%, transparent 60%),
+    linear-gradient(135deg, #1a1410 0%, #0d0a08 50%, #06050a 100%);
+  border: 1px solid rgba(212, 168, 87, 0.4);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.85), 0 0 40px rgba(212, 168, 87, 0.3);
+}
+.defi-out {
+  background:
+    radial-gradient(ellipse 60% 80% at 30% 25%, rgba(111, 155, 209, 0.18) 0%, transparent 55%),
+    linear-gradient(135deg, #0d1420 0%, #08101a 50%, #050810 100%);
+  border: 1px solid rgba(111, 155, 209, 0.5);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.85), 0 0 40px rgba(111, 155, 209, 0.35);
+}
+.out-card::before {
+  content: ''; position: absolute; top: 0; left: -120%;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 3;
+  animation: outShine 6s ease-in-out infinite;
+}
+.bank-out::before {
+  background: linear-gradient(115deg, transparent 30%, rgba(212, 168, 87, 0.12) 50%, transparent 70%);
+}
+.defi-out::before {
+  background: linear-gradient(115deg, transparent 30%, rgba(136, 180, 224, 0.18) 50%, transparent 70%);
+}
+@keyframes outShine { 0%,100% { left: -120%; } 50% { left: 120%; } }
+
+.out-chip {
+  position: absolute;
+  top: clamp(20px, 2.5vh, 32px);
+  left: clamp(16px, 1.8vw, 26px);
+  width: clamp(26px, 2.8vw, 40px);
+  height: clamp(20px, 2.2vw, 32px);
+  border-radius: 4px;
+  z-index: 2;
+}
+.bank-out .out-chip {
+  background: linear-gradient(135deg, #f0c674 0%, #d4a857 60%, #8a5e1f 100%);
+  border: 1px solid #6d4514;
+}
+.defi-out .out-chip {
+  background: linear-gradient(135deg, #cae0f5 0%, #6f9bd1 60%, #2c4970 100%);
+  border: 1px solid #1a2b44;
+}
+.out-chip::before {
+  content: ''; position: absolute; inset: 3px 4px;
+  border-radius: 1.5px;
+  background:
+    linear-gradient(to right,
+      rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.4) 28%,
+      transparent 28%, transparent 36%,
+      rgba(0,0,0,0.4) 36%, rgba(0,0,0,0.4) 64%,
+      transparent 64%, transparent 72%,
+      rgba(0,0,0,0.4) 72%, rgba(0,0,0,0.4) 100%);
+}
+
+.out-name {
+  position: absolute;
+  bottom: clamp(10px, 1.2vh, 18px);
+  left: clamp(16px, 1.8vw, 26px);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  font-size: clamp(9px, 0.85vw, 12px);
+  letter-spacing: 0.18em;
+  color: rgba(245, 245, 247, 0.7);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.out-logo {
+  position: absolute;
+  bottom: clamp(10px, 1.2vh, 18px);
+  right: clamp(16px, 1.8vw, 26px);
+  z-index: 2;
+  text-align: right;
+  font-family: 'Tenor Sans', serif;
+  font-size: clamp(13px, 1.25vw, 19px);
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+.bank-out .out-logo {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 0 12px rgba(212, 168, 87, 0.4);
+}
+.bank-out .out-logo em {
+  font-style: italic; color: var(--gold-2);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 0 14px rgba(212, 168, 87, 0.7);
+}
+.defi-out .out-logo {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 0 12px rgba(111, 155, 209, 0.4);
+}
+.defi-out .out-logo em {
+  font-style: italic; color: var(--cold-2);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 0 14px rgba(136, 180, 224, 0.8);
+}
+
+/* === СЧЁТЧИКИ НА ВЫХОДНЫХ КАРТАХ (перенос со слайда 05) === */
+.out-balance {
+  position: absolute;
+  top: 38%;
+  left: clamp(16px, 1.8vw, 26px);
+  right: clamp(16px, 1.8vw, 26px);
+  z-index: 2;
+  display: flex;
+  align-items: baseline;
+  gap: clamp(6px, 0.7vw, 10px);
+}
+.out-balance .bl {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  font-size: clamp(9px, 0.8vw, 12px);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 247, 0.5);
+}
+.out-balance .bv {
+  font-family: 'Tenor Sans', serif;
+  font-weight: 400;
+  font-size: clamp(17px, 1.8vw, 29px);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.bank-out .out-balance .bv {
+  color: var(--gold-2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9), 0 2px 10px rgba(0,0,0,0.7), 0 0 22px rgba(212, 168, 87, 0.6);
+}
+.defi-out .out-balance .bv {
+  color: var(--cold-2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9), 0 2px 10px rgba(0,0,0,0.7), 0 0 22px rgba(136, 180, 224, 0.65);
+}
+.out-balance .bv.pulse { animation: counterPulse 0.5s var(--ease); }
+@keyframes counterPulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* === ИКОНКИ БЛАГ ПО БОКАМ КАРТ (перенос со слайда 05) === */
+.purchase {
+  position: absolute;
+  z-index: 24;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: clamp(5px, 0.7vh, 10px);
+  bottom: clamp(128px, 19.5vh, 252px);
+  left: 50%;
+  opacity: 0;
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+  pointer-events: none;
+}
+.purchase.shown { opacity: 1; }
+.purchase-icon {
+  width: clamp(42px, 4.2vw, 66px);
+  height: clamp(42px, 4.2vw, 66px);
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.7)) drop-shadow(0 0 18px rgba(212, 168, 87, 0.45));
+}
+.purchase-icon svg { width: 100%; height: 100%; display: block; }
+.purchase-label {
+  font-family: 'Tenor Sans', serif;
+  font-weight: 400;
+  font-size: clamp(13px, 1.2vw, 17px);
+  letter-spacing: 0.06em;
+  color: var(--gold-2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 2px 8px rgba(0,0,0,0.85), 0 0 18px rgba(212, 168, 87, 0.5);
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+.purchase.fresh .purchase-icon { animation: purchaseGlow 1.4s var(--ease); }
+@keyframes purchaseGlow {
+  0%   { filter: drop-shadow(0 6px 16px rgba(0,0,0,0.7)) drop-shadow(0 0 0 rgba(240,198,116,0)); }
+  50%  { filter: drop-shadow(0 6px 16px rgba(0,0,0,0.7)) drop-shadow(0 0 36px rgba(240,198,116,1)); }
+  100% { filter: drop-shadow(0 6px 16px rgba(0,0,0,0.7)) drop-shadow(0 0 18px rgba(212,168,87,0.45)); }
+}
+/* Тройки слева и справа от карт: ближние, средние, крайние */
+.purchase-1 { transform: translateX(calc(-50% - clamp(430px, 38vw, 730px))) scale(0.6); }
+.purchase-1.shown { transform: translateX(calc(-50% - clamp(430px, 38vw, 730px))) scale(1); }
+.purchase-2 { transform: translateX(calc(-50% - clamp(360px, 31.5vw, 605px))) scale(0.6); }
+.purchase-2.shown { transform: translateX(calc(-50% - clamp(360px, 31.5vw, 605px))) scale(1); }
+.purchase-3 { transform: translateX(calc(-50% - clamp(290px, 25vw, 480px))) scale(0.6); }
+.purchase-3.shown { transform: translateX(calc(-50% - clamp(290px, 25vw, 480px))) scale(1); }
+.purchase-4 { transform: translateX(calc(-50% + clamp(290px, 25vw, 480px))) scale(0.6); }
+.purchase-4.shown { transform: translateX(calc(-50% + clamp(290px, 25vw, 480px))) scale(1); }
+.purchase-5 { transform: translateX(calc(-50% + clamp(360px, 31.5vw, 605px))) scale(0.6); }
+.purchase-5.shown { transform: translateX(calc(-50% + clamp(360px, 31.5vw, 605px))) scale(1); }
+.purchase-6 { transform: translateX(calc(-50% + clamp(430px, 38vw, 730px))) scale(0.6); }
+.purchase-6.shown { transform: translateX(calc(-50% + clamp(430px, 38vw, 730px))) scale(1); }
+
+/* === СТРЕЛКИ === */
+.arrows-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 21;
+  pointer-events: none;
+}
+.arrow-path {
+  fill: none;
+  stroke: url(#arrowGrad);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(212, 168, 87, 0.7));
+}
+.arrow-path-cold {
+  fill: none;
+  stroke: url(#arrowGradCold);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(111, 155, 209, 0.7));
+}
+.arrow-head {
+  fill: var(--gold-2);
+  opacity: 0;
+  transition: opacity 0.4s var(--ease) 0.8s;
+  filter: drop-shadow(0 0 5px rgba(240, 198, 116, 0.9));
+}
+.arrow-head-cold {
+  fill: var(--cold-2);
+  opacity: 0;
+  transition: opacity 0.4s var(--ease) 0.8s;
+  filter: drop-shadow(0 0 5px rgba(136, 180, 224, 0.9));
+}
+.arrow-head.drawn, .arrow-head-cold.drawn { opacity: 1; }
+
+.arrow-dot {
+  fill: #fff5cc;
+  filter: drop-shadow(0 0 8px rgba(255, 245, 204, 1));
+  opacity: 0;
+}
+.arrow-dot.active { opacity: 1; }
+.arrow-dot-cold {
+  fill: #e8f1fb;
+  filter: drop-shadow(0 0 8px rgba(202, 224, 245, 1));
+  opacity: 0;
+}
+.arrow-dot-cold.active { opacity: 1; }
+
+/* === ФИНАЛЬНАЯ ФРАЗА === */
+.final {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(28px, 5vh, 70px);
+  transform: translate(-50%, 30px);
+  z-index: 30;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 1.4s var(--ease), transform 1.4s var(--ease);
+  width: 90%; max-width: 1200px;
+  pointer-events: none;
+}
+.final.shown { opacity: 1; transform: translate(-50%, 0); }
+.final-line {
+  font-family: 'Unbounded', sans-serif; font-weight: 300;
+  font-size: clamp(20px, 2.4vw, 39px); letter-spacing: -0.02em;
+  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 3px 16px rgba(0,0,0,0.85), 0 0 40px rgba(212, 168, 87, 0.15);
+  line-height: 1.2;
+}
+.final em {
+  font-style: normal; color: var(--gold-2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 3px 16px rgba(0,0,0,0.85), 0 0 40px rgba(212, 168, 87, 0.6);
+}
+.final-sub {
+  margin-top: clamp(8px, 1.2vh, 14px);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  font-size: clamp(13px, 1.2vw, 17px);
+  letter-spacing: 0.18em;
+  color: rgba(245, 245, 247, 0.45);
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9);
+}
+</style>
+<link rel="stylesheet" href="../shared/voice/voice.css">
+<script src="../shared/voice/voice-protocol.js"></script>
+<script src="../shared/voice/voice-slides.js"></script>
+<script src="../shared/voice/voice-scenario.js"></script>
+<script src="../shared/voice/voice-core.js"></script>
+<script src="../shared/voice/voice-deck.js"></script>
+<script src="../shared/voice/voice-route.js"></script>
+<script src="../shared/voice/voice-ui-model.js"></script>
+<script src="../shared/voice/voice-ui.js"></script>
+<script src="../shared/voice/voice-slide.js"></script>
+</head>
+<body>
+
+<section class="slide">
+  <div class="stage-bg"></div>
+  <div class="smoke-cloud c1"></div>
+  <div class="smoke-cloud c2"></div>
+  <div class="grain"></div>
+
+  <div class="eyebrow" id="eyebrow">
+    <span class="eyebrow-line"></span><span class="eyebrow-text" data-i18n="s06.eyebrow">Как работает платформа</span><span class="eyebrow-line"></span>
+  </div>
+
+  <svg class="arrows-svg" id="arrowsSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="goldV" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"  stop-color="#fff0c4"/>
+        <stop offset="40%" stop-color="#f0c674"/>
+        <stop offset="80%" stop-color="#d4a857"/>
+        <stop offset="100%" stop-color="#6d4514"/>
+      </linearGradient>
+      <linearGradient id="arrowGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%"  stop-color="rgba(212, 168, 87, 0.4)"/>
+        <stop offset="100%" stop-color="rgba(240, 198, 116, 1)"/>
+      </linearGradient>
+      <linearGradient id="arrowGradCold" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"  stop-color="rgba(212, 168, 87, 0.7)"/>
+        <stop offset="50%" stop-color="rgba(170, 180, 200, 0.85)"/>
+        <stop offset="100%" stop-color="rgba(136, 180, 224, 1)"/>
+      </linearGradient>
+    </defs>
+    <g id="arrowsLayer"></g>
+  </svg>
+
+  <!-- NFT КАРТА — центральный хаб (фиксированная позиция) -->
+  <div class="nft-card-wrap" id="nftCard" data-voice-action="s06.system.s01.a01">
+   <div class="nftflip" id="nftFlip" data-no-click>
+    <div class="nftflip-inner">
+     <div class="nff nff-front">
+    <div class="nft-card">
+      <div class="nft-card-bg"></div>
+      <div class="nft-brand-block">
+        <svg class="nft-globe" viewBox="0 0 76 76" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="38" cy="38" r="34" fill="none" stroke="rgba(212,168,87,0.7)" stroke-width="1.2"/>
+          <ellipse cx="38" cy="38" rx="34" ry="14" fill="none" stroke="rgba(212,168,87,0.5)" stroke-width="0.8"/>
+          <ellipse cx="38" cy="38" rx="14" ry="34" fill="none" stroke="rgba(212,168,87,0.5)" stroke-width="0.8"/>
+          <line x1="4" y1="38" x2="72" y2="38" stroke="rgba(212,168,87,0.5)" stroke-width="0.8"/>
+          <line x1="38" y1="4" x2="38" y2="72" stroke="rgba(212,168,87,0.5)" stroke-width="0.8"/>
+        </svg>
+        <div class="nft-brand-text">
+          <div class="nft-brand-name">RWA <em>NFT</em></div>
+          <div class="nft-brand-sub">Own Your Future</div>
+        </div>
+      </div>
+      <div class="nft-defi">
+        <span class="defi-icon">₮</span>
+        <span class="defi-icon defi-diamond">◆</span>
+        <span class="defi-icon defi-text">DEFI</span>
+        <span class="defi-icon">⛁</span>
+      </div>
+    </div>
+     </div>
+     <div class="nff nff-back">
+      <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="url(#goldV)" stroke-width="2" opacity="0.4" stroke-linecap="round">
+          <line x1="60" y1="60" x2="22" y2="22"/>
+          <line x1="60" y1="60" x2="60" y2="14"/>
+          <line x1="60" y1="60" x2="98" y2="22"/>
+          <line x1="60" y1="60" x2="16" y2="64"/>
+          <line x1="60" y1="60" x2="104" y2="64"/>
+          <line x1="60" y1="60" x2="38" y2="104"/>
+          <line x1="60" y1="60" x2="82" y2="104"/>
+        </g>
+        <circle class="src-spark p1" r="3" fill="#fff5cc"/>
+        <circle class="src-spark p2" r="3" fill="#fff5cc"/>
+        <circle class="src-spark p3" r="3" fill="#fff5cc"/>
+        <circle class="src-spark p4" r="3" fill="#fff5cc"/>
+        <circle class="src-spark p5" r="3" fill="#fff5cc"/>
+        <circle class="src-core-glow" cx="60" cy="60" r="20" fill="rgba(240,198,116,0.25)"/>
+        <circle cx="60" cy="60" r="13" fill="#1a1410" stroke="url(#goldV)" stroke-width="2"/>
+        <circle cx="60" cy="60" r="8" fill="url(#goldV)"/>
+        <text x="60" y="64" text-anchor="middle" font-family="Tenor Sans" font-size="11" fill="#6d4514">$</text>
+      </svg>
+      <div class="nff-back-hint" data-i18n="s06.hint.sources">Множественные источники дохода</div>
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <!-- Модал «Что внутри ключа» -->
+  <div class="calc-modal" id="nftModal" data-no-click>
+    <div class="calc-shell">
+      <button class="calc-close" id="nftClose" type="button" aria-label="Закрыть">&#10005;</button>
+      <iframe id="nftFrame" src="about:blank" title="Что внутри ключа"></iframe>
+    </div>
+  </div>
+
+  <!-- 6 ПОТОКОВ — фиксированные позиции -->
+
+  <div class="frame-corner tl"></div><div class="frame-corner tr"></div>
+  <div class="frame-corner bl"></div><div class="frame-corner br"></div>
+
+  <!-- 1. FinPro (карточка-перевёртыш: видео FinFlow + калькулятор) -->
+  <div class="stream stream-1" id="stream1">
+    <div class="flip3d" id="finproFlip" data-no-click data-voice-action="s06.system.s02.a01">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="stream-card">
+            <div class="stream-icon">
+              <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="fpCardBg" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#1c1710"/>
+                    <stop offset="0.45" stop-color="#0d0a07"/>
+                    <stop offset="1" stop-color="#070503"/>
+                  </linearGradient>
+                  <linearGradient id="fpGoldEdge" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#f5d98a"/>
+                    <stop offset="0.5" stop-color="#c99a3f"/>
+                    <stop offset="1" stop-color="#8a5f1a"/>
+                  </linearGradient>
+                  <radialGradient id="fpCoinG" cx="0.35" cy="0.3" r="1">
+                    <stop offset="0" stop-color="#ffe9ad"/>
+                    <stop offset="0.55" stop-color="#e2b45e"/>
+                    <stop offset="1" stop-color="#8a5f1a"/>
+                  </radialGradient>
+                  <clipPath id="fpClip"><rect x="8" y="42" width="104" height="66" rx="9"/></clipPath>
+                </defs>
+                <!-- монеты падают на карту -->
+                <g class="fp-coin k1">
+                  <circle cx="46" cy="20" r="9.5" fill="url(#fpCoinG)" stroke="#6d4514" stroke-width="1"/>
+                  <circle cx="46" cy="20" r="6.8" fill="none" stroke="rgba(109,69,20,0.55)" stroke-width="0.6"/>
+                  <text x="46" y="24.4" text-anchor="middle" font-family="Tenor Sans" font-size="10.5" fill="#6d4514">$</text>
+                  <ellipse cx="42.5" cy="15.5" rx="3.4" ry="2" fill="rgba(255,250,220,0.65)" transform="rotate(-28 42.5 15.5)"/>
+                </g>
+                <g class="fp-coin k2">
+                  <circle cx="72" cy="15" r="8.5" fill="url(#fpCoinG)" stroke="#6d4514" stroke-width="1"/>
+                  <circle cx="72" cy="15" r="6" fill="none" stroke="rgba(109,69,20,0.55)" stroke-width="0.6"/>
+                  <text x="72" y="19" text-anchor="middle" font-family="Tenor Sans" font-size="9.5" fill="#6d4514">$</text>
+                  <ellipse cx="69" cy="11" rx="3" ry="1.8" fill="rgba(255,250,220,0.65)" transform="rotate(-28 69 11)"/>
+                </g>
+                <g class="fp-coin k3">
+                  <circle cx="60" cy="26" r="7" fill="url(#fpCoinG)" stroke="#6d4514" stroke-width="0.9"/>
+                  <text x="60" y="29.4" text-anchor="middle" font-family="Tenor Sans" font-size="8" fill="#6d4514">$</text>
+                </g>
+                <!-- карта: корпус -->
+                <rect x="8" y="42" width="104" height="66" rx="9" fill="url(#fpCardBg)"
+                      stroke="url(#fpGoldEdge)" stroke-width="1"/>
+                <rect x="10.5" y="44.5" width="99" height="61" rx="7"
+                      fill="none" stroke="rgba(255,250,220,0.12)" stroke-width="0.8"/>
+                <!-- бегущий блик по карте -->
+                <g clip-path="url(#fpClip)">
+                  <rect class="fp-shine" x="-40" y="36" width="26" height="80"
+                        fill="rgba(255,235,170,0.14)" transform="skewX(-18)"/>
+                </g>
+                <!-- чип с контактами -->
+                <rect x="18" y="54" width="22" height="16" rx="3" fill="url(#fpGoldEdge)" stroke="#6d4514" stroke-width="0.7"/>
+                <line x1="25" y1="54" x2="25" y2="70" stroke="#6d4514" stroke-width="0.6"/>
+                <line x1="33" y1="54" x2="33" y2="70" stroke="#6d4514" stroke-width="0.6"/>
+                <line x1="18" y1="62" x2="40" y2="62" stroke="#6d4514" stroke-width="0.6"/>
+                <ellipse cx="22" cy="57" rx="3.4" ry="1.6" fill="rgba(255,250,220,0.5)" transform="rotate(-20 22 57)"/>
+                <!-- бесконтактные волны -->
+                <g fill="none" stroke="rgba(240,198,116,0.65)" stroke-width="1.1" stroke-linecap="round">
+                  <path d="M 47 56 Q 50 61 47 66"/>
+                  <path d="M 51 54 Q 55.5 61 51 68"/>
+                  <path d="M 55 52 Q 61 61 55 70"/>
+                </g>
+                <!-- номер карты точками -->
+                <g fill="rgba(240,198,116,0.75)">
+                  <circle cx="20" cy="82" r="1.5"/><circle cx="25" cy="82" r="1.5"/><circle cx="30" cy="82" r="1.5"/><circle cx="35" cy="82" r="1.5"/>
+                  <circle cx="44" cy="82" r="1.5"/><circle cx="49" cy="82" r="1.5"/><circle cx="54" cy="82" r="1.5"/><circle cx="59" cy="82" r="1.5"/>
+                </g>
+                <text x="20" y="100" font-family="Tenor Sans" font-size="11" letter-spacing="1.4"
+                      fill="#f0c674">FinFlow</text>
+                <!-- глобус-голограмма -->
+                <circle cx="96" cy="90" r="9" fill="rgba(212,168,87,0.08)" stroke="rgba(212,168,87,0.65)" stroke-width="1"/>
+                <ellipse cx="96" cy="90" rx="9" ry="3.8" fill="none" stroke="rgba(212,168,87,0.5)" stroke-width="0.6"/>
+                <ellipse cx="96" cy="90" rx="3.8" ry="9" fill="none" stroke="rgba(212,168,87,0.5)" stroke-width="0.6"/>
+                <line x1="87" y1="90" x2="105" y2="90" stroke="rgba(212,168,87,0.5)" stroke-width="0.6"/>
+              </svg>
+            </div>
+            <div class="stream-name" data-i18n="s06.finpro">FinPro</div>
+          </div>
+        </div>
+        <div class="flip-face flip-back">
+          <video id="finproVideo" src="../videos/finflow.mp4" muted loop playsinline preload="metadata"></video>
+        </div>
+      </div>
+      <!-- кнопки живут вне переворачивающейся части: иначе они закрывают видео -->
+      <div class="fp-actions">
+        <button class="fp-act" id="fpMath" type="button" data-voice-action="s06.system.s02.a02" data-i18n="s06.act.math">Как это работает</button>
+        <button class="fp-act" id="fpCalc" type="button" data-voice-action="s06.system.s02.a03" data-i18n="s06.act.calc">Рассчитать доход</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модал «Математика FinFlow» -->
+  <div class="calc-modal" id="mathModal" data-no-click>
+    <div class="calc-shell">
+      <button class="calc-close" id="mathClose" type="button" aria-label="Закрыть">&#10005;</button>
+      <iframe id="mathFrame" src="about:blank" title="Математика FinFlow"></iframe>
+    </div>
+  </div>
+
+  <!-- Модал калькулятора FinFlow -->
+  <div class="calc-modal" id="calcModal" data-no-click>
+    <div class="calc-shell">
+      <button class="calc-close" id="calcClose" type="button" aria-label="Закрыть">&#10005;</button>
+      <iframe id="calcFrame" src="about:blank" title="Калькулятор FinFlow"></iframe>
+    </div>
+  </div>
+
+  <!-- 2. Растущий актив DA -->
+  <div class="stream stream-2" id="stream2">
+    <div class="stream-card">
+      <div class="stream-icon">
+        <svg width="0" height="0" style="position:absolute" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="daCoinFace" cx="0.35" cy="0.3" r="1.1">
+              <stop offset="0" stop-color="#2a2114"/>
+              <stop offset="0.6" stop-color="#171006"/>
+              <stop offset="1" stop-color="#0a0704"/>
+            </radialGradient>
+            <linearGradient id="daRim" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f5d98a"/>
+              <stop offset="0.5" stop-color="#c99a3f"/>
+              <stop offset="1" stop-color="#8a5f1a"/>
+            </linearGradient>
+            <linearGradient id="daCurve" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0" stop-color="rgba(212,168,87,0.15)"/>
+              <stop offset="0.6" stop-color="#d4a857"/>
+              <stop offset="1" stop-color="#ffe9ad"/>
+            </linearGradient>
+            <clipPath id="daCoinClip"><circle cx="46" cy="66" r="34"/></clipPath>
+          </defs>
+        </svg>
+        <div class="spin3d">
+         <div class="spin-inner da-spin">
+          <div class="spin-face spin-front">
+           <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <circle cx="60" cy="60" r="42" fill="url(#daCoinFace)" stroke="url(#daRim)" stroke-width="2.6"/>
+            <circle cx="60" cy="60" r="42" fill="none" stroke="rgba(138,95,26,0.8)" stroke-width="1.8" stroke-dasharray="1.6 3.6"/>
+            <circle cx="60" cy="60" r="34" fill="none" stroke="rgba(240,198,116,0.55)" stroke-width="1"/>
+            <circle cx="60" cy="60" r="31.8" fill="none" stroke="rgba(109,69,20,0.6)" stroke-width="0.5"/>
+            <text x="60" y="71" text-anchor="middle" font-family="Tenor Sans" font-size="27"
+                  fill="url(#daRim)" letter-spacing="2">DA</text>
+            <ellipse cx="45" cy="41" rx="10" ry="5" fill="rgba(255,250,220,0.28)" transform="rotate(-30 45 41)"/>
+           </svg>
+          </div>
+          <div class="spin-face spin-back">
+           <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <circle cx="60" cy="60" r="42" fill="url(#daCoinFace)" stroke="url(#daRim)" stroke-width="2.6"/>
+            <circle cx="60" cy="60" r="42" fill="none" stroke="rgba(138,95,26,0.8)" stroke-width="1.8" stroke-dasharray="1.6 3.6"/>
+            <circle cx="60" cy="60" r="34" fill="none" stroke="rgba(240,198,116,0.4)" stroke-width="0.8"/>
+            <path d="M 38 38 L 38 82 L 84 82" fill="none" stroke="rgba(212,168,87,0.5)" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M 40 78 L 50 70 L 58 73 L 68 58 L 74 61 L 84 44" fill="none"
+                  stroke="url(#daCurve)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <polygon points="84,44 76.5,44.5 82.5,51" fill="#ffe9ad"/>
+            <circle cx="40" cy="78" r="1.8" fill="#f0c674"/>
+            <circle cx="58" cy="73" r="1.8" fill="#f0c674"/>
+            <circle cx="74" cy="61" r="1.8" fill="#f0c674"/>
+           </svg>
+          </div>
+         </div>
+        </div>
+      </div>
+      <div class="stream-name" data-i18n="s06.da">Растущий <br>актив DA</div>
+    </div>
+  </div>
+
+  <!-- 3. RWA -->
+  <div class="stream stream-3" id="stream3">
+    <div class="stream-card">
+      <div class="stream-icon">
+        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <!-- линия земли -->
+          <line x1="4" y1="100" x2="116" y2="100" stroke="rgba(212,168,87,0.5)" stroke-width="1.2"/>
+          <!-- ОТЕЛЬ -->
+          <g>
+            <polygon points="8,48 26,36 44,48" fill="url(#goldV)" stroke="#6d4514" stroke-width="1" stroke-linejoin="round"/>
+            <polygon points="26,39.5 26.8,42 29.2,42 27.3,43.6 28,46 26,44.5 24,46 24.7,43.6 22.8,42 25.2,42" fill="#1a1410"/>
+            <rect x="10" y="48" width="32" height="52" fill="#0d0a08" stroke="url(#goldV)" stroke-width="1.4"/>
+            <g fill="#f0c674">
+              <rect class="rw-win w1" x="14" y="54" width="6" height="7"/>
+              <rect class="rw-win w2" x="23" y="54" width="6" height="7"/>
+              <rect class="rw-win w3" x="32" y="54" width="6" height="7"/>
+              <rect class="rw-win w2" x="14" y="66" width="6" height="7"/>
+              <rect class="rw-win w4" x="23" y="66" width="6" height="7"/>
+              <rect class="rw-win w1" x="32" y="66" width="6" height="7"/>
+              <rect class="rw-win w3" x="14" y="78" width="6" height="7"/>
+              <rect class="rw-win w1" x="32" y="78" width="6" height="7"/>
+            </g>
+            <rect x="22" y="88" width="8" height="12" fill="#3a2a14" stroke="url(#goldV)" stroke-width="0.6"/>
+          </g>
+          <!-- НЕФТЕКАЧАЛКА -->
+          <g>
+            <polygon points="60,100 68,100 64,74" fill="#0d0a08" stroke="url(#goldV)" stroke-width="1.2" stroke-linejoin="round"/>
+            <g class="rw-pump">
+              <rect x="48" y="72" width="32" height="3.6" rx="1.8" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/>
+              <circle cx="50" cy="74" r="4.6" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.7"/>
+              <ellipse cx="48.6" cy="72.6" rx="1.6" ry="1" fill="rgba(255,250,220,0.6)"/>
+              <polygon points="80,71 87,74 80,77.2" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/>
+            </g>
+            <circle cx="64" cy="74" r="1.8" fill="#6d4514"/>
+          </g>
+          <!-- ВЕТРЯК -->
+          <g>
+            <polygon points="99,100 103,100 101.8,62 100.2,62" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/>
+            <g class="rw-blades">
+              <g fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5">
+                <path d="M 101 62 L 98.4 60.2 L 100 34 L 103.6 60.2 Z"/>
+                <path d="M 101 62 L 98.4 60.2 L 100 34 L 103.6 60.2 Z" transform="rotate(120 101 62)"/>
+                <path d="M 101 62 L 98.4 60.2 L 100 34 L 103.6 60.2 Z" transform="rotate(240 101 62)"/>
+              </g>
+            </g>
+            <circle cx="101" cy="62" r="3" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.7"/>
+          </g>
+        </svg>
+      </div>
+      <div class="stream-name" data-i18n="s06.rwa">RWA</div>
+    </div>
+  </div>
+
+  <!-- Модал калькулятора партнёрской программы -->
+  <div class="calc-modal" id="partnerModal" data-no-click>
+    <div class="calc-shell">
+      <button class="calc-close" id="partnerClose" type="button" aria-label="Закрыть">&#10005;</button>
+      <iframe id="partnerFrame" src="about:blank" title="Калькулятор партнёрской программы"></iframe>
+    </div>
+  </div>
+
+  <!-- 4. Партнёрская программа (перевёртыш: калькулятор дохода) -->
+  <div class="stream stream-4" id="stream4" data-no-click>
+   <div class="flip3d" id="partnerFlip" data-no-click data-voice-action="s06.system.s05.a01">
+    <div class="flip-inner">
+     <div class="flip-face flip-front">
+      <div class="stream-card">
+       <div class="stream-icon">
+        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <!-- связи -->
+          <g stroke="url(#goldV)" stroke-width="1.1" fill="none" opacity="0.55">
+            <line x1="60" y1="30" x2="28" y2="66"/>
+            <line x1="60" y1="30" x2="60" y2="70"/>
+            <line x1="60" y1="30" x2="92" y2="66"/>
+            <line x1="28" y1="66" x2="14" y2="98"/>
+            <line x1="28" y1="66" x2="40" y2="98"/>
+            <line x1="60" y1="70" x2="60" y2="98"/>
+            <line x1="92" y1="66" x2="80" y2="98"/>
+            <line x1="92" y1="66" x2="106" y2="98"/>
+          </g>
+          <!-- искры дохода: стекаются к Вам -->
+          <circle class="pn-spark q1" r="2.6" fill="#fff5cc"/>
+          <circle class="pn-spark q2" r="2.6" fill="#fff5cc"/>
+          <circle class="pn-spark q3" r="2.6" fill="#fff5cc"/>
+          <!-- ВЫ: крупный узел с ореолом -->
+          <g class="pn-node n0">
+            <circle class="pn-halo" cx="60" cy="22" r="15" fill="rgba(240,198,116,0.18)"/>
+            <circle cx="60" cy="18.5" r="6.5" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.7"/>
+            <path d="M 51 33 Q 51 24 60 24 Q 69 24 69 33 Z" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.7"/>
+            <ellipse cx="57.5" cy="16" rx="2.2" ry="1.4" fill="rgba(255,250,220,0.65)" transform="rotate(-25 57.5 16)"/>
+          </g>
+          <!-- линия 1 -->
+          <g class="pn-node n1a"><circle cx="28" cy="61.5" r="5" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.6"/>
+            <path d="M 21 73 Q 21 66 28 66 Q 35 66 35 73 Z" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.6"/></g>
+          <g class="pn-node n1b"><circle cx="60" cy="65.5" r="5" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.6"/>
+            <path d="M 53 77 Q 53 70 60 70 Q 67 70 67 77 Z" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.6"/></g>
+          <g class="pn-node n1c"><circle cx="92" cy="61.5" r="5" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.6"/>
+            <path d="M 85 73 Q 85 66 92 66 Q 99 66 99 73 Z" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.6"/></g>
+          <!-- линия 2 -->
+          <g class="pn-node n2a"><circle cx="14" cy="94.5" r="4" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/>
+            <path d="M 8.5 104 Q 8.5 98 14 98 Q 19.5 98 19.5 104 Z" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/></g>
+          <g class="pn-node n2b"><circle cx="40" cy="94.5" r="4" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/>
+            <path d="M 34.5 104 Q 34.5 98 40 98 Q 45.5 98 45.5 104 Z" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/></g>
+          <g class="pn-node n2c"><circle cx="60" cy="94.5" r="4" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/>
+            <path d="M 54.5 104 Q 54.5 98 60 98 Q 65.5 98 65.5 104 Z" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/></g>
+          <g class="pn-node n2d"><circle cx="80" cy="94.5" r="4" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/>
+            <path d="M 74.5 104 Q 74.5 98 80 98 Q 85.5 98 85.5 104 Z" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/></g>
+          <g class="pn-node n2e"><circle cx="106" cy="94.5" r="4" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/>
+            <path d="M 100.5 104 Q 100.5 98 106 98 Q 111.5 98 111.5 104 Z" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/></g>
+        </svg>
+      </div>
+      <div class="stream-name" data-i18n="s06.partner">Партнёрская <br>программа</div>
+      </div>
+     </div>
+     <div class="flip-face flip-back">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"
+           style="width:100%;height:100%;display:block;background:radial-gradient(ellipse at 50% 20%, #16120a 0%, #050505 70%)">
+        <!-- корпус калькулятора -->
+        <rect x="26" y="12" width="48" height="70" rx="6"
+              fill="#0d0b07" stroke="url(#goldV)" stroke-width="1.4"/>
+        <rect x="27.2" y="13.2" width="45.6" height="67.6" rx="5"
+              fill="none" stroke="rgba(255,250,220,0.12)" stroke-width="0.6"/>
+        <!-- дисплей -->
+        <rect x="31" y="17" width="38" height="14" rx="2.5"
+              fill="#141007" stroke="rgba(240,198,116,0.55)" stroke-width="0.8"/>
+        <text x="66" y="26.8" text-anchor="end" font-family="'Tenor Sans',serif"
+              font-size="5.6" fill="#f0c674" letter-spacing="0.3">$3&#8201;000&#8201;000</text>
+        <!-- клавиши -->
+        <g fill="#171207" stroke="rgba(212,168,87,0.5)" stroke-width="0.6">
+          <rect x="31"   y="36" width="10" height="8" rx="2"/>
+          <rect x="45"   y="36" width="10" height="8" rx="2"/>
+          <rect x="59"   y="36" width="10" height="8" rx="2"/>
+          <rect x="31"   y="48" width="10" height="8" rx="2"/>
+          <rect x="45"   y="48" width="10" height="8" rx="2"/>
+          <rect x="59"   y="48" width="10" height="8" rx="2"/>
+          <rect x="31"   y="60" width="10" height="8" rx="2"/>
+          <rect x="45"   y="60" width="10" height="8" rx="2"/>
+        </g>
+        <!-- золотая клавиша = -->
+        <rect x="59" y="60" width="10" height="8" rx="2" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.6"/>
+        <text x="64" y="66.2" text-anchor="middle" font-family="'Tenor Sans',serif" font-size="6" fill="#1a1410">=</text>
+        <!-- блики клавиш -->
+        <g fill="rgba(255,250,220,0.6)" font-family="'Tenor Sans',serif" font-size="4.6" text-anchor="middle">
+          <text x="36" y="41.6">7</text><text x="50" y="41.6">8</text><text x="64" y="41.6">9</text>
+          <text x="36" y="53.6">4</text><text x="50" y="53.6">5</text><text x="64" y="53.6">6</text>
+          <text x="36" y="65.6">%</text><text x="50" y="65.6">+</text>
+        </g>
+        <!-- нижняя полоска корпуса -->
+        <rect x="31" y="72" width="38" height="4" rx="2" fill="rgba(212,168,87,0.18)"/>
+      </svg>
+      <div class="flip-back-hint" data-i18n="s06.hint.calc">Рассчитай доход</div>
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <!-- Модал карьерных рангов -->
+  <div class="calc-modal" id="careerModal" data-no-click>
+    <div class="calc-shell">
+      <button class="calc-close" id="careerClose" type="button" aria-label="Закрыть">&#10005;</button>
+      <iframe id="careerFrame" src="about:blank" title="Карьерные ранги"></iframe>
+    </div>
+  </div>
+
+  <!-- Модал высшей точки карьеры -->
+  <div class="calc-modal" id="vipModal" data-no-click>
+    <div class="calc-shell">
+      <button class="calc-close" id="vipClose" type="button" aria-label="Закрыть">&#10005;</button>
+      <iframe id="vipFrame" src="about:blank" title="NFT Limited Edition"></iframe>
+    </div>
+  </div>
+
+  <!-- 5. Карьера (перевёртыш: подарок -> карьерные ранги) -->
+  <div class="stream stream-5" id="stream5" data-no-click>
+   <div class="flip3d" id="careerFlip" data-no-click data-voice-action="s06.system.s06.a01">
+    <div class="flip-inner">
+     <div class="flip-face flip-front">
+      <div class="stream-card">
+       <div class="stream-icon">
+        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <!-- лесенка рисуется снизу вверх -->
+          <path class="cr-stairs" d="M14 108 L14 92 L40 92 L40 72 L66 72 L66 52 L92 52 L92 32 L108 32"
+                fill="none" stroke="url(#goldV)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- подарки на ступенях -->
+          <g class="cr-gift g1">
+            <rect x="20" y="80" width="14" height="12" rx="1.5" fill="#1a1410" stroke="url(#goldV)" stroke-width="1"/>
+            <rect x="20" y="84" width="14" height="2.5" fill="url(#goldV)"/>
+            <rect x="25.5" y="80" width="3" height="12" fill="url(#goldV)"/>
+            <path d="M27 80 Q24 76 22 79 M27 80 Q30 76 32 79" fill="none" stroke="url(#goldV)" stroke-width="1"/>
+          </g>
+          <g class="cr-gift g2">
+            <rect x="46" y="60" width="14" height="12" rx="1.5" fill="#1a1410" stroke="url(#goldV)" stroke-width="1"/>
+            <rect x="46" y="64" width="14" height="2.5" fill="url(#goldV)"/>
+            <rect x="51.5" y="60" width="3" height="12" fill="url(#goldV)"/>
+            <path d="M53 60 Q50 56 48 59 M53 60 Q56 56 58 59" fill="none" stroke="url(#goldV)" stroke-width="1"/>
+          </g>
+          <g class="cr-gift g3">
+            <rect x="72" y="40" width="14" height="12" rx="1.5" fill="#1a1410" stroke="url(#goldV)" stroke-width="1"/>
+            <rect x="72" y="44" width="14" height="2.5" fill="url(#goldV)"/>
+            <rect x="77.5" y="40" width="3" height="12" fill="url(#goldV)"/>
+            <path d="M79 40 Q76 36 74 39 M79 40 Q82 36 84 39" fill="none" stroke="url(#goldV)" stroke-width="1"/>
+          </g>
+          <!-- кубок на вершине -->
+          <g class="cr-cup">
+            <circle cx="100" cy="16" r="13" fill="rgba(240,198,116,0.14)"/>
+            <path d="M 92 6 L 108 6 L 106.5 16 Q 105 23 100 23 Q 95 23 93.5 16 Z"
+                  fill="url(#goldV)" stroke="#6d4514" stroke-width="0.8"/>
+            <path d="M 92 8 Q 86 9 88 14 Q 89.5 17.5 93.5 16.5" fill="none" stroke="url(#goldV)" stroke-width="1.6"/>
+            <path d="M 108 8 Q 114 9 112 14 Q 110.5 17.5 106.5 16.5" fill="none" stroke="url(#goldV)" stroke-width="1.6"/>
+            <rect x="98" y="23" width="4" height="3.6" fill="url(#goldV)"/>
+            <rect x="94.5" y="26.6" width="11" height="3" rx="1" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.5"/>
+            <ellipse cx="96" cy="9.5" rx="2.4" ry="1.4" fill="rgba(255,250,220,0.65)" transform="rotate(-22 96 9.5)"/>
+          </g>
+        </svg>
+       </div>
+       <div class="stream-name" data-i18n="s06.career">Карьера</div>
+      </div>
+     </div>
+     <div class="flip-face flip-back">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"
+           style="width:100%;height:100%;display:block;background:radial-gradient(ellipse at 50% 25%, #16120a 0%, #050505 70%)">
+        <!-- сияние за подарком -->
+        <ellipse cx="50" cy="55" rx="34" ry="30" fill="rgba(212,168,87,0.08)"/>
+        <!-- коробка -->
+        <rect x="26" y="46" width="48" height="34" rx="3" fill="#0f0c07" stroke="url(#goldV)" stroke-width="1.4"/>
+        <rect x="27.2" y="47.2" width="45.6" height="31.6" rx="2.2" fill="none" stroke="rgba(255,250,220,0.1)" stroke-width="0.6"/>
+        <!-- крышка -->
+        <rect x="22" y="36" width="56" height="12" rx="2.5" fill="#171208" stroke="url(#goldV)" stroke-width="1.4"/>
+        <rect x="23.2" y="37.2" width="53.6" height="9.6" rx="1.8" fill="none" stroke="rgba(255,250,220,0.12)" stroke-width="0.6"/>
+        <!-- лента вертикальная -->
+        <rect x="45" y="36" width="10" height="44" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.7"/>
+        <rect x="47" y="36" width="2.4" height="44" fill="rgba(255,250,220,0.5)"/>
+        <!-- бант -->
+        <path d="M 50 34 C 40 22, 28 26, 33 34 C 36 39, 45 37, 50 34 Z"
+              fill="url(#goldV)" stroke="#6d4514" stroke-width="0.8"/>
+        <path d="M 50 34 C 60 22, 72 26, 67 34 C 64 39, 55 37, 50 34 Z"
+              fill="url(#goldV)" stroke="#6d4514" stroke-width="0.8"/>
+        <circle cx="50" cy="34" r="4" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.8"/>
+        <circle cx="48.8" cy="32.8" r="1.3" fill="rgba(255,250,220,0.75)"/>
+        <!-- искры -->
+        <g fill="rgba(255,250,220,0.9)">
+          <path d="M 22 24 l 1.1 2.6 2.6 1.1 -2.6 1.1 -1.1 2.6 -1.1 -2.6 -2.6 -1.1 2.6 -1.1 Z"/>
+          <path d="M 78 20 l 1.4 3.2 3.2 1.4 -3.2 1.4 -1.4 3.2 -1.4 -3.2 -3.2 -1.4 3.2 -1.4 Z"/>
+          <path d="M 82 58 l 0.9 2 2 0.9 -2 0.9 -0.9 2 -0.9 -2 -2 -0.9 2 -0.9 Z"/>
+          <circle cx="18" cy="52" r="1"/>
+          <circle cx="70" cy="12" r="0.8"/>
+        </g>
+      </svg>
+      <div class="flip-back-hint" data-i18n="s06.hint.steps">Восемь ступеней</div>
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <!-- 6. VIP Club (перевёртыш: VIP NFT видео -> высшая точка карьеры) -->
+  <div class="stream stream-6" id="stream6" data-no-click>
+   <div class="flip3d" id="vipFlip" data-no-click data-voice-action="s06.system.s07.a01">
+    <div class="flip-inner">
+     <div class="flip-face flip-front">
+      <div class="stream-card">
+       <div class="stream-icon">
+        <svg width="0" height="0" style="position:absolute" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="vpCardBg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#1e1810"/>
+              <stop offset="0.5" stop-color="#0d0a07"/>
+              <stop offset="1" stop-color="#070503"/>
+            </linearGradient>
+            <clipPath id="vpClip"><rect x="2" y="22" width="116" height="76" rx="10"/></clipPath>
+          </defs>
+        </svg>
+        <div class="spin3d">
+         <div class="spin-inner vp-spin">
+          <div class="spin-face spin-front">
+           <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <rect x="2" y="22" width="116" height="76" rx="10" fill="url(#vpCardBg)" stroke="url(#goldV)" stroke-width="1"/>
+            <g clip-path="url(#vpClip)">
+              <rect x="8" y="28" width="104" height="64" rx="6" fill="none" stroke="rgba(212,168,87,0.3)" stroke-width="1"/>
+              <circle cx="20" cy="36" r="19" fill="rgba(240,198,116,0.12)"/>
+              <rect class="vp-shine" x="-34" y="22" width="28" height="76" fill="rgba(255,240,196,0.35)" transform="skewX(-18)"/>
+            </g>
+            <text x="60" y="62" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="600"
+                  font-size="27" letter-spacing="6" fill="url(#goldV)">VIP</text>
+            <g fill="url(#goldV)">
+              <polygon points="32,72 33.2,75.6 37,75.6 34,78 35.2,81.6 32,79.3 28.8,81.6 30,78 27,75.6 30.8,75.6"/>
+              <polygon points="46,72 47.2,75.6 51,75.6 48,78 49.2,81.6 46,79.3 42.8,81.6 44,78 41,75.6 44.8,75.6"/>
+              <polygon points="60,72 61.2,75.6 65,75.6 62,78 63.2,81.6 60,79.3 56.8,81.6 58,78 55,75.6 58.8,75.6"/>
+              <polygon points="74,72 75.2,75.6 79,75.6 76,78 77.2,81.6 74,79.3 70.8,81.6 72,78 69,75.6 72.8,75.6"/>
+              <polygon points="88,72 89.2,75.6 93,75.6 90,78 91.2,81.6 88,79.3 84.8,81.6 86,78 83,75.6 86.8,75.6"/>
+            </g>
+           </svg>
+          </div>
+          <div class="spin-face spin-back">
+           <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <rect x="2" y="22" width="116" height="76" rx="10" fill="url(#vpCardBg)" stroke="url(#goldV)" stroke-width="1"/>
+            <rect x="8" y="28" width="104" height="64" rx="6" fill="none" stroke="rgba(212,168,87,0.3)" stroke-width="1"/>
+            <rect x="2" y="30" width="116" height="9" fill="rgba(212,168,87,0.18)"/>
+            <text x="60" y="69" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="600"
+                  font-size="25" letter-spacing="1" fill="url(#goldV)">10%</text>
+            <text x="60" y="85" text-anchor="middle" font-family="Tenor Sans, serif"
+                  font-size="9" letter-spacing="1.6" fill="rgba(240,198,116,0.9)">ОТ ПЛАТФОРМЫ</text>
+           </svg>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="stream-name" data-i18n="s06.vip">VIP Club</div>
+      </div>
+     </div>
+     <div class="flip-face flip-back">
+      <video id="vipVideo" src="../videos/vip.mp4" muted loop playsinline preload="metadata"></video>
+      <div class="flip-back-hint" data-i18n="s06.hint.limited">Limited Edition</div>
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <!-- ВЫХОДНЫЕ КАРТЫ (внизу) -->
+  <div class="output-cards" id="outputCards">
+    <div class="out-card bank-out" id="bankOut">
+      <div class="out-chip"></div>
+      <div class="out-balance"><span class="bl" data-i18n="s06.balance">Balance</span><span class="bv" id="bankCounter">$0</span></div>
+      <div class="out-name" data-i18n="s06.yourname">YOUR NAME</div>
+      <div class="out-logo">Bank <em>Card</em></div>
+    </div>
+    <div class="out-card defi-out" id="defiOut">
+      <div class="out-chip"></div>
+      <div class="out-balance"><span class="bl" data-i18n="s06.balance">Balance</span><span class="bv" id="defiCounter">$0</span></div>
+      <div class="out-name" data-i18n="s06.yourname">YOUR NAME</div>
+      <div class="out-logo">DeFi <em>Card</em></div>
+    </div>
+  </div>
+
+  <!-- ИКОНКИ БЛАГ (перенос со слайда 05) -->
+  <div class="purchase purchase-1" id="purchase1">
+    <div class="purchase-icon">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bagG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#fff0c4"/>
+            <stop offset="50%" stop-color="#f0c674"/>
+            <stop offset="100%" stop-color="#8a5e1f"/>
+          </linearGradient>
+        </defs>
+        <path d="M 38 36 Q 38 18 50 18 Q 62 18 62 36" fill="none" stroke="url(#bagG)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 26 36 L 74 36 L 78 84 L 22 84 Z" fill="url(#bagG)" stroke="#6d4514" stroke-width="1.2" stroke-linejoin="round"/>
+        <rect x="46" y="50" width="8" height="6" rx="1" fill="#6d4514"/>
+        <circle cx="50" cy="62" r="2.5" fill="#6d4514"/>
+        <path d="M 30 40 L 36 40 L 38 60 L 32 60 Z" fill="rgba(255,250,220,0.4)"/>
+      </svg>
+    </div>
+    <div class="purchase-label" data-i18n="s06.style">Стиль</div>
+  </div>
+
+  <div class="purchase purchase-2" id="purchase2">
+    <div class="purchase-icon">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <rect x="32" y="10" width="36" height="80" rx="6" fill="#1a1410" stroke="url(#goldV)" stroke-width="2"/>
+        <rect x="36" y="18" width="28" height="60" rx="2" fill="#0d0a08" stroke="url(#goldV)" stroke-width="0.5"/>
+        <rect x="45" y="14" width="10" height="2" rx="1" fill="#6d4514"/>
+        <circle cx="50" cy="84" r="2.5" fill="#6d4514"/>
+        <g stroke="url(#goldV)" stroke-width="1" fill="none">
+          <line x1="40" y1="32" x2="60" y2="32"/>
+          <line x1="40" y1="38" x2="55" y2="38"/>
+          <path d="M 40 60 L 46 50 L 52 56 L 58 44 L 64 48" stroke-width="1.4"/>
+        </g>
+        <circle cx="58" cy="44" r="1.5" fill="#f0c674"/>
+        <rect x="38" y="20" width="4" height="20" rx="1" fill="rgba(255,250,220,0.25)"/>
+      </svg>
+    </div>
+    <div class="purchase-label" data-i18n="s06.gadgets">Гаджеты</div>
+  </div>
+
+  <div class="purchase purchase-3" id="purchase3">
+    <div class="purchase-icon">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="38" cy="34" rx="22" ry="26" fill="none" stroke="url(#goldV)" stroke-width="3.5"/>
+        <g stroke="url(#goldV)" stroke-width="0.7" opacity="0.7">
+          <line x1="22" y1="22" x2="54" y2="22"/>
+          <line x1="20" y1="30" x2="56" y2="30"/>
+          <line x1="20" y1="38" x2="56" y2="38"/>
+          <line x1="22" y1="46" x2="54" y2="46"/>
+          <line x1="30" y1="10" x2="30" y2="58"/>
+          <line x1="38" y1="8" x2="38" y2="60"/>
+          <line x1="46" y1="10" x2="46" y2="58"/>
+        </g>
+        <path d="M 32 56 L 36 64 L 40 64 L 44 56 Z" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.8"/>
+        <rect x="34" y="62" width="12" height="32" rx="3" fill="url(#goldV)" stroke="#6d4514" stroke-width="1"/>
+        <g stroke="#6d4514" stroke-width="0.6" opacity="0.7">
+          <line x1="34" y1="70" x2="46" y2="68"/>
+          <line x1="34" y1="76" x2="46" y2="74"/>
+          <line x1="34" y1="82" x2="46" y2="80"/>
+          <line x1="34" y1="88" x2="46" y2="86"/>
+        </g>
+        <circle cx="72" cy="62" r="14" fill="url(#goldV)" stroke="#6d4514" stroke-width="1.2"/>
+        <path d="M 60 56 Q 72 50 84 56" fill="none" stroke="#6d4514" stroke-width="0.8" opacity="0.7"/>
+        <path d="M 60 68 Q 72 74 84 68" fill="none" stroke="#6d4514" stroke-width="0.8" opacity="0.7"/>
+        <ellipse cx="68" cy="58" rx="4" ry="3" fill="rgba(255,250,220,0.55)"/>
+        <ellipse cx="28" cy="22" rx="3" ry="6" fill="rgba(255,250,220,0.5)"/>
+      </svg>
+    </div>
+    <div class="purchase-label" data-i18n="s06.leisure">Развлечения</div>
+  </div>
+
+  <div class="purchase purchase-4" id="purchase4">
+    <div class="purchase-icon">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <g transform="translate(0, 0)">
+          <ellipse cx="48" cy="22" rx="22" ry="3.5" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.8"/>
+          <polygon points="42,21 46,12 52,12 60,21" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.7" stroke-linejoin="round"/>
+          <polygon points="30,21 26,14 32,14 36,21" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.7" stroke-linejoin="round"/>
+          <circle cx="44" cy="22" r="0.8" fill="#0d0a08"/>
+          <circle cx="48" cy="22" r="0.8" fill="#0d0a08"/>
+          <circle cx="52" cy="22" r="0.8" fill="#0d0a08"/>
+          <circle cx="56" cy="22" r="0.8" fill="#0d0a08"/>
+          <ellipse cx="68" cy="22" rx="4" ry="2.2" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.6"/>
+        </g>
+        <path d="M 20 26 Q 30 30 38 28" fill="none" stroke="rgba(212,168,87,0.5)" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="3 2.5"/>
+        <path d="M 0 88 Q 12 84 24 88 Q 36 92 48 88 Q 60 84 72 88 Q 84 92 100 88 L 100 100 L 0 100 Z"
+              fill="rgba(111, 155, 209, 0.25)" stroke="rgba(111, 155, 209, 0.6)" stroke-width="0.8"/>
+        <path d="M 0 92 Q 14 89 28 92 Q 42 95 56 92 Q 70 89 84 92 Q 92 94 100 92 L 100 100 L 0 100 Z"
+              fill="rgba(80, 110, 160, 0.3)"/>
+        <ellipse cx="50" cy="84" rx="28" ry="6" fill="url(#goldV)" stroke="#6d4514" stroke-width="0.8"/>
+        <ellipse cx="50" cy="86" rx="26" ry="3" fill="rgba(0,0,0,0.2)"/>
+        <g transform="translate(50, 80)">
+          <path d="M 0 6 Q -2 -2 -3 -14 Q -3 -22 -1 -28" stroke="#6d4514" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="-3" cy="-26" r="2" fill="#6d4514" stroke="#3d2810" stroke-width="0.3"/>
+          <circle cx="0" cy="-25" r="2" fill="#6d4514" stroke="#3d2810" stroke-width="0.3"/>
+          <path d="M -1 -28 Q -10 -34 -16 -32" stroke="url(#goldV)" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+          <path d="M -1 -28 Q 8 -34 14 -32" stroke="url(#goldV)" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+          <path d="M -1 -28 Q -10 -32 -14 -22" stroke="url(#goldV)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M -1 -28 Q 9 -32 13 -22" stroke="url(#goldV)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M -1 -28 Q -1 -36 2 -40" stroke="url(#goldV)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </g>
+        <ellipse cx="42" cy="82" rx="10" ry="1.5" fill="rgba(255,250,220,0.5)"/>
+      </svg>
+    </div>
+    <div class="purchase-label" data-i18n="s06.travel">Путешествия</div>
+  </div>
+
+  <div class="purchase purchase-5" id="purchase5">
+    <div class="purchase-icon">
+      <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="carG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#fff0c4"/>
+            <stop offset="40%" stop-color="#f0c674"/>
+            <stop offset="100%" stop-color="#8a5e1f"/>
+          </linearGradient>
+        </defs>
+        <path d="M 30 38 L 38 22 Q 42 18 48 18 L 76 18 Q 82 18 86 22 L 94 38 Z"
+              fill="url(#carG)" stroke="#6d4514" stroke-width="1.2" stroke-linejoin="round"/>
+        <polygon points="40,36 44,24 60,24 60,36" fill="rgba(255,250,220,0.35)"/>
+        <polygon points="62,36 62,24 78,24 82,36" fill="rgba(255,250,220,0.35)"/>
+        <path d="M 18 50 L 26 38 L 98 38 L 106 50 L 102 64 L 22 64 Z"
+              fill="url(#carG)" stroke="#6d4514" stroke-width="1.2" stroke-linejoin="round"/>
+        <line x1="20" y1="50" x2="104" y2="50" stroke="#6d4514" stroke-width="0.6" opacity="0.5"/>
+        <circle cx="36" cy="64" r="9" fill="#1a1410" stroke="url(#goldV)" stroke-width="1.5"/>
+        <circle cx="36" cy="64" r="4" fill="url(#goldV)"/>
+        <circle cx="88" cy="64" r="9" fill="#1a1410" stroke="url(#goldV)" stroke-width="1.5"/>
+        <circle cx="88" cy="64" r="4" fill="url(#goldV)"/>
+        <circle cx="22" cy="50" r="2" fill="rgba(255,250,220,0.7)"/>
+        <circle cx="102" cy="50" r="2" fill="rgba(255,250,220,0.7)"/>
+      </svg>
+    </div>
+    <div class="purchase-label" data-i18n="s06.auto">Авто</div>
+  </div>
+
+  <div class="purchase purchase-6" id="purchase6">
+    <div class="purchase-icon">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="10,48 50,12 90,48" fill="url(#goldV)" stroke="#6d4514" stroke-width="1.5" stroke-linejoin="round"/>
+        <rect x="20" y="46" width="60" height="44" fill="#1a1410" stroke="url(#goldV)" stroke-width="1.5"/>
+        <rect x="42" y="64" width="16" height="26" fill="#3a2a14" stroke="url(#goldV)" stroke-width="0.8"/>
+        <circle cx="54" cy="78" r="1" fill="#f0c674"/>
+        <rect x="26" y="54" width="12" height="10" fill="#f0c674" opacity="0.8"/>
+        <rect x="62" y="54" width="12" height="10" fill="#f0c674" opacity="0.8"/>
+        <line x1="30" y1="40" x2="30" y2="46" stroke="#6d4514" stroke-width="0.6"/>
+        <line x1="70" y1="40" x2="70" y2="46" stroke="#6d4514" stroke-width="0.6"/>
+        <polygon points="50,18 51.5,22 56,22 52.5,25 54,30 50,27 46,30 47.5,25 44,22 48.5,22"
+                 fill="rgba(255,250,220,0.6)"/>
+        <rect x="14" y="90" width="72" height="3" fill="url(#goldV)"/>
+      </svg>
+    </div>
+    <div class="purchase-label" data-i18n="s06.realty">Недвижимость</div>
+  </div>
+
+  <!-- ФИНАЛЬНАЯ ФРАЗА (перенос со слайда 05) -->
+  <div class="final" id="final">
+    <div class="final-line" data-i18n="s06.final.line">Купили <em>один раз</em>. Получаете <em>десятилетиями</em>.</div>
+    <div class="final-sub" data-i18n="s06.final.sub">Каждый день &#8734; на протяжении всей предстоящей жизни</div>
+  </div>
+</section>
+
+<script>
+// =====================================================
+// SlideEngine
+// =====================================================
+const SlideEngine = (function(){
+  let total = 1, current = 1, onStep = null;
+  let wheelAcc = 0, lastWheel = 0;
+  let atEndArmed = false;
+  let atStartArmed = false;
+
+  function emit(type){
+    try { window.parent.postMessage({ source: 'slide', type: type }, '*'); } catch(e){}
+  }
+  function go(n){
+    if(n < 1){
+      if (atStartArmed) { emit('slide-end-backward'); atStartArmed = false; }
+      else atStartArmed = true;
+      return;
+    }
+    if(n > total){
+      if (atEndArmed) { emit('slide-end-forward'); atEndArmed = false; }
+      else atEndArmed = true;
+      return;
+    }
+    atEndArmed   = (n === total);
+    atStartArmed = (n === 1);
+    current = n;
+    if(onStep) onStep(current);
+  }
+  function next(){ go(current + 1); }
+  function prev(){ go(current - 1); }
+  function reset(){ atEndArmed = false; atStartArmed = true; current = 0; go(1); }
+
+  function init(opts){
+    total = opts.totalSteps || 1;
+    onStep = opts.onStep || null;
+    document.addEventListener('keydown', e => {
+      if(['ArrowRight','PageDown','Space','Enter'].includes(e.code)){ e.preventDefault(); next(); }
+      else if(['ArrowLeft','PageUp'].includes(e.code)){ e.preventDefault(); prev(); }
+      else if(e.code === 'Escape' || e.key === 'r' || e.key === 'R'){ e.preventDefault(); reset(); }
+    });
+    document.addEventListener('wheel', e => {
+      const now = Date.now();
+      if(now - lastWheel < 600) return;
+      wheelAcc += e.deltaY;
+      if(Math.abs(wheelAcc) > 80){
+        if(wheelAcc > 0) next(); else prev();
+        wheelAcc = 0; lastWheel = now;
+      }
+    }, { passive: true });
+    document.addEventListener('click', () => next());
+    window.addEventListener('message', e => {
+      const msg = e.data;
+      if (!msg || msg.source !== 'deck') return;
+      if (msg.type === 'goto-last-step') go(total);
+    });
+    go(1);
+  }
+  return { init, next, prev, go, reset };
+})();
+
+// =====================================================
+// СТРЕЛКИ — строятся ОДИН РАЗ при инициализации
+// =====================================================
+const dotAnims = {};
+
+function buildAllArrows(){
+  const layer = document.getElementById('arrowsLayer');
+  if (!layer) return;
+  layer.innerHTML = '';
+
+  const svgEl = document.getElementById('arrowsSvg');
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+  // Координаты NFT
+  const nft = document.getElementById('nftCard').getBoundingClientRect();
+  const nftCx = nft.left + nft.width / 2;
+  const nftCy = nft.top + nft.height / 2;
+  const nftRx = nft.width / 2 * 0.92;
+  const nftRy = nft.height / 2 * 0.92;
+
+  const ns = 'http://www.w3.org/2000/svg';
+
+  // 6 стрелок от потоков к NFT
+  for (let i = 1; i <= 6; i++){
+    const s = document.getElementById(`stream${i}`);
+    if (!s) continue;
+    const r = s.getBoundingClientRect();
+    const sx = r.left + r.width / 2;
+    const sy = r.top + r.height / 2;
+
+    const dx = nftCx - sx;
+    const dy = nftCy - sy;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    const ux = dx / len, uy = dy / len;
+
+    // Точка касания эллипса (приблизительно)
+    const ellipseR = (nftRx * nftRy) / Math.sqrt(Math.pow(nftRy * ux, 2) + Math.pow(nftRx * uy, 2));
+    const ex = nftCx - ux * ellipseR;
+    const ey = nftCy - uy * ellipseR;
+
+    const cardR = Math.min(r.width, r.height) / 2 * 0.85;
+    const bx = sx + ux * cardR;
+    const by = sy + uy * cardR;
+
+    const midX = (bx + ex) / 2;
+    const midY = (by + ey) / 2;
+    const perpX = -uy * 15;
+    const perpY = ux * 15;
+    const cpX = midX + perpX;
+    const cpY = midY + perpY;
+
+    const path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', `M ${bx} ${by} Q ${cpX} ${cpY} ${ex} ${ey}`);
+    path.setAttribute('class', 'arrow-path');
+    path.setAttribute('id', `arrow-path-${i}`);
+    layer.appendChild(path);
+
+    const actualLen = path.getTotalLength();
+    path.style.strokeDasharray = actualLen;
+    path.style.strokeDashoffset = actualLen;
+    path.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1)';
+    path.dataset.length = actualLen;
+
+    const arrowSize = 7;
+    const arrowAngle = Math.atan2(ey - cpY, ex - cpX);
+    const ax1 = ex - arrowSize * Math.cos(arrowAngle - Math.PI / 6);
+    const ay1 = ey - arrowSize * Math.sin(arrowAngle - Math.PI / 6);
+    const ax2 = ex - arrowSize * Math.cos(arrowAngle + Math.PI / 6);
+    const ay2 = ey - arrowSize * Math.sin(arrowAngle + Math.PI / 6);
+
+    const head = document.createElementNS(ns, 'polygon');
+    head.setAttribute('points', `${ex},${ey} ${ax1},${ay1} ${ax2},${ay2}`);
+    head.setAttribute('class', 'arrow-head');
+    head.setAttribute('id', `arrow-head-${i}`);
+    layer.appendChild(head);
+
+    const dot = document.createElementNS(ns, 'circle');
+    dot.setAttribute('r', '3');
+    dot.setAttribute('class', 'arrow-dot');
+    dot.setAttribute('id', `arrow-dot-${i}`);
+    layer.appendChild(dot);
+  }
+
+  // 2 стрелки от NFT к выходным картам
+  const outBank = document.getElementById('bankOut');
+  const outDefi = document.getElementById('defiOut');
+  if (!outBank || !outDefi) return;
+
+  const nftBottomY = nft.bottom;
+  const bankRect = outBank.getBoundingClientRect();
+  const defiRect = outDefi.getBoundingClientRect();
+
+  // К Bank
+  const bx = bankRect.left + bankRect.width / 2;
+  const by = bankRect.top + 5;
+  const cpX1 = nftCx - (nftCx - bx) * 0.5;
+  const cpY1 = nftBottomY + 30;
+
+  const bankPath = document.createElementNS(ns, 'path');
+  bankPath.setAttribute('d', `M ${nftCx} ${nftBottomY} Q ${cpX1} ${cpY1} ${bx} ${by}`);
+  bankPath.setAttribute('class', 'arrow-path');
+  bankPath.setAttribute('id', 'arrow-bank-path');
+  layer.appendChild(bankPath);
+  const bLen = bankPath.getTotalLength();
+  bankPath.style.strokeDasharray = bLen;
+  bankPath.style.strokeDashoffset = bLen;
+  bankPath.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1)';
+  bankPath.dataset.length = bLen;
+
+  const bAngle = Math.atan2(by - cpY1, bx - cpX1);
+  const bSize = 8;
+  const bax1 = bx - bSize * Math.cos(bAngle - Math.PI / 6);
+  const bay1 = by - bSize * Math.sin(bAngle - Math.PI / 6);
+  const bax2 = bx - bSize * Math.cos(bAngle + Math.PI / 6);
+  const bay2 = by - bSize * Math.sin(bAngle + Math.PI / 6);
+  const bHead = document.createElementNS(ns, 'polygon');
+  bHead.setAttribute('points', `${bx},${by} ${bax1},${bay1} ${bax2},${bay2}`);
+  bHead.setAttribute('class', 'arrow-head');
+  bHead.setAttribute('id', 'arrow-bank-head');
+  layer.appendChild(bHead);
+
+  const bDot = document.createElementNS(ns, 'circle');
+  bDot.setAttribute('r', '3');
+  bDot.setAttribute('class', 'arrow-dot');
+  bDot.setAttribute('id', 'arrow-bank-dot');
+  layer.appendChild(bDot);
+
+  // К DeFi
+  const dx_ = defiRect.left + defiRect.width / 2;
+  const dy_ = defiRect.top + 5;
+  const cpX2 = nftCx + (dx_ - nftCx) * 0.5;
+  const cpY2 = nftBottomY + 30;
+
+  const defiPath = document.createElementNS(ns, 'path');
+  defiPath.setAttribute('d', `M ${nftCx} ${nftBottomY} Q ${cpX2} ${cpY2} ${dx_} ${dy_}`);
+  defiPath.setAttribute('class', 'arrow-path-cold');
+  defiPath.setAttribute('id', 'arrow-defi-path');
+  layer.appendChild(defiPath);
+  const dLen = defiPath.getTotalLength();
+  defiPath.style.strokeDasharray = dLen;
+  defiPath.style.strokeDashoffset = dLen;
+  defiPath.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1)';
+  defiPath.dataset.length = dLen;
+
+  const dAngle = Math.atan2(dy_ - cpY2, dx_ - cpX2);
+  const dSize = 8;
+  const dax1 = dx_ - dSize * Math.cos(dAngle - Math.PI / 6);
+  const day1 = dy_ - dSize * Math.sin(dAngle - Math.PI / 6);
+  const dax2 = dx_ - dSize * Math.cos(dAngle + Math.PI / 6);
+  const day2 = dy_ - dSize * Math.sin(dAngle + Math.PI / 6);
+  const dHead = document.createElementNS(ns, 'polygon');
+  dHead.setAttribute('points', `${dx_},${dy_} ${dax1},${day1} ${dax2},${day2}`);
+  dHead.setAttribute('class', 'arrow-head-cold');
+  dHead.setAttribute('id', 'arrow-defi-head');
+  layer.appendChild(dHead);
+
+  const dDot = document.createElementNS(ns, 'circle');
+  dDot.setAttribute('r', '3');
+  dDot.setAttribute('class', 'arrow-dot-cold');
+  dDot.setAttribute('id', 'arrow-defi-dot');
+  layer.appendChild(dDot);
+}
+
+function drawArrow(id){
+  const path = document.getElementById(`arrow-path-${id}`);
+  const head = document.getElementById(`arrow-head-${id}`);
+  if (!path) return;
+  path.style.strokeDashoffset = '0';
+  if (head) head.classList.add('drawn');
+  startDot(id);
+}
+
+function hideArrow(id){
+  const path = document.getElementById(`arrow-path-${id}`);
+  const head = document.getElementById(`arrow-head-${id}`);
+  const dot = document.getElementById(`arrow-dot-${id}`);
+  if (path) path.style.strokeDashoffset = path.dataset.length || '600';
+  if (head) head.classList.remove('drawn');
+  if (dot) { dot.classList.remove('active'); stopDot(id); }
+}
+
+function drawOutputArrow(name){
+  const path = document.getElementById(`arrow-${name}-path`);
+  const head = document.getElementById(`arrow-${name}-head`);
+  if (!path) return;
+  path.style.strokeDashoffset = '0';
+  if (head) head.classList.add('drawn');
+  startOutputDot(name);
+}
+function hideOutputArrow(name){
+  const path = document.getElementById(`arrow-${name}-path`);
+  const head = document.getElementById(`arrow-${name}-head`);
+  const dot = document.getElementById(`arrow-${name}-dot`);
+  if (path) path.style.strokeDashoffset = path.dataset.length || '600';
+  if (head) head.classList.remove('drawn');
+  if (dot) { dot.classList.remove('active'); stopDot(`out-${name}`); }
+}
+
+function startDot(id){
+  const dot = document.getElementById(`arrow-dot-${id}`);
+  const path = document.getElementById(`arrow-path-${id}`);
+  if (!dot || !path) return;
+  const len = parseFloat(path.dataset.length || path.getTotalLength());
+  dot.classList.add('active');
+  stopDot(id);
+  const startTime = performance.now();
+  function tick(now){
+    const t = ((now - startTime) / 1500) % 1;
+    try {
+      const p = path.getPointAtLength(t * len);
+      dot.setAttribute('cx', p.x);
+      dot.setAttribute('cy', p.y);
+    } catch(e) {}
+    dotAnims[id] = requestAnimationFrame(tick);
+  }
+  dotAnims[id] = requestAnimationFrame(tick);
+}
+function startOutputDot(name){
+  const dot = document.getElementById(`arrow-${name}-dot`);
+  const path = document.getElementById(`arrow-${name}-path`);
+  if (!dot || !path) return;
+  const len = parseFloat(path.dataset.length || path.getTotalLength());
+  dot.classList.add('active');
+  const key = `out-${name}`;
+  stopDot(key);
+  const startTime = performance.now();
+  function tick(now){
+    const t = ((now - startTime) / 1700) % 1;
+    try {
+      const p = path.getPointAtLength(t * len);
+      dot.setAttribute('cx', p.x);
+      dot.setAttribute('cy', p.y);
+    } catch(e) {}
+    dotAnims[key] = requestAnimationFrame(tick);
+  }
+  dotAnims[key] = requestAnimationFrame(tick);
+}
+function stopDot(id){
+  if (dotAnims[id]) {
+    cancelAnimationFrame(dotAnims[id]);
+    delete dotAnims[id];
+  }
+}
+
+// =====================================================
+// Логика шагов — БЕЗ ДВИЖЕНИЯ
+// =====================================================
+const els = {
+  eyebrow:    document.getElementById('eyebrow'),
+  nftCard:    document.getElementById('nftCard'),
+  outputCards:document.getElementById('outputCards'),
+  final:      document.getElementById('final'),
+  streams: [
+    null,
+    document.getElementById('stream1'),
+    document.getElementById('stream2'),
+    document.getElementById('stream3'),
+    document.getElementById('stream4'),
+    document.getElementById('stream5'),
+    document.getElementById('stream6'),
+  ],
+  purchases: [
+    null,
+    document.getElementById('purchase1'),
+    document.getElementById('purchase2'),
+    document.getElementById('purchase3'),
+    document.getElementById('purchase4'),
+    document.getElementById('purchase5'),
+    document.getElementById('purchase6'),
+  ],
+};
+
+// === Счётчики на выходных картах (перенос со слайда 05) ===
+const counterAnims = {};
+function animateCounter(id, targetValue, duration = 1400){
+  const el = document.getElementById(id);
+  if (counterAnims[id]) cancelAnimationFrame(counterAnims[id]);
+  const startValue = parseInt(el.textContent.replace(/[^\d]/g, '')) || 0;
+  if (startValue === targetValue) return;
+  const startTime = performance.now();
+  function tick(now){
+    const t = Math.min(1, (now - startTime) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = '$' + Math.floor(startValue + (targetValue - startValue) * eased).toLocaleString('en-US');
+    if (t < 1) counterAnims[id] = requestAnimationFrame(tick);
+    else counterAnims[id] = null;
+  }
+  el.classList.remove('pulse');
+  void el.offsetWidth;
+  el.classList.add('pulse');
+  counterAnims[id] = requestAnimationFrame(tick);
+}
+function setCounters(target, duration){
+  animateCounter('bankCounter', target, duration);
+  animateCounter('defiCounter', target, duration);
+}
+
+const purchaseTimers = [];
+function setPurchase(idx, show, fresh, delay){
+  const p = els.purchases[idx];
+  if (!p) return;
+  if (show) {
+    if (fresh && delay) {
+      purchaseTimers.push(setTimeout(() => {
+        p.classList.add('shown');
+        p.classList.remove('fresh');
+        void p.offsetWidth;
+        p.classList.add('fresh');
+      }, delay));
+    } else {
+      p.classList.add('shown');
+    }
+  } else {
+    p.classList.remove('shown');
+    p.classList.remove('fresh');
+  }
+}
+
+let prevStep6 = 0;
+
+function step(n){
+  // Сброс
+  purchaseTimers.forEach(clearTimeout);
+  purchaseTimers.length = 0;
+  els.eyebrow.classList.remove('shown');
+  els.nftCard.classList.remove('shown');
+  els.outputCards.classList.remove('shown');
+  els.final.classList.remove('shown');
+  for (let i = 1; i <= 6; i++) {
+    els.streams[i].classList.remove('shown');
+    hideArrow(i);
+    setPurchase(i, false, false, 0);
+  }
+  hideOutputArrow('bank');
+  hideOutputArrow('defi');
+
+  if (n >= 1){
+    els.eyebrow.classList.add('shown');
+    els.nftCard.classList.add('shown');
+  }
+  if (n >= 2){
+    els.streams[1].classList.add('shown');
+    setTimeout(() => drawArrow(1), 350);
+  }
+  if (n >= 3){
+    els.streams[2].classList.add('shown');
+    setTimeout(() => drawArrow(2), 350);
+  }
+  if (n >= 4){
+    els.streams[3].classList.add('shown');
+    setTimeout(() => drawArrow(3), 350);
+  }
+  if (n >= 5){
+    els.streams[4].classList.add('shown');
+    setTimeout(() => drawArrow(4), 350);
+  }
+  if (n >= 6){
+    els.streams[5].classList.add('shown');
+    setTimeout(() => drawArrow(5), 350);
+  }
+  if (n >= 7){
+    els.streams[6].classList.add('shown');
+    setTimeout(() => drawArrow(6), 350);
+  }
+  if (n >= 8){
+    // Выходные карты появляются на готовой композиции
+    els.outputCards.classList.add('shown');
+    setTimeout(() => {
+      drawOutputArrow('bank');
+      setTimeout(() => drawOutputArrow('defi'), 300);
+    }, 600);
+  }
+
+  // Шаг 9: левая тройка благ + счётчики разгоняются
+  // Шаг 10: правая тройка + счётчики до $3,000,000
+  const freshLeft = (n === 9 && prevStep6 < 9);
+  const freshRight = (n === 10 && prevStep6 < 10);
+  if (n >= 9){
+    setPurchase(1, true, freshLeft, 100);
+    setPurchase(2, true, freshLeft, 400);
+    setPurchase(3, true, freshLeft, 700);
+  }
+  if (n >= 10){
+    setPurchase(4, true, freshRight, 100);
+    setPurchase(5, true, freshRight, 400);
+    setPurchase(6, true, freshRight, 700);
+  }
+
+  // Счётчики карт
+  if (n < 8){
+    document.getElementById('bankCounter').textContent = '$0';
+    document.getElementById('defiCounter').textContent = '$0';
+  } else if (n === 8){
+    setCounters(0);
+    document.getElementById('bankCounter').textContent = '$0';
+    document.getElementById('defiCounter').textContent = '$0';
+  } else if (n === 9){
+    setCounters(1500000);
+  } else if (n >= 10){
+    setCounters(3000000, 6000); /* набегает 6 секунд: даём цифре пожить */
+  }
+
+  if (n >= 11){
+    els.final.classList.add('shown');
+  }
+
+  prevStep6 = n;
+}
+
+function start(){
+  requestAnimationFrame(() => {
+    buildAllArrows();
+    SlideEngine.init({
+      totalSteps: 11,
+      slideNumber: 6,
+      slideTotal: 16,
+      onStep: (n) => { window._currentStep = n; step(n); }
+    });
+  });
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  requestAnimationFrame(start);
+} else {
+  window.addEventListener('DOMContentLoaded', () => requestAnimationFrame(start));
+}
+
+window.addEventListener('resize', () => {
+  buildAllArrows();
+  step(window._currentStep || 1);
+});
+
+
+/* ===== Телефон: окна открываем на уровне лаунчера, в полный экран =====
+   Внутри масштабированного кадра вложенное окно не увидит своей
+   мобильной вёрстки, поэтому просим родителя открыть его поверх всего. */
+window.__isPhone = false;
+window.addEventListener('message', (e) => {
+  const m = e.data;
+  if (m && m.source === 'deck' && m.type === 'env') window.__isPhone = !!m.phone;
+});
+function openScreenOrModal(src, openLocal) {
+  if (window.__isPhone && window.parent !== window) {
+    try {
+      window.parent.postMessage(
+        { source: 'slide', type: 'open-screen', url: new URL(src, location.href).href }, '*');
+      return;
+    } catch (e) {}
+  }
+  openLocal();
+}
+
+/* ============ FinPro: перевёртыш + калькулятор FinFlow ============ */
+(function(){
+  const flip = document.getElementById('finproFlip');
+  const video = document.getElementById('finproVideo');
+  const modal = document.getElementById('calcModal');
+  const frame = document.getElementById('calcFrame');
+  const closeBtn = document.getElementById('calcClose');
+  if (!flip) return;
+
+  /* 1-й клик по карточке: переворот на видео. Дальше выбор кнопками. */
+  flip.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!flip.classList.contains('flipped')) {
+      flip.classList.add('flipped');
+      video.currentTime = 0;
+      video.play().catch(() => {});
+    }
+  });
+
+  function openCalc(e) {
+    e.stopPropagation();
+    openScreenOrModal('../calc/finflow_calculator_lite.html', () => {
+      if (!frame.dataset.loaded) {
+        frame.src = '../calc/finflow_calculator_lite.html';
+        frame.dataset.loaded = '1';
+      }
+      modal.classList.add('open');
+    });
+  }
+  document.getElementById('fpCalc').addEventListener('click', openCalc);
+
+  /* Математика FinFlow: отдельный модал */
+  const mModal = document.getElementById('mathModal');
+  const mFrame = document.getElementById('mathFrame');
+  /* Подсказка верхнему окну: вложенный экран смонтирован/снят. Верх всё равно
+     перепроверяет живое дерево iframe, видимость и origin перед озвучкой. */
+  function notifyVoiceMount(type) {
+    try { window.parent.postMessage({ source: 'slide', type: type }, '*'); } catch (e) {}
+  }
+  document.getElementById('fpMath').addEventListener('click', (e) => {
+    e.stopPropagation();
+    openScreenOrModal('slide_08_finflow.html', () => {
+      if (!mFrame.dataset.loaded) {
+        mFrame.src = 'slide_08_finflow.html';
+        mFrame.dataset.loaded = '1';
+      }
+      mModal.classList.add('open');
+      notifyVoiceMount('voice-mount');
+    });
+  });
+  function closeMath() {
+    mModal.classList.remove('open');
+    notifyVoiceMount('voice-unmount');
+    setTimeout(() => {
+      flip.classList.remove('flipped');
+      video.pause();
+      mFrame.src = 'about:blank';
+      delete mFrame.dataset.loaded;
+    }, 350);
+  }
+  document.getElementById('mathClose').addEventListener('click', (e) => { e.stopPropagation(); closeMath(); });
+  mModal.addEventListener('click', (e) => { e.stopPropagation(); if (e.target === mModal) closeMath(); });
+
+  function closeCalc() {
+    modal.classList.remove('open');
+    /* сворачиваемся: видео ещё мгновение, затем переворот обратно */
+    setTimeout(() => {
+      flip.classList.remove('flipped');
+      video.pause();
+      /* сброс калькулятора к настройкам по умолчанию */
+      frame.src = 'about:blank';
+      delete frame.dataset.loaded;
+    }, 350);
+  }
+
+  closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeCalc(); });
+  modal.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (e.target === modal) closeCalc();
+  });
+})();
+
+/* ============ Партнёрская программа: перевёртыш + калькулятор маркетинга ============ */
+(function(){
+  const flip = document.getElementById('partnerFlip');
+  const modal = document.getElementById('partnerModal');
+  const frame = document.getElementById('partnerFrame');
+  const closeBtn = document.getElementById('partnerClose');
+  if (!flip) return;
+
+  flip.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!flip.classList.contains('flipped')) {
+      /* 1-й клик: переворот на калькулятор */
+      flip.classList.add('flipped');
+    } else {
+      /* 2-й клик: калькулятор поверх слайда */
+      openScreenOrModal('slide_07c_simple_calc.html', () => {
+        if (!frame.dataset.loaded) {
+          frame.src = 'slide_07c_simple_calc.html';
+          frame.dataset.loaded = '1';
+        }
+        modal.classList.add('open');
+      });
+    }
+  });
+
+  function closePartner() {
+    modal.classList.remove('open');
+    setTimeout(() => {
+      flip.classList.remove('flipped');
+      frame.src = 'about:blank';
+      delete frame.dataset.loaded;
+    }, 350);
+  }
+
+  closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closePartner(); });
+  modal.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (e.target === modal) closePartner();
+  });
+})();
+
+/* ============ Карьера и VIP: перевёртыши + встроенные слайды ============ */
+function wireFlipModal(flipId, modalId, frameId, closeId, src, videoId){
+  const flip = document.getElementById(flipId);
+  const modal = document.getElementById(modalId);
+  const frame = document.getElementById(frameId);
+  const closeBtn = document.getElementById(closeId);
+  const video = videoId ? document.getElementById(videoId) : null;
+  if (!flip) return;
+
+  function notifyVoiceMount(type) {
+    try { window.parent.postMessage({ source: 'slide', type: type }, '*'); } catch (e) {}
+  }
+
+  flip.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!flip.classList.contains('flipped')) {
+      flip.classList.add('flipped');
+      if (video) { video.currentTime = 0; video.play().catch(() => {}); }
+    } else {
+      openScreenOrModal(src, () => {
+        if (!frame.dataset.loaded) { frame.src = src; frame.dataset.loaded = '1'; }
+        modal.classList.add('open');
+        notifyVoiceMount('voice-mount');
+      });
+    }
+  });
+
+  function close() {
+    modal.classList.remove('open');
+    notifyVoiceMount('voice-unmount');
+    setTimeout(() => {
+      flip.classList.remove('flipped');
+      if (video) video.pause();
+      /* сброс содержимого: при следующем открытии всё с чистого листа */
+      frame.src = 'about:blank';
+      delete frame.dataset.loaded;
+    }, 350);
+  }
+  closeBtn.addEventListener('click', (e) => { e.stopPropagation(); close(); });
+  modal.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (e.target === modal) close();
+  });
+}
+wireFlipModal('careerFlip', 'careerModal', 'careerFrame', 'careerClose', 'slide_09_ranks.html');
+wireFlipModal('vipFlip', 'vipModal', 'vipFrame', 'vipClose', 'slide_10_vip.html', 'vipVideo');
+wireFlipModal('nftFlip', 'nftModal', 'nftFrame', 'nftClose', 'slide_04_inside.html');
+</script>
+<div id="voiceRoot"></div>
+<script src="../shared/voice/voice-autoplay.js"></script>
+<script src="../shared/voice/voice-boot.js"></script>
+</body>
+</html>
