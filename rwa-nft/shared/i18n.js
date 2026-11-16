@@ -354,7 +354,7 @@
     's14.q':         { en: 'What income can you receive?', it: 'Quale reddito puoi ottenere?', ka: 'რა შემოსავლის მიღება შეიძლება?' },
     's14.cap1':      { en: 'per year. Financial products', it: 'all’anno. Prodotti finanziari', ka: 'წელიწადში. ფინანსური პროდუქტები' },
     's14.cap2':      { en: 'per year. DA growth potential', it: 'all’anno. Potenziale di crescita DA', ka: 'წელიწადში. DA-ს ზრდის პოტენციალი' },
-    's14.cta':       { en: 'Buy your first NFT', it: 'Acquista il tuo primo NFT', ka: 'იყიდეთ თქვენი პირველი NFT' },
+    's14.cta':       { en: 'Activate your first NFT', it: 'Attiva il tuo primo NFT', ka: 'გაააქტიურეთ თქვენი პირველი NFT' },
     /* оборот карточки */
     's14.b.levels':  { en: 'Marketing levels', it: 'Livelli di marketing', ka: 'მარკეტინგის დონეები' },
     's14.b.of':      { en: 'of 22',           it: 'di 22',          ka: '22-დან' },

@@ -1,0 +1,840 @@
+/*
+ * Listening lock — keep the deck on the current step until the narration that
+ * is actually sounding has ended.
+ *
+ * The presentation used to break its own speech on a fast wheel/click/swipe:
+ * the step changed, the controller selected the next segment and the audio was
+ * cut mid-word. This helper guards navigation while, and only while, the live
+ * controller reports `playing` or `starting`.
+ *
+ * Contract:
+ *   window.VoiceListeningLock.createListeningLock({
+ *     doc, win,
+ *     getController: () => state.controller,   // called on every check
+ *     isStarted: () => gateStarted(),
+ *     isHelpOpen: () => helpState,
+ *   }) -> { update(snapshot), bindDocument(doc), unbindDocument(doc),
+ *           isLocked(), destroy() }
+ *
+ *  - `update(snapshot)` is called by the boot render with controller.snapshot()
+ *    and is only a hint (hint language); `isLocked()` always asks the live
+ *    controller, because it is replaced after scenario.json finishes loading.
+ *  - `playing`/`starting` lock. `ended` and every failure/absence of speech
+ *    (`error`, `unavailable`, `unsupported`, `disabled`, `idle`, `ready`,
+ *    `blocked`, `needs-gesture`, `paused`) unlock. A pause therefore never
+ *    becomes an eternal lock with no way to resume; help owns its own inert
+ *    background while it is open.
+ *  - The guard is capture-phase on the top window and on every reachable
+ *    same-origin iframe document (bounded depth, rebound on frame `load`), so
+ *    synthetic global keys (VoiceArrows) are guarded exactly like physical
+ *    ones. `isTrusted` is deliberately not consulted.
+ *  - Startup Play (`.voice-gate-play`), the fallback `.voice-play`, Help
+ *    (`[data-voice-help]`, `.voice-help`, `.voice-help-dialog`) and the
+ *    non-navigation screen close stay usable. Plain hover (`mousemove`,
+ *    `pointermove`) is not intercepted.
+ *  - Navigation postMessages from slide frames (`slide-end-*`, `open-screen`,
+ *    ...) are dropped in the window capture phase. Service messages
+ *    (`step-changed`, `voice-registration`, deck control) pass untouched.
+ *  - Blocked input is neither buffered nor replayed after `ended`; the user
+ *    must make a fresh gesture.
+ *  - The hint is one element with inline, prefixed styles. It is throttled, so
+ *    a hundred wheel ticks still schedule one timer. There is no global timer
+ *    override and no delay after `ended`.
+ *
+ * Post-ended navigation:
+ *  - Once the live controller reports `ended` (not a timer, not `ready`), the
+ *    helper shows a pair of round 44px+ buttons: a calm Prev and a warm-gold
+ *    pulsing Next. They are hidden for playing/starting/paused/idle/ready/
+ *    error, while Help is open, and before the start gate.
+ *  - `onNavigate('next'|'prev')` is optional; without it no controls are
+ *    created. `getNavigationState()` may hide an unavailable direction
+ *    (`{hasNext, hasPrevious}`); both missing means one or both ends.
+ *  - A click hides the pair synchronously before calling `onNavigate`, so a
+ *    fast double click cannot skip a step through the `ready` microtask.
+ *  - The helper never calls nextStep/openScreen itself; the parent dispatches
+ *    the real gesture into the live frame.
+ *
+ * No audio is created or fetched here; the module never talks to a provider.
+ */
+(function (root, factory) {
+  'use strict';
+  const api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.VoiceListeningLock = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  'use strict';
+
+  const LOCK_STATUSES = new Set(['playing', 'starting']);
+  const MAX_FRAME_DEPTH = 4;
+  const MAX_ANCESTOR_DEPTH = 16;
+  const HINT_MS = 1600;
+  const HINT_GAP_MS = 1200;
+  const PULSE_MS = 2800;
+  const HINT_CLASS = 'voice-listening-lock-hint';
+  const NAV_ROOT_CLASS = 'voice-listening-nav';
+  const NAV_CLASS = 'voice-listening-nav-btn';
+  const NAV_GLOW_CLASS = 'voice-listening-nav-glow';
+  const HINT_STYLE = [
+    'position:fixed',
+    'left:50%',
+    'bottom:calc(76px + env(safe-area-inset-bottom, 0px))',
+    'transform:translateX(-50%)',
+    'z-index:10080',
+    'max-width:min(92vw, 420px)',
+    'padding:10px 14px',
+    'border-radius:999px',
+    'background:rgba(16,18,24,0.92)',
+    'color:#fff',
+    'font:600 14px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
+    'text-align:center',
+    'pointer-events:none',
+    'box-shadow:0 8px 24px rgba(0,0,0,0.28)',
+    'white-space:normal',
+  ].join(';');
+  /* Bottom centre, above the existing centered help toggle (14px) and below
+     the help overlay (10090). The hint lives at the same anchor but is never
+     shown at `ended`; update() removes it before the arrows appear. */
+  const NAV_ROOT_STYLE = [
+    'position:fixed',
+    'left:50%',
+    'bottom:calc(76px + env(safe-area-inset-bottom, 0px))',
+    'transform:translateX(-50%)',
+    'z-index:10075',
+    'display:none',
+    'align-items:center',
+    'justify-content:center',
+    'gap:14px',
+    'pointer-events:none',
+    'touch-action:manipulation',
+  ].join(';');
+  const NAV_BUTTON_STYLE = [
+    'position:relative',
+    'width:52px',
+    'height:52px',
+    'min-width:44px',
+    'min-height:44px',
+    'padding:0',
+    'border-radius:50%',
+    'border:1px solid rgba(240,198,116,0.55)',
+    'background:rgba(14,16,23,0.92)',
+    'color:#f0c674',
+    'font:400 26px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
+    'display:inline-flex',
+    'align-items:center',
+    'justify-content:center',
+    'cursor:pointer',
+    'pointer-events:auto',
+    'touch-action:manipulation',
+    '-webkit-tap-highlight-color:transparent',
+    'box-shadow:0 6px 18px rgba(0,0,0,0.30)',
+    'user-select:none',
+  ].join(';');
+  const NAV_PREV_STYLE = [
+    'border:1px solid rgba(240,198,116,0.30)',
+    'color:#d4a857',
+    'box-shadow:0 6px 18px rgba(0,0,0,0.24)',
+  ].join(';');
+  const NAV_GLOW_STYLE = [
+    'position:absolute',
+    'inset:-7px',
+    'border-radius:50%',
+    'pointer-events:none',
+    'background:radial-gradient(circle, rgba(240,198,116,0.55) 0%, rgba(240,198,116,0) 70%)',
+    'opacity:0.22',
+  ].join(';');
+
+  /* Only navigational keys. Letters stay with form fields; Tab, Escape, "?"
+     and every Ctrl/Meta/Alt system shortcut are never taken from the browser. */
+  const NAV_KEYS = new Set([
+    'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown',
+    'PageDown', 'PageUp', 'Home', 'End', ' ', 'Spacebar', 'Enter',
+  ]);
+
+  const NAV_MESSAGE_TYPES = new Set([
+    'slide-end-forward', 'slide-end-backward', 'open-screen',
+    'next-slide', 'prev-slide', 'goto-slide', 'go-to-slide', 'change-slide',
+    'next-step', 'prev-step',
+  ]);
+
+  const PLAY_CLASSES = ['voice-gate-play', 'voice-play'];
+  const HELP_CLASSES = [
+    'voice-help', 'voice-help-dialog', 'voice-help-panel',
+    'voice-help-toggle', 'voice-help-close',
+  ];
+
+  /* wheel/touch/click/pointer are navigation intents while speech is running.
+     mousemove and pointermove are intentionally absent: hover must not stutter. */
+  const INPUT_EVENTS = [
+    'wheel', 'touchstart', 'touchmove', 'touchend', 'touchcancel',
+    'keydown', 'keyup', 'click', 'dblclick',
+    'pointerdown', 'pointerup', 'pointercancel',
+    'mousedown', 'mouseup',
+  ];
+
+  function classNameOf(node) {
+    if (!node) return '';
+    const value = node.className;
+    if (typeof value === 'string') return value;
+    if (value && typeof value.baseVal === 'string') return value.baseVal;
+    return '';
+  }
+
+  function hasClass(node, name) {
+    if (!node) return false;
+    if (node.classList && typeof node.classList.contains === 'function') {
+      try { return node.classList.contains(name); } catch (e) { return false; }
+    }
+    return new RegExp('(^|\\s)' + name + '(\\s|$)').test(classNameOf(node));
+  }
+
+  function attrOf(node, name) {
+    if (!node || typeof node.getAttribute !== 'function') return null;
+    try { return node.getAttribute(name); } catch (e) { return null; }
+  }
+
+  function isPlayNode(node) {
+    for (const name of PLAY_CLASSES) if (hasClass(node, name)) return true;
+    return false;
+  }
+
+  function isHelpNode(node) {
+    for (const name of HELP_CLASSES) if (hasClass(node, name)) return true;
+    const flag = attrOf(node, 'data-voice-help');
+    return flag !== null && flag !== undefined && flag !== false;
+  }
+
+  function isAllowedNode(target, doc, helpOpen) {
+    let node = target || null;
+    let depth = 0;
+    while (node && depth < MAX_ANCESTOR_DEPTH) {
+      if (node === doc) return false;
+      if (isPlayNode(node) || isHelpNode(node)) return true;
+      /* Compatibility fallback: a help implementation may only expose
+         isHelpOpen() plus a role="dialog" ancestor, without our classes. */
+      if (helpOpen && attrOf(node, 'role') === 'dialog') return true;
+      /* Overlay close is not a step/slide change; trapping the user inside a
+         full-screen calculator would be worse than one visual change. */
+      if (node.id === 'screenClose') return true;
+      const screenFlag = attrOf(node, 'data-screen-close');
+      if (screenFlag !== null && screenFlag !== undefined && screenFlag !== false) return true;
+      node = node.parentNode || null;
+      depth += 1;
+    }
+    return false;
+  }
+
+  function keyName(event) {
+    if (!event) return '';
+    if (typeof event.key === 'string' && event.key) return event.key;
+    const code = event.keyCode || event.which;
+    switch (code) {
+      case 37: return 'ArrowLeft';
+      case 38: return 'ArrowUp';
+      case 39: return 'ArrowRight';
+      case 40: return 'ArrowDown';
+      case 33: return 'PageUp';
+      case 34: return 'PageDown';
+      case 36: return 'Home';
+      case 35: return 'End';
+      case 32: return ' ';
+      case 13: return 'Enter';
+      default: return '';
+    }
+  }
+
+  function isNavigationKey(event) {
+    return NAV_KEYS.has(keyName(event));
+  }
+
+  /* Browser/global shortcuts and the help-focus path must survive; the help
+     node itself is also allowed so Enter/Space on its buttons work. */
+  function keyIsExempt(event, target, doc, helpOpen) {
+    const key = keyName(event);
+    if (key === 'Tab') return true;
+    if (key === 'Escape' || key === '?' || key === 'F1') return true;
+    if (event && (event.ctrlKey || event.metaKey || event.altKey)) return true;
+    return isAllowedNode(target, doc, helpOpen);
+  }
+
+  function isNavigationMessage(data) {
+    if (!data || typeof data !== 'object') return false;
+    if (data.source !== 'slide') return false;
+    const type = data.type;
+    if (typeof type !== 'string') return false;
+    if (NAV_MESSAGE_TYPES.has(type)) return true;
+    return type.indexOf('slide-end-') === 0;
+  }
+
+  function createListeningLock(options) {
+    const opts = options || {};
+    const doc = opts.doc || (typeof document !== 'undefined' ? document : null);
+    const win = opts.win || (doc && doc.defaultView) || (typeof window !== 'undefined' ? window : null);
+    const getController = typeof opts.getController === 'function' ? opts.getController : function () { return null; };
+    const isStarted = typeof opts.isStarted === 'function' ? opts.isStarted : function () { return true; };
+    const isHelpOpen = typeof opts.isHelpOpen === 'function' ? opts.isHelpOpen : function () { return false; };
+    const onNavigate = typeof opts.onNavigate === 'function' ? opts.onNavigate : null;
+    const getNavigationState = typeof opts.getNavigationState === 'function' ? opts.getNavigationState : null;
+
+    const entries = new Map();          /* document -> binding entry */
+    const frameBindings = new WeakMap();/* iframe element -> {doc, cleanup} */
+
+    let destroyed = false;
+    let lastSnapshot = null;
+    let hint = null;
+    let hintTimer = null;
+    let lastHintAt = 0;
+    let navRoot = null;
+    let navNext = null;
+    let navPrev = null;
+    let navGlow = null;
+    let navAnimation = null;
+    let navConsumed = false;
+    let navSyncQueued = false;
+    const blockedKeys = new Set();
+
+    function nowMs() {
+      try {
+        if (win && win.performance && typeof win.performance.now === 'function') {
+          return win.performance.now();
+        }
+      } catch (e) {}
+      return Date.now();
+    }
+
+    function liveSnapshot() {
+      try {
+        const controller = getController();
+        if (!controller || typeof controller.snapshot !== 'function') return null;
+        return controller.snapshot();
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function startedNow() {
+      try {
+        return isStarted() !== false;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    /* The one source of truth. No cached status, no captured controller. */
+    function isLocked() {
+      if (destroyed) return false;
+      if (!startedNow()) return false;
+      const snap = liveSnapshot();
+      return !!(snap && LOCK_STATUSES.has(snap.status));
+    }
+
+    function hintLanguage() {
+      const snap = liveSnapshot() || lastSnapshot;
+      if (snap && snap.lang === 'en') return 'en';
+      if (snap && snap.lang === 'ru') return 'ru';
+      try {
+        const lang = doc && doc.documentElement && attrOf(doc.documentElement, 'lang');
+        if (typeof lang === 'string' && lang.toLowerCase().indexOf('en') === 0) return 'en';
+      } catch (e) {}
+      return 'ru';
+    }
+
+    function hintText() {
+      return hintLanguage() === 'en' ? 'Please finish listening' : 'Дослушайте объяснение';
+    }
+
+    function schedule(fn, delay) {
+      if (win && typeof win.setTimeout === 'function') return win.setTimeout(fn, delay);
+      if (typeof setTimeout === 'function') return setTimeout(fn, delay);
+      return null;
+    }
+
+    function unschedule(id) {
+      if (id === null || id === undefined) return;
+      try {
+        if (win && typeof win.clearTimeout === 'function') win.clearTimeout(id);
+        else if (typeof clearTimeout === 'function') clearTimeout(id);
+      } catch (e) {}
+    }
+
+    function ensureHint() {
+      if (hint) return hint;
+      if (!doc || typeof doc.createElement !== 'function') return null;
+      const host = doc.body || doc.documentElement;
+      if (!host) return null;
+      const el = doc.createElement('div');
+      el.className = HINT_CLASS;
+      el.setAttribute('role', 'status');
+      el.setAttribute('aria-live', 'polite');
+      el.setAttribute('data-voice-listening-lock', 'hint');
+      el.setAttribute('style', HINT_STYLE);
+      el.textContent = hintText();
+      el.hidden = true;
+      host.appendChild(el);
+      hint = el;
+      return el;
+    }
+
+    function hideHint() {
+      if (hintTimer !== null) {
+        unschedule(hintTimer);
+        hintTimer = null;
+      }
+      if (hint) {
+        try {
+          if (hint.parentNode) hint.parentNode.removeChild(hint);
+        } catch (e) {}
+        hint = null;
+      }
+      lastHintAt = 0;
+    }
+
+    function showHint() {
+      if (destroyed) return;
+      const at = nowMs();
+      if (lastHintAt && at - lastHintAt < HINT_GAP_MS) return;
+      lastHintAt = at;
+      const el = ensureHint();
+      if (!el) return;
+      el.textContent = hintText();
+      el.hidden = false;
+      if (hintTimer !== null) unschedule(hintTimer);
+      hintTimer = schedule(function () {
+        hintTimer = null;
+        if (hint) hint.hidden = true;
+      }, HINT_MS);
+    }
+
+    function setDisplay(el, visible, displayValue) {
+      if (!el) return;
+      el.hidden = !visible;
+      const value = visible ? (displayValue || 'inline-flex') : 'none';
+      try {
+        if (el.style) el.style.display = value;
+        else el.setAttribute('data-display', value);
+      } catch (e) {}
+    }
+
+    function setOpacity(el, value) {
+      if (!el) return;
+      try {
+        if (el.style) el.style.opacity = String(value);
+        else el.setAttribute('data-opacity', String(value));
+      } catch (e) {}
+    }
+
+    function prefersReducedMotion() {
+      try {
+        return !!(win && typeof win.matchMedia === 'function' &&
+          win.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function navigationLabels() {
+      if (hintLanguage() === 'en') {
+        return { group: 'Navigation', next: 'Next', prev: 'Back' };
+      }
+      return { group: 'Навигация', next: 'Далее', prev: 'Назад' };
+    }
+
+    function readNavigationAvailability() {
+      if (!getNavigationState) return { hasNext: true, hasPrevious: true };
+      try {
+        const state = getNavigationState();
+        if (!state || typeof state !== 'object') return { hasNext: false, hasPrevious: false };
+        return { hasNext: state.hasNext !== false, hasPrevious: state.hasPrevious !== false };
+      } catch (e) {
+        /* A broken navigation probe must not leave dead controls on screen. */
+        return { hasNext: false, hasPrevious: false };
+      }
+    }
+
+    function containEvent(event) {
+      if (!event) return;
+      try { if (typeof event.stopPropagation === 'function') event.stopPropagation(); } catch (e) {}
+    }
+
+    function stopPulse() {
+      if (navAnimation) {
+        try { navAnimation.cancel(); } catch (e) {}
+        navAnimation = null;
+      }
+      if (navGlow) setOpacity(navGlow, 0.22);
+    }
+
+    function startPulse() {
+      stopPulse();
+      if (!navGlow || !navNext || navNext.hidden) return;
+      if (prefersReducedMotion() || typeof navGlow.animate !== 'function') {
+        setOpacity(navGlow, 0.24);
+        return;
+      }
+      try {
+        navAnimation = navGlow.animate([
+          { opacity: 0.16 },
+          { opacity: 0.5 },
+          { opacity: 0.16 },
+        ], { duration: PULSE_MS, iterations: Infinity, easing: 'ease-in-out' });
+      } catch (e) {
+        setOpacity(navGlow, 0.24);
+      }
+    }
+
+    function hideNavigation() {
+      if (navNext) setDisplay(navNext, false, 'inline-flex');
+      if (navPrev) setDisplay(navPrev, false, 'inline-flex');
+      if (navRoot) setDisplay(navRoot, false, 'flex');
+      stopPulse();
+    }
+
+    function activateNavigation(direction, event) {
+      if (event) {
+        try {
+          if (typeof event.preventDefault === 'function' && event.cancelable !== false) event.preventDefault();
+        } catch (e) {}
+        try {
+          if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+          else if (typeof event.stopPropagation === 'function') event.stopPropagation();
+        } catch (e) {}
+      }
+      if (destroyed || !onNavigate || navConsumed) return;
+      /* Hide before the callback: a queued second click must not ride the
+         ended -> ready microtask into a second step. */
+      navConsumed = true;
+      hideNavigation();
+      hideHint();
+      try { onNavigate(direction); } catch (e) {}
+    }
+
+    function ensureNavigation() {
+      if (navRoot) return navRoot;
+      if (!doc || typeof doc.createElement !== 'function') return null;
+      const host = doc.body || doc.documentElement;
+      if (!host) return null;
+
+      const root = doc.createElement('div');
+      root.className = NAV_ROOT_CLASS;
+      root.setAttribute('role', 'group');
+      root.setAttribute('data-voice-listening-nav-root', '1');
+      root.setAttribute('data-noswipe', '1');
+      root.setAttribute('data-no-swipe', '1');
+      root.setAttribute('style', NAV_ROOT_STYLE);
+
+      const makeButton = function (direction, path, extraStyle) {
+        const button = doc.createElement('button');
+        button.type = 'button';
+        button.className = NAV_CLASS + ' ' + NAV_CLASS + '--' + direction;
+        button.setAttribute('data-voice-listening-nav', direction);
+        button.setAttribute('data-noswipe', '1');
+        button.setAttribute('data-no-swipe', '1');
+        button.setAttribute('style', NAV_BUTTON_STYLE + (extraStyle ? ';' + extraStyle : ''));
+        button.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none"><path d="' + path + '" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'keydown', 'keyup', 'keypress']) {
+          try { button.addEventListener(type, containEvent); } catch (e) {}
+        }
+        try {
+          button.addEventListener('click', function (event) {
+            activateNavigation(direction, event);
+          });
+        } catch (e) {}
+        return button;
+      };
+
+      const prev = makeButton('prev', 'M19 12H5M11 6l-6 6 6 6', NAV_PREV_STYLE);
+      const next = makeButton('next', 'M5 12h14M13 6l6 6-6 6', '');
+
+      const glow = doc.createElement('span');
+      glow.className = NAV_GLOW_CLASS;
+      glow.setAttribute('aria-hidden', 'true');
+      glow.setAttribute('style', NAV_GLOW_STYLE);
+      next.insertBefore ? next.insertBefore(glow, next.firstChild) : next.appendChild(glow);
+
+      root.appendChild(prev);
+      root.appendChild(next);
+      try { root.addEventListener('click', containEvent); } catch (e) {}
+      host.appendChild(root);
+
+      navRoot = root;
+      navPrev = prev;
+      navNext = next;
+      navGlow = glow;
+      return root;
+    }
+
+    function syncNavigation() {
+      if (destroyed) return;
+      const snap = liveSnapshot();
+      const status = snap && snap.status;
+      let started = true;
+      try { started = isStarted() !== false; } catch (e) { started = false; }
+      let helpOpen = false;
+      try { helpOpen = isHelpOpen() === true; } catch (e) { helpOpen = false; }
+
+      const eligible = !!(onNavigate && started && !helpOpen && status === 'ended' && !navConsumed);
+      if (!eligible) {
+        hideNavigation();
+        return;
+      }
+      const available = readNavigationAvailability();
+      if (!available.hasNext && !available.hasPrevious) {
+        hideNavigation();
+        return;
+      }
+      if (!ensureNavigation()) return;
+
+      const labels = navigationLabels();
+      navRoot.setAttribute('aria-label', labels.group);
+      navPrev.setAttribute('aria-label', labels.prev);
+
+      navNext.setAttribute('aria-label', labels.next);
+
+
+      setDisplay(navPrev, available.hasPrevious, 'inline-flex');
+      setDisplay(navNext, available.hasNext, 'inline-flex');
+      setDisplay(navRoot, true, 'flex');
+      if (available.hasNext) startPulse();
+      else stopPulse();
+    }
+
+    function scheduleNavigationSync() {
+      if (destroyed || navSyncQueued) return;
+      navSyncQueued = true;
+      const run = function () {
+        navSyncQueued = false;
+        syncNavigation();
+      };
+      try {
+        const P = (win && win.Promise) || (typeof Promise !== 'undefined' ? Promise : null);
+        if (P && typeof P.resolve === 'function') P.resolve().then(run);
+        else run();
+      } catch (e) {
+        run();
+      }
+    }
+
+    function block(event, showHintToo) {
+      if (!event) return;
+      try {
+        if (typeof event.preventDefault === 'function' && event.cancelable !== false) {
+          event.preventDefault();
+        }
+      } catch (e) {}
+      try {
+        if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+        else if (typeof event.stopPropagation === 'function') event.stopPropagation();
+      } catch (e) {}
+      try { event.returnValue = false; } catch (e) {}
+      if (showHintToo !== false) showHint();
+    }
+
+    function onInput(event, entry) {
+      if (destroyed) return;
+      const type = event && event.type;
+      const target = (event && (event.target || event.srcElement)) || null;
+
+      /* keyup never navigates by itself. If its keydown was blocked, suppress
+         the matching keyup so a card cannot get half a pair; if the keydown
+         was allowed (e.g. after ended) always deliver the keyup, even when the
+         next segment already started. */
+      if (type === 'keyup') {
+        const name = keyName(event);
+        if (blockedKeys.has(name)) {
+          blockedKeys.delete(name);
+          block(event, false);
+          return;
+        }
+        if (!isLocked()) scheduleNavigationSync();
+        return;
+      }
+
+      if (!isLocked()) {
+        if (hint) hideHint();
+        /* Help open/close is a click/key with no controller transition; syncing
+           in a microtask sees the final help state after its handler ran. */
+        scheduleNavigationSync();
+        return;
+      }
+      let helpOpen = false;
+      try { helpOpen = isHelpOpen() === true; } catch (e) { helpOpen = false; }
+      if (type === 'keydown') {
+        if (!isNavigationKey(event)) return;
+        if (keyIsExempt(event, target, entry.doc, helpOpen)) return;
+        blockedKeys.add(keyName(event));
+        block(event);
+        return;
+      }
+      if (isAllowedNode(target, entry.doc, helpOpen)) return;
+      block(event);
+    }
+
+    function onMessage(event) {
+      if (destroyed || !isLocked()) return;
+      if (!isNavigationMessage(event && event.data)) return;
+      block(event);
+    }
+
+    function scanFrames(entry, depth) {
+      let frames = [];
+      try {
+        /* Real documents expose querySelectorAll; the minimal test document
+           only exposes it on documentElement. */
+        let root = entry.doc;
+        if (!root || typeof root.querySelectorAll !== 'function') {
+          root = entry.doc && entry.doc.documentElement;
+        }
+        if (root && typeof root.querySelectorAll === 'function') {
+          frames = root.querySelectorAll('iframe');
+        }
+      } catch (e) {
+        frames = [];
+      }
+      for (let i = 0; i < frames.length; i += 1) {
+        hookFrame(entry, frames[i], depth);
+      }
+    }
+
+    function hookFrame(parentEntry, frame, depth) {
+      if (!frame || parentEntry.frames.has(frame)) return;
+      parentEntry.frames.add(frame);
+      const onLoad = function () {
+        if (destroyed) return;
+        const dropDead = function () {
+          const dead = frameBindings.get(frame);
+          if (!dead) return;
+          parentEntry.children.delete(dead.doc);
+          try { dead.cleanup(); } catch (err) {}
+          frameBindings.delete(frame);
+        };
+        let nextDoc = null;
+        try { nextDoc = frame.contentDocument || null; } catch (e) {
+          /* Cross-origin navigation: the old document is gone; drop its
+             listeners instead of keeping a dead window bound forever. */
+          dropDead();
+          return;
+        }
+        if (!nextDoc) { dropDead(); return; }
+        const prev = frameBindings.get(frame);
+        if (prev && prev.doc !== nextDoc) {
+          parentEntry.children.delete(prev.doc);
+          try { prev.cleanup(); } catch (e) {}
+        }
+        const cleanup = bindDocument(nextDoc, depth + 1);
+        frameBindings.set(frame, { doc: nextDoc, cleanup: cleanup });
+        parentEntry.children.add(nextDoc);
+      };
+      parentEntry.hooks.push({ frame: frame, onLoad: onLoad });
+      try {
+        if (typeof frame.addEventListener === 'function') frame.addEventListener('load', onLoad);
+      } catch (e) {}
+      onLoad();
+    }
+
+    function bindDocument(targetDoc, depth) {
+      if (destroyed || !targetDoc) return function () {};
+      const level = Number.isInteger(depth) ? depth : 0;
+      if (level > MAX_FRAME_DEPTH) return function () {};
+
+      let entry = entries.get(targetDoc);
+      if (!entry) {
+        const targetWin = targetDoc.defaultView || (targetDoc === doc ? win : null);
+        entry = {
+          doc: targetDoc,
+          win: targetWin,
+          frames: new Set(),
+          hooks: [],
+          children: new Set(),
+          added: [],
+          cleanup: null,
+        };
+        entries.set(targetDoc, entry);
+
+        const bindingTarget = (targetWin && typeof targetWin.addEventListener === 'function')
+          ? targetWin
+          : targetDoc;
+        const add = function (type, fn, options) {
+          try {
+            bindingTarget.addEventListener(type, fn, options);
+            entry.added.push({ type: type, fn: fn, options: options });
+          } catch (e) {}
+        };
+        const inputHandler = function (event) { onInput(event, entry); };
+        for (const type of INPUT_EVENTS) {
+          add(type, inputHandler, { capture: true, passive: false });
+        }
+        add('message', onMessage, true);
+
+        entry.cleanup = function () {
+          if (!entries.has(targetDoc)) return;
+          entries.delete(targetDoc);
+          for (const item of entry.added.splice(0)) {
+            try { bindingTarget.removeEventListener(item.type, item.fn, item.options); } catch (e) {}
+          }
+          for (const hook of entry.hooks.splice(0)) {
+            try { hook.frame.removeEventListener('load', hook.onLoad); } catch (e) {}
+          }
+          for (const child of Array.from(entry.children)) {
+            const childEntry = entries.get(child);
+            if (childEntry) childEntry.cleanup();
+            entry.children.delete(child);
+          }
+        };
+      }
+
+      scanFrames(entry, level);
+      return entry.cleanup;
+    }
+
+    function unbindDocument(targetDoc) {
+      const entry = entries.get(targetDoc || doc);
+      if (entry) entry.cleanup();
+    }
+
+    function update(snapshot) {
+      if (destroyed) return;
+      if (snapshot && typeof snapshot === 'object') lastSnapshot = snapshot;
+      else if (snapshot === null) lastSnapshot = null;
+      /* A new segment actually started: a later real `ended` may offer the
+         navigation pair again. A `ready` microtact does not reset this. */
+      if (snapshot && (snapshot.status === 'playing' || snapshot.status === 'starting')) {
+        navConsumed = false;
+      }
+      /* Remove the hint immediately; there is no delay after ended/error. */
+      if (!isLocked() && hint) hideHint();
+      syncNavigation();
+    }
+
+    function destroy() {
+      if (destroyed) return;
+      destroyed = true;
+      hideHint();
+      hideNavigation();
+      if (navRoot) {
+        try {
+          if (navRoot.parentNode) navRoot.parentNode.removeChild(navRoot);
+        } catch (e) {}
+      }
+      navRoot = null;
+      navNext = null;
+      navPrev = null;
+      navGlow = null;
+      navAnimation = null;
+      blockedKeys.clear();
+      for (const entry of Array.from(entries.values())) {
+        try { entry.cleanup(); } catch (e) {}
+      }
+      entries.clear();
+      lastSnapshot = null;
+    }
+
+    return {
+      update: update,
+      bindDocument: function (targetDoc) { return bindDocument(targetDoc || doc, 0); },
+      unbindDocument: unbindDocument,
+      isLocked: isLocked,
+      destroy: destroy,
+    };
+  }
+
+  return { createListeningLock: createListeningLock };
+});

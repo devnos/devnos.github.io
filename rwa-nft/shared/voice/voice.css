@@ -14,9 +14,30 @@
   pointer-events: auto;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.34s ease;
 }
 .voice-gate[hidden] {
   display: none;
+}
+/*
+ * The instruction block is one unit: it appears only after the loader has
+ * fully faded (the gate adds .voice-gate-ready on the same readiness signal
+ * that reveals Play). Nothing is painted while loading is still on screen.
+ */
+.voice-gate.voice-gate-ready {
+  background: rgba(6, 6, 9, 0.68);
+}
+/*
+ * Play -> deck: native audio has already started in the same gesture, while
+ * the cover fades over ~340ms with the capture guard still active. The fade is
+ * purely visual; no timer gates the sound.
+ */
+.voice-gate.voice-gate-leaving {
+  background-color: rgba(6, 6, 9, 0);
+}
+.voice-gate-leaving .voice-play {
+  opacity: 0;
+  transition: opacity 0.34s ease;
 }
 /* The portrait hint belongs after the explicit start, not under its button. */
 html.voice-gate-locked #rotateHint {
@@ -109,6 +130,206 @@ html.voice-gate-locked #rotateHint {
   display: block;
   width: 32px;
   height: 32px;
+}
+
+/*
+ * Repeat help. The "?" takes the free top-right corner: below/next to the
+ * language pill on desktop and clear of the mobile home/nav controls. The
+ * bottom centre is reserved for the listening lock's next/back arrows.
+ */
+.voice-help-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 10040;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(212, 168, 87, 0.5);
+  border-radius: 50%;
+  background: rgba(6, 6, 10, 0.86);
+  color: #f0c674;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  font-family: 'Unbounded', system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.25s, border-color 0.25s, background-color 0.25s;
+}
+.voice-help-toggle[hidden] {
+  display: none;
+}
+.voice-help-toggle:hover {
+  color: #f0c674;
+  border-color: rgba(240, 198, 116, 0.7);
+  background: rgba(12, 12, 18, 0.9);
+}
+.voice-help-toggle:focus-visible {
+  outline: 2px solid #f0c674;
+  outline-offset: 3px;
+}
+/* Full-screen service layers own the viewport and their own close control. */
+html:has(#rotateHint.on) .voice-help-toggle,
+html:has(#screenModal.open) .voice-help-toggle {
+  display: none;
+}
+
+.voice-help {
+  position: fixed;
+  inset: 0;
+  z-index: 10090;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(4, 4, 7, 0.66);
+}
+.voice-help[hidden] {
+  display: none;
+}
+.voice-help-panel {
+  position: relative;
+  width: min(520px, 100%);
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  padding: 22px 24px 20px;
+  border: 1px solid rgba(212, 168, 87, 0.34);
+  border-radius: 16px;
+  background: rgba(10, 10, 15, 0.97);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+  text-align: left;
+  animation: voiceHelpIn 0.22s ease both;
+}
+.voice-help-title {
+  margin: 0 44px 12px 0;
+  font-family: 'Unbounded', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: #f5f5f7;
+}
+.voice-help-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.voice-help-item {
+  position: relative;
+  padding-left: 16px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: rgba(245, 245, 247, 0.9);
+}
+.voice-help-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(240, 198, 116, 0.7);
+}
+.voice-help-item[hidden] {
+  display: none;
+}
+.voice-help-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(245, 245, 247, 0.3);
+  border-radius: 50%;
+  background: rgba(245, 245, 247, 0.06);
+  color: #f5f5f7;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+}
+.voice-help-close:hover {
+  color: #f0c674;
+  border-color: rgba(240, 198, 116, 0.65);
+}
+.voice-help-close:focus-visible {
+  outline: 2px solid #f0c674;
+  outline-offset: 2px;
+}
+@media (pointer: coarse) {
+  .voice-help-toggle {
+    width: 38px;
+    height: 38px;
+    top: 8px;
+    right: 8px;
+  }
+  .voice-help-close {
+    width: 42px;
+    height: 42px;
+  }
+}
+@keyframes voiceHelpIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Short landscape phones: the single Play stays comfortably tappable. */
+@media (max-height: 500px) {
+  .voice-gate .voice-play {
+    width: 72px;
+    height: 72px;
+  }
+  .voice-gate .voice-play-icon,
+  .voice-gate .voice-play-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+  .voice-help {
+    padding: 10px;
+  }
+  .voice-help-panel {
+    max-height: calc(100vh - 20px);
+    padding: 16px 18px 14px;
+  }
+  .voice-help-title {
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  .voice-help-list {
+    gap: 5px;
+  }
+  .voice-help-item {
+    font-size: 12.5px;
+    line-height: 1.38;
+  }
+  .voice-help-toggle {
+    top: 8px;
+    right: 8px;
+  }
+}
+
+/* Phones (portrait or landscape): the same one Play at 72px. */
+@media (max-width: 560px) {
+  .voice-gate .voice-play {
+    width: 72px;
+    height: 72px;
+  }
+  .voice-gate .voice-play-icon,
+  .voice-gate .voice-play-icon svg {
+    width: 28px;
+    height: 28px;
+  }
 }
 
 #voiceRoot .voice-bar {
@@ -383,10 +604,15 @@ html.voice-gate-locked #rotateHint {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .voice-gate,
+  .voice-gate .voice-play,
+  .voice-help-panel,
+  .voice-help,
+  .voice-help-toggle,
   #voiceRoot .voice-primary,
   #voiceRoot .voice-play,
-  .voice-gate .voice-play,
   #voiceRoot .voice-bar {
     transition: none;
+    animation: none;
   }
 }

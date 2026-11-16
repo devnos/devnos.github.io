@@ -449,6 +449,15 @@ html, body {
   }
   .cp-text em { font-style: normal; color: var(--gold-2);
     text-shadow: 0 2px 12px rgba(0,0,0,0.8), 0 0 30px var(--gold-glow); }
+  /* Плашки меняются без пустого окна: текст мягко перетекает на месте. */
+  .cp-text.swap { animation: cpSwap .32s ease both; }
+  @keyframes cpSwap {
+    from { opacity: 0.15; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cp-text.swap { animation: none; }
+  }
 
   /* ===== ВСТУПИТЕЛЬНАЯ ЗАСТАВКА (шаг 0) ===== */
 
@@ -697,6 +706,7 @@ html, body {
 <script src="../shared/voice/voice-protocol.js"></script>
 <script src="../shared/voice/voice-slides.js"></script>
 <script src="../shared/voice/voice-scenario.js"></script>
+<script src="../shared/voice/voice-intro.js"></script>
 <script src="../shared/voice/voice-core.js"></script>
 <script src="../shared/voice/voice-deck.js"></script>
 <script src="../shared/voice/voice-route.js"></script>
@@ -877,10 +887,11 @@ window.SlideEngine = (function() {
 
 <script>
   // === Логика этого слайда ===
-  // 3 шага:
-  //   0: видео на первом кадре (грузится в фоне), затенение 50% + заставка "RWA NFT / Начало новой реальности"
-  //   1: затенение и заставка исчезают, чистый стоп-кадр видео, без текстов
-  //   2: видео запускается
+  // 2 шага:
+  //   0: видео на первом кадре, затенение + заставка "RWA NFT / Начало новой реальности"
+  //      (озвучка s01.imagine.s01; пустого стоп-кадра больше нет)
+  //   1: видео запускается сразу и идут четыре киноплашки под объединённую
+  //      динамическую озвучку s01.imagine.dynamic
 
   const bgVideo = document.getElementById('bgVideo');
   const introDarken = document.getElementById('introDarken');
@@ -888,60 +899,86 @@ window.SlideEngine = (function() {
   const cinePlate = document.getElementById('cinePlate');
   const cpText = document.getElementById('cpText');
 
+  /* Реальная длительность динамической речи (RU/EN) из опционального
+     onboarding-audio.json. Пока файла нет, плашки идут по безопасному
+     дефолту; это не подмена аудио, только тайминг анимации. */
+  let dynamicDurations = { ru: null, en: null };
+
+  function plateLang() {
+    try { return (window.I18N && window.I18N.current) || 'ru'; }
+    catch (e) { return 'ru'; }
+  }
+
+  function loadDynamicDuration() {
+    if (!window.VoiceIntro || typeof fetch !== 'function') return;
+    fetch('../shared/voice/onboarding-audio.json', { cache: 'no-store' })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (json) {
+        const extra = window.VoiceIntro.adaptOnboarding(json, {});
+        if (!extra || !extra.dynamic || !extra.dynamic.durationMs) return;
+        dynamicDurations = {
+          ru: extra.dynamic.durationMs.ru || null,
+          en: extra.dynamic.durationMs.en || null,
+        };
+      })
+      .catch(function () {});
+  }
+  loadDynamicDuration();
+
   /* кино-титр: все таймеры в массив, отменяем при смене шага */
   let plateTimers = [];
   function clearPlate() {
     plateTimers.forEach(t => clearTimeout(t));
     plateTimers = [];
     cinePlate.classList.remove('in');
+    cpText.classList.remove('swap');
   }
   function runPlateSequence() {
     clearPlate();
+    if (!window.VoiceIntro) return;
+    const lang = plateLang();
+    const timeline = window.VoiceIntro.buildPlateTimeline(
+      dynamicDurations[lang === 'en' ? 'en' : 'ru']
+    );
     const T = (fn, ms) => plateTimers.push(setTimeout(fn, ms));
-    /* +1с: первая плашка выезжает, две строки */
-    T(() => {
-      cpText.innerHTML = window.T('s01.plate1.l1', 'Люди отдыхают') +
-        '<br><em>' + window.T('s01.plate1.l2', 'Владелец отеля получает доход') + '</em>';
-      cinePlate.classList.add('in');
-    }, 1000);
-    /* 3.2с показа -> плашка уезжает */
-    T(() => cinePlate.classList.remove('in'), 4200);
-    /* +0.5с после ухода: вторая плашка с новым текстом */
-    T(() => {
-      cpText.innerHTML = window.I18N.current === 'ru'
-        ? 'Но может быть <em>по-другому</em>'
-        : '<em>' + window.T('s01.plate2') + '</em>';
-      cinePlate.classList.add('in');
-    }, 5400);
-    /* 2.75с показа -> уезжает */
-    T(() => cinePlate.classList.remove('in'), 8150);
-    /* +4.5с после ухода: третья плашка */
-    T(() => {
-      cpText.innerHTML = window.T('s01.plate3.l1', 'Вы совладелец') +
-        '<br><em>' + window.T('s01.plate3.l2', 'и получаете доход') + '</em>';
-      cinePlate.classList.add('in');
-    }, 13350);
-    /* 4.2с показа -> уезжает насовсем */
-    T(() => cinePlate.classList.remove('in'), 17550);
+    /* Все четыре плашки идут подряд, без пустых окон: первая видна сразу,
+       последняя держится до конца речи. */
+    timeline.forEach(function (slot) {
+      T(function () {
+        const html = window.VoiceIntro.plateHtml(slot.key, lang);
+        if (!html) return;
+        cpText.innerHTML = html;
+        cpText.classList.remove('swap');
+        void cpText.offsetWidth;
+        cpText.classList.add('swap');
+        cinePlate.classList.add('in');
+      }, slot.start);
+    });
+    T(function () {
+      cinePlate.classList.remove('in');
+      cpText.textContent = '';
+    }, timeline[timeline.length - 1].end + 900);
   }
 
   function renderStep(step) {
     introDarken.classList.toggle('hidden', step >= 1);
     introTitle.classList.toggle('hidden', step >= 1);
 
-    if (step >= 2) {
+    if (step >= 1) {
+      /* Следующий визуальный шаг — сразу динамическое видео, без лишнего
+         статичного кадра между титулом и движением. */
       bgVideo.play().catch(() => {});
       runPlateSequence();
     } else {
       bgVideo.pause();
       clearPlate();
-      if (step === 0) { try { bgVideo.currentTime = 0; } catch (e) {} }
+      try { bgVideo.currentTime = 0; } catch (e) {}
     }
   }
 
-  // Инициализация — 3 шага
+  // Инициализация — 2 шага (лишний статичный шаг удалён)
   SlideEngine.init({
-    totalSteps: 3,
+    totalSteps: 2,
     slideNumber: 1,
     slideTotal: 16,
     onStep: renderStep
@@ -949,6 +986,7 @@ window.SlideEngine = (function() {
 </script>
 <div id="voiceRoot"></div>
 <script src="../shared/voice/voice-autoplay.js"></script>
+<script src="../shared/voice/voice-listening-lock.js"></script>
 <script src="../shared/voice/voice-boot.js"></script>
 </body>
 </html>

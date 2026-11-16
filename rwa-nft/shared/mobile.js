@@ -78,6 +78,14 @@
     @media (pointer: coarse) {
       * { -webkit-tap-highlight-color: transparent; }
     }
+    /* Горизонтальный свайп по презентации — это листание слайдов, а не жест
+       «назад» браузера. Без этого Chrome на телефоне уводил вкладку на
+       предыдущую страницу (в нашей проверке — на about:blank) прямо во время
+       свайпа вправо. */
+    html, body {
+      overscroll-behavior-x: none;
+      overscroll-behavior-y: none;
+    }
   `;
 
   function buildOverlay() {
@@ -88,6 +96,9 @@
 
     const el = document.createElement('div');
     el.id = 'rotateHint';
+    /* Подсказка «поверните телефон» — служебный слой: жест по ней не должен
+       молча листать слайд, который она накрывает. */
+    el.setAttribute('data-noswipe', '');
     el.innerHTML =
       '<svg class="rh-ico" viewBox="0 0 64 64" fill="none">' +
         '<rect x="21" y="6" width="22" height="40" rx="4" stroke="#f0c674" stroke-width="2"/>' +
@@ -162,13 +173,24 @@
     update();
   };
 
-  /* ==================== СВАЙП ====================
+  /* ==================== ЖЕСТЫ ====================
      На телефоне палец влево-вправо — первое, что человек пробует.
-     Движки слайдов уже слушают стрелки, поэтому свайп просто подделывает
-     нажатие клавиши: работает и на пошаговых слайдах, и на переходах колоды. */
+     Движки слайдов уже слушают стрелки, поэтому жест просто подделывает
+     нажатие клавиши: работает и на пошаговых слайдах, и на переходах колоды.
+
+     Направление конвенциональное, как в лентах и галереях: содержимое едет
+     за пальцем. Свайп ВЛЕВО открывает следующий экран, свайп ВПРАВО —
+     предыдущий. (Раньше было наоборот, и презентация листалась против руки.)
+
+     Ровно один жест = ровно одно нажатие. Несостоявшийся жест (touchcancel,
+     второй палец, палец ещё на экране) разоружает распознаватель: следующий
+     touchend не должен «выстрелить» от старой точки. */
   (function swipe() {
     const MIN_DIST = 48;      /* короче — это тап или дрожание руки */
-    const MAX_TIME = 700;     /* дольше — это перетаскивание, не листание */
+    /* Тяжёлый слайд (s06 с анимациями) растягивает даже обычный свайп:
+       замеренный жест занимал 788 мс собственного времени событий, а не
+       700. Окно должно переживать джанк, иначе жест молча теряется. */
+    const MAX_TIME = 1200;    /* дольше — это перетаскивание, не листание */
     const RATIO = 1.3;        /* насколько горизонтальнее вертикального */
     let x0 = 0, y0 = 0, t0 = 0, armed = false;
 
@@ -183,36 +205,75 @@
           if ((ox === 'auto' || ox === 'scroll') && el.scrollWidth > el.clientWidth + 4) return true;
           const tag = el.tagName;
           if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+          if (el.isContentEditable === true) return true;
         }
         el = el.parentElement;
       }
       return false;
     }
 
-    /* Один движок смотрит на e.key, другой на e.code (слайд 06), поэтому
-       заполняем оба поля: иначе свайп молча не работает на части слайдов. */
+    /* Один движок смотрит на e.key, другой на e.code (слайд 06), третий на
+       keyCode, поэтому заполняем все поля: иначе жест молча не работает на
+       части слайдов. */
     function press(key) {
+      const next = key === 'ArrowRight';
+      const keyCode = next ? 39 : 37;
       document.dispatchEvent(new KeyboardEvent('keydown', {
-        key: key, code: key, bubbles: true, cancelable: true
+        key: key, code: key, keyCode: keyCode, which: keyCode,
+        bubbles: true, cancelable: true
       }));
     }
 
+    function disarm() {
+      armed = false;
+    }
+
+    /* Длительность жеста считаем по меткам самих touch-событий, а не по
+       Date.now(): на тяжёлом слайде главный поток может «залипнуть» на
+       полсекунды между touchstart и touchend, и быстрый свайп ошибочно
+       считался бы перетаскиванием. */
+    function stamp(e) {
+      return (e && typeof e.timeStamp === 'number' && e.timeStamp > 0) ? e.timeStamp : Date.now();
+    }
+
     document.addEventListener('touchstart', (e) => {
-      if (e.touches.length !== 1) { armed = false; return; }
+      if (!e.touches || e.touches.length !== 1) { disarm(); return; }
       const t = e.touches[0];
       armed = !ownsGesture(e.target);
-      x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
+      x0 = t.clientX; y0 = t.clientY; t0 = stamp(e);
     }, { passive: true });
+
+    /* Система отобрала жест (звонок, уведомление, скролл-лок): не оставляем
+       взведённую точку до будущего touchend. */
+    document.addEventListener('touchcancel', disarm, { passive: true });
+
+    /* Горизонтальное движение внутри презентации забираем себе: без
+       preventDefault браузер считает свайп вправо жестом «назад» и уводит
+       вкладку с презентации. Только горизонталь: вертикальный скролл в
+       модалах и таблицах остаётся родным, а карусели и ленты, которым жест
+       принадлежит по ownsGesture(), сюда вообще не попадают. */
+    document.addEventListener('touchmove', (e) => {
+      if (!armed) return;
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      const dx = t.clientX - x0, dy = t.clientY - y0;
+      if (Math.abs(dx) > 10 && Math.abs(dx) >= Math.abs(dy) * RATIO &&
+          typeof e.preventDefault === 'function') {
+        e.preventDefault();
+      }
+    }, { passive: false });
 
     document.addEventListener('touchend', (e) => {
       if (!armed) return;
+      /* Палец ещё на экране — жест не закончен, это не листание. */
+      if (e.touches && e.touches.length > 0) { disarm(); return; }
       armed = false;
       const t = e.changedTouches && e.changedTouches[0];
       if (!t) return;
       const dx = t.clientX - x0, dy = t.clientY - y0;
-      if (Date.now() - t0 > MAX_TIME) return;
+      if (stamp(e) - t0 > MAX_TIME) return;
       if (Math.abs(dx) < MIN_DIST || Math.abs(dx) < Math.abs(dy) * RATIO) return;
-      press(dx > 0 ? 'ArrowRight' : 'ArrowLeft');   /* палец вправо = вперёд */
+      press(dx < 0 ? 'ArrowRight' : 'ArrowLeft');   /* палец влево = вперёд */
     }, { passive: true });
   })();
 })();

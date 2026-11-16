@@ -36,6 +36,43 @@
     en: 'Turn sound on',
   };
 
+  const HELP = {
+    ru: {
+      toggle: 'Как управлять',
+      title: 'Как управлять',
+      close: 'Закрыть справку',
+      arrows: 'Стрелки ← → и колёсико мыши переключают шаги',
+      swipe: 'Свайп влево - дальше, вправо - назад',
+      click: 'Клик по свободной области продолжает шаг',
+      wait: 'Пока звучит объяснение, переходы заблокированы',
+      gesture: 'Когда появится стрелка, переходите дальше',
+      scroll: 'Свайпы и прокрутка во время озвучки не накапливаются',
+      menu: 'Двойная стрелка внизу справа открывает меню разделов',
+      home: 'Домик внизу слева возвращает в начало',
+      fullscreen: 'Рамка вверху слева включает полный экран',
+      lang: 'Флаг переключает язык озвучки: RU или EN',
+      langMobile: 'Флаг слева внизу переключает язык озвучки: RU или EN',
+      sound: 'Звук объясняет каждый шаг',
+    },
+    en: {
+      toggle: 'How to control',
+      title: 'How to control',
+      close: 'Close help',
+      arrows: 'The ← → arrows and the mouse wheel move between steps',
+      swipe: 'Swipe left - next, right - back',
+      click: 'Click empty space to continue the step',
+      wait: 'While the narration plays, moving to another step is blocked',
+      gesture: 'When the arrow appears, move on',
+      scroll: 'Swipes and scrolling during narration are not queued',
+      menu: 'The double arrow at the bottom right opens the section menu',
+      home: 'The home icon at the bottom left returns to the start',
+      fullscreen: 'The frame icon at the top left toggles full screen',
+      lang: 'The flag switches the narration language: RU or EN',
+      langMobile: 'The flag at the bottom left switches the narration language: RU or EN',
+      sound: 'The narration explains each step',
+    },
+  };
+
   const GUARD_EVENTS = [
     'pointerdown', 'pointerup', 'mousedown', 'mouseup',
     'click', 'dblclick', 'auxclick',
@@ -72,6 +109,7 @@
     let droppedTimers = 0;
     let nativeSetTimeout = null;
     let wrappedSetTimeout = null;
+    let fadeTimer = null;
     const startHandlers = [];
     const guardDocs = new Map();
     const inertDocs = new Map();
@@ -95,9 +133,9 @@
     }
 
     function applyLabel() {
-      if (!btn) return;
       const text = LABELS[lang()] || LABELS.en;
-      if (btn.getAttribute('aria-label') !== text) btn.setAttribute('aria-label', text);
+      if (btn && btn.getAttribute('aria-label') !== text) btn.setAttribute('aria-label', text);
+      if (overlay && overlay.getAttribute('aria-label') !== text) overlay.setAttribute('aria-label', text);
     }
 
     function stop(event) {
@@ -244,9 +282,12 @@
       wrappedSetTimeout = function (fn, delay) {
         if (typeof fn !== 'function') return nativeSetTimeout.apply(win, arguments);
         const args = Array.prototype.slice.call(arguments, 2);
-        const scheduledWhileLocked = locked;
+        /* Only work queued BEFORE the explicit Play is quarantined. The fade
+           timer and every timer created while the presentation starts normally
+           must run, so the deck is never silently broken by its own startup. */
+        const queuedBeforeStart = !started;
         return nativeSetTimeout.call(win, function () {
-          if (scheduledWhileLocked && !locked) {
+          if (queuedBeforeStart && started) {
             droppedTimers += 1;
             return undefined;
           }
@@ -340,13 +381,19 @@
       if (!btn) return;
       const nextHidden = !ready;
       if (btn.hidden !== nextHidden) btn.hidden = nextHidden;
+      if (overlay) {
+        try { overlay.classList.toggle('voice-gate-ready', ready); } catch (e) {}
+      }
       if (ready && locked && !started && typeof btn.focus === 'function') {
         try { btn.focus(); } catch (e) {}
       }
     }
 
     function syncReady() {
-      const next = loaderDone(currentLoader());
+      const voiceStatus = win && win.RwaVoice && typeof win.RwaVoice.dataStatus === 'function'
+        ? win.RwaVoice.dataStatus() : 'loading';
+      const voiceReady = opts.requireVoiceReady !== true || voiceStatus === 'ready' || voiceStatus === 'error';
+      const next = loaderDone(currentLoader()) && voiceReady;
       const changed = next !== ready;
       ready = next;
       if (changed) paintReady();
@@ -361,8 +408,7 @@
       const el = currentLoader();
       loaderEl = el;
       if (!el) {
-        ready = true;
-        paintReady();
+        syncReady();
         return;
       }
       el.addEventListener('transitionend', syncReady);
@@ -466,6 +512,10 @@
     }
 
     function teardown() {
+      if (fadeTimer !== null && win && typeof win.clearTimeout === 'function') {
+        try { win.clearTimeout(fadeTimer); } catch (e) {}
+      }
+      fadeTimer = null;
       try {
         if (doc && doc.documentElement && doc.documentElement.classList) {
           doc.documentElement.classList.remove('voice-gate-locked');
@@ -506,18 +556,59 @@
       overlay = null;
     }
 
+    function fadeDuration() {
+      const fallback = typeof opts.fadeMs === 'number' ? opts.fadeMs : 340;
+      try {
+        if (win && typeof win.matchMedia === 'function') {
+          const reduce = win.matchMedia('(prefers-reduced-motion: reduce)');
+          if (reduce && reduce.matches === true) return 0;
+        }
+      } catch (e) {}
+      return Math.max(0, fallback);
+    }
+
+    /*
+     * The Play press does two things in the SAME gesture, in this order:
+     *   1. every start handler runs synchronously, so native audio.play() is
+     *      still inside the trusted activation (no timer around sound);
+     *   2. the scrim and instructions start a short visual fade while the gate
+     *      keeps its capture guard and inert body, so a second click/arrow
+     *      cannot leak through to the deck while the cover is disappearing.
+     * Only after that fade is the DOM removed and input released.
+     */
     function activate() {
       if (!isTop || started || !locked) return false;
       if (!ready) return false;
       started = true;
-      locked = false;
       const handlers = startHandlers.slice();
-      teardown();
-      ready = false;
       for (const fn of handlers) {
         try { fn(); } catch (e) {}
       }
+      /* Rehearse removal on the real transitionend when it lands; the timer is
+         the bounded fallback for engines that do not fire it (or reduced motion). */
+      ready = false;
+      if (overlay) {
+        try { overlay.classList.add('voice-gate-leaving'); } catch (e) {}
+      }
+      if (btn) {
+        try { btn.setAttribute('aria-disabled', 'true'); } catch (e) {}
+      }
+      const duration = fadeDuration();
+      const finish = function () { finishExit(); };
+      try {
+        fadeTimer = win && typeof win.setTimeout === 'function'
+          ? win.setTimeout(finish, duration)
+          : null;
+      } catch (e) { fadeTimer = null; }
+      if (fadeTimer === null) finish();
       return true;
+    }
+
+    function finishExit() {
+      fadeTimer = null;
+      if (!started || !locked) return;
+      locked = false;
+      teardown();
     }
 
     function onStart(fn) {
@@ -554,7 +645,388 @@
     return api;
   }
 
-  const api = { createStartGate };
+  /* ------------------------------------------------------------------ */
+  /* Repeat help ("?") after the explicit Play                           */
+
+  /*
+   * A separate state machine from the start gate: it is mounted only after
+   * the deck has started, so reopening help can never re-arm the start gate,
+   * wrap timers again or produce a second Play. It pauses narration only when
+   * it was genuinely playing and resumes the SAME segment (same native Audio,
+   * same currentTime) only when that is still the current step and language.
+   */
+  function createHelp(options) {
+    const opts = options || {};
+    const doc = opts.doc;
+    const win = opts.win || (doc && doc.defaultView) || null;
+    const getController = typeof opts.getController === 'function'
+      ? opts.getController
+      : function () { return null; };
+
+    const noop = {
+      mount() { return false; },
+      open() { return false; },
+      close() { return false; },
+      isOpen() { return false; },
+      isMounted() { return false; },
+      destroy() {},
+      get toggle() { return null; },
+      get dialog() { return null; },
+    };
+    if (!doc || !doc.documentElement) return noop;
+
+    let mounted = false;
+    let open = false;
+    let toggle = null;
+    let root = null;
+    let panel = null;
+    let titleEl = null;
+    let closeBtn = null;
+    let itemEls = [];
+    let saved = null;
+    let previousFocus = null;
+    let bodyInertSaved = null;
+    let listenersBound = false;
+    const i18nUnsubs = [];
+
+    function docLang() {
+      try {
+        if (win && win.I18N && typeof win.I18N.current === 'string' && win.I18N.current) {
+          return win.I18N.current === 'ru' ? 'ru' : 'en';
+        }
+      } catch (e) {}
+      try {
+        const attr = doc.documentElement && doc.documentElement.getAttribute
+          ? doc.documentElement.getAttribute('lang')
+          : null;
+        if (attr) return String(attr).toLowerCase().indexOf('ru') === 0 ? 'ru' : 'en';
+      } catch (e) {}
+      return 'ru';
+    }
+
+    function phoneLayout() {
+      try {
+        if (win && typeof win.matchMedia === 'function') {
+          const coarse = win.matchMedia('(pointer: coarse)');
+          const short = Math.min(win.innerWidth || 0, win.innerHeight || 0);
+          if (coarse && coarse.matches === true && short > 0 && short <= 560) return true;
+        }
+      } catch (e) {}
+      const w = win && win.innerWidth ? win.innerWidth : 0;
+      const h = win && win.innerHeight ? win.innerHeight : 0;
+      return !!(w && h && Math.min(w, h) <= 560 && Math.max(w, h) <= 900);
+    }
+
+    function has(id) {
+      try { return !!doc.getElementById(id); } catch (e) { return false; }
+    }
+
+    function standalone() {
+      if (opts.isStandalone === true) return true;
+      return !has('navToggle') && !has('homeBtn') && !has('fsToggle') && !has('langBtn');
+    }
+
+    function itemText(key, dict) {
+      const phone = phoneLayout();
+      if (key === 'arrows') return phone ? '' : dict.arrows;
+      if (key === 'swipe') return phone ? dict.swipe : '';
+      if (key === 'click') return standalone() ? '' : dict.click;
+      if (key === 'menu') return has('navToggle') ? dict.menu : '';
+      if (key === 'home') return has('homeBtn') ? dict.home : '';
+      if (key === 'fullscreen') return has('fsToggle') ? dict.fullscreen : '';
+      if (key === 'lang') {
+        if (!has('langBtn')) return '';
+        return phone ? dict.langMobile : dict.lang;
+      }
+      if (key === 'sound') return dict.sound;
+      if (key === 'wait') return dict.wait;
+      if (key === 'gesture') return dict.gesture;
+      if (key === 'scroll') return dict.scroll;
+      return '';
+    }
+
+    function paint() {
+      const dict = HELP[docLang()] || HELP.en;
+      if (toggle) {
+        if (toggle.getAttribute('aria-label') !== dict.toggle) toggle.setAttribute('aria-label', dict.toggle);
+        if (toggle.title !== dict.toggle) toggle.title = dict.toggle;
+      }
+      if (!root) return;
+      if (titleEl) titleEl.textContent = dict.title;
+      if (closeBtn) {
+        closeBtn.setAttribute('aria-label', dict.close);
+        closeBtn.title = dict.close;
+      }
+      for (const entry of itemEls) {
+        const text = itemText(entry.key, dict);
+        if (entry.el.textContent !== text) entry.el.textContent = text;
+        entry.el.hidden = !text;
+      }
+    }
+
+    function within(node, container) {
+      if (!node || !container) return false;
+      let current = node;
+      while (current) {
+        if (current === container) return true;
+        current = current.parentNode;
+      }
+      return false;
+    }
+
+    function stop(event, prevent) {
+      if (!event) return;
+      try {
+        if (prevent && event.cancelable !== false && typeof event.preventDefault === 'function') {
+          event.preventDefault();
+        }
+      } catch (e) {}
+      try {
+        if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+        else if (typeof event.stopPropagation === 'function') event.stopPropagation();
+      } catch (e) {}
+    }
+
+    function onDocKey(event) {
+      if (!open || !event) return;
+      if (event.key === 'Escape') {
+        stop(event, true);
+        close();
+        return;
+      }
+      if (event.key === 'Tab') {
+        /* One focusable control (the cross): keep focus there. */
+        stop(event, true);
+        if (closeBtn && typeof closeBtn.focus === 'function') {
+          try { closeBtn.focus(); } catch (e) {}
+        }
+        return;
+      }
+      const inside = within(event.target, root);
+      if (inside && (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar')) {
+        return; /* native activation of the close button */
+      }
+      /* Arrow/Page/Home/End/Space and typing never page the deck behind help. */
+      stop(event, true);
+    }
+
+    function onDocWheel(event) {
+      if (!open) return;
+      if (!within(event.target, panel)) stop(event, true);
+      else stop(event, false); /* panel keeps its own scroll */
+    }
+
+    function onDocTouch(event) {
+      if (!open) return;
+      /* The panel may still scroll; the deck's swipe handler must not arm. */
+      stop(event, false);
+    }
+
+    function onRootClick(event) {
+      try { if (event && typeof event.stopPropagation === 'function') event.stopPropagation(); } catch (e) {}
+    }
+
+    function bindModal() {
+      if (listenersBound) return;
+      listenersBound = true;
+      try { doc.addEventListener('keydown', onDocKey, true); } catch (e) {}
+      try { doc.addEventListener('wheel', onDocWheel, { capture: true, passive: false }); } catch (e) {}
+      for (const type of ['touchstart', 'touchmove', 'touchend']) {
+        try { doc.addEventListener(type, onDocTouch, { capture: true, passive: true }); } catch (e) {}
+      }
+    }
+
+    function unbindModal() {
+      if (!listenersBound) return;
+      listenersBound = false;
+      try { doc.removeEventListener('keydown', onDocKey, true); } catch (e) {}
+      try { doc.removeEventListener('wheel', onDocWheel, { capture: true }); } catch (e) {}
+      for (const type of ['touchstart', 'touchmove', 'touchend']) {
+        try { doc.removeEventListener(type, onDocTouch, { capture: true }); } catch (e) {}
+      }
+    }
+
+    function ensureDialog() {
+      if (root || !doc.documentElement) return root;
+      root = doc.createElement('div');
+      root.className = 'voice-help';
+      root.id = 'voiceHelp';
+      root.hidden = true;
+      root.setAttribute('role', 'dialog');
+      root.setAttribute('aria-modal', 'true');
+      root.setAttribute('aria-labelledby', 'voiceHelpTitle');
+      root.setAttribute('data-noswipe', '1');
+      root.setAttribute('data-voice-help', '1');
+
+      panel = doc.createElement('div');
+      panel.className = 'voice-help-panel';
+
+      closeBtn = doc.createElement('button');
+      closeBtn.className = 'voice-help-close';
+      closeBtn.setAttribute('type', 'button');
+      closeBtn.textContent = '×';
+      closeBtn.addEventListener('click', function (event) {
+        stop(event, false);
+        close();
+      });
+      panel.appendChild(closeBtn);
+
+      titleEl = doc.createElement('p');
+      titleEl.className = 'voice-help-title';
+      titleEl.id = 'voiceHelpTitle';
+      panel.appendChild(titleEl);
+
+      const list = doc.createElement('ul');
+      list.className = 'voice-help-list';
+      const order = ['arrows', 'swipe', 'click', 'wait', 'gesture', 'scroll', 'menu', 'home', 'fullscreen', 'lang', 'sound'];
+      for (const key of order) {
+        const item = doc.createElement('li');
+        item.className = 'voice-help-item';
+        item.setAttribute('data-help-item', key);
+        list.appendChild(item);
+        itemEls.push({ key: key, el: item });
+      }
+      panel.appendChild(list);
+      root.appendChild(panel);
+      /* Clicks on the backdrop belong to the dialog, never to the slide. */
+      for (const type of ['click', 'pointerdown', 'mousedown', 'touchstart']) {
+        root.addEventListener(type, onRootClick);
+      }
+      doc.documentElement.appendChild(root);
+      paint();
+      return root;
+    }
+
+    function hook(name) {
+      try {
+        if (typeof opts[name] === 'function') opts[name]();
+      } catch (e) {}
+    }
+
+    function openHelp() {
+      if (!mounted || open) return false;
+      ensureDialog();
+      const controller = getController();
+      const snap = controller && typeof controller.snapshot === 'function'
+        ? controller.snapshot()
+        : null;
+      saved = {
+        currentId: snap ? snap.currentId : null,
+        lang: snap ? snap.lang : null,
+        wasPlaying: !!(snap && (snap.status === 'playing' || snap.status === 'starting')),
+      };
+      if (saved.wasPlaying && controller && typeof controller.pause === 'function') {
+        try { controller.pause(); } catch (e) {}
+      }
+      previousFocus = doc.activeElement || toggle;
+      bodyInertSaved = doc.body ? doc.body.inert === true : false;
+      if (doc.body) {
+        try { doc.body.inert = true; } catch (e) {}
+      }
+      open = true;
+      root.hidden = false;
+      if (toggle) toggle.hidden = true;
+      bindModal();
+      paint();
+      if (closeBtn) {
+        try { closeBtn.focus(); } catch (e) {}
+      }
+      hook('onOpen');
+      return true;
+    }
+
+    function close() {
+      if (!open) return false;
+      open = false;
+      unbindModal();
+      if (root) root.hidden = true;
+      if (doc.body) {
+        try { doc.body.inert = bodyInertSaved === true; } catch (e) {}
+      }
+      if (toggle) toggle.hidden = false;
+      const focusTarget = previousFocus && previousFocus !== doc.body ? previousFocus : toggle;
+      previousFocus = null;
+      if (focusTarget && typeof focusTarget.focus === 'function') {
+        try { focusTarget.focus(); } catch (e) {}
+      }
+      const controller = getController();
+      if (saved && saved.wasPlaying && controller && typeof controller.play === 'function') {
+        const now = typeof controller.snapshot === 'function' ? controller.snapshot() : null;
+        const same = !!now && now.currentId === saved.currentId && now.lang === saved.lang;
+        if (same) {
+          try {
+            const result = controller.play();
+            if (result && typeof result.catch === 'function') result.catch(function () {});
+          } catch (e) {}
+        }
+      }
+      saved = null;
+      bodyInertSaved = null;
+      hook('onClose');
+      return true;
+    }
+
+    function mount() {
+      if (mounted || !doc.documentElement) return false;
+      toggle = doc.createElement('button');
+      toggle.className = 'voice-help-toggle';
+      toggle.id = 'voiceHelpToggle';
+      toggle.setAttribute('type', 'button');
+      toggle.setAttribute('aria-haspopup', 'dialog');
+      toggle.setAttribute('aria-controls', 'voiceHelp');
+      toggle.setAttribute('data-voice-help', '1');
+      toggle.setAttribute('data-noswipe', '1');
+      toggle.textContent = '?';
+      toggle.addEventListener('click', function (event) {
+        onRootClick(event);
+        openHelp();
+      });
+      doc.documentElement.appendChild(toggle);
+      mounted = true;
+      if (win && win.I18N && typeof win.I18N.onChange === 'function') {
+        try {
+          const off = win.I18N.onChange(paint);
+          if (typeof off === 'function') i18nUnsubs.push(off);
+        } catch (e) {}
+      }
+      paint();
+      return true;
+    }
+
+    function destroy() {
+      if (open) close();
+      unbindModal();
+      for (const off of i18nUnsubs.splice(0)) {
+        try { off(); } catch (e) {}
+      }
+      for (const el of [toggle, root]) {
+        if (el && el.parentNode) {
+          try { el.parentNode.removeChild(el); } catch (e) {}
+        }
+      }
+      toggle = null;
+      root = null;
+      panel = null;
+      closeBtn = null;
+      titleEl = null;
+      itemEls = [];
+      mounted = false;
+      open = false;
+    }
+
+    return {
+      mount,
+      open: openHelp,
+      close,
+      destroy,
+      isOpen() { return open; },
+      isMounted() { return mounted; },
+      get toggle() { return toggle; },
+      get dialog() { return root; },
+    };
+  }
+
+  const api = { createStartGate, createHelp };
 
   /* Auto-install only in a real browser top document. */
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
@@ -562,7 +1034,7 @@
     let top = false;
     try { top = window.top === window; } catch (e) { top = false; }
     try {
-      instance = createStartGate({ doc: document, win: window, isTop: top });
+      instance = createStartGate({ doc: document, win: window, isTop: top, requireVoiceReady: true });
     } catch (e) {
       instance = null;
     }

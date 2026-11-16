@@ -550,6 +550,9 @@
   }
 
   function openScreen(url) {
+    /* Direct/programmatic callers cannot bypass the listening lock either. */
+    if (window.RwaVoice && window.RwaVoice.listeningLock &&
+        window.RwaVoice.listeningLock.isLocked()) return false;
     if (screenCloseTimer !== null) clearTimeout(screenCloseTimer);
     screenCloseTimer = null;
     if (window.RwaVoice) window.RwaVoice.stop('screen');
@@ -697,7 +700,12 @@
   }
 
   function goToSlide(index, direction) {
-    if (index < 0 || index >= SLIDES.length || isTransitioning) return;
+    /* Navigation guards: while the current narration is sounding, no
+       programmatic path (menu, home, edge arrows) may change the slide. The
+       initial load uses frame.src directly and is not affected. */
+    if (window.RwaVoice && window.RwaVoice.listeningLock &&
+        window.RwaVoice.listeningLock.isLocked()) return false;
+    if (index < 0 || index >= SLIDES.length || isTransitioning) return false;
     if (window.RwaVoice) window.RwaVoice.stop('navigation');
 
     isTransitioning = true;
@@ -885,6 +893,9 @@
                        '<span class="li-check">&#10003;</span>';
         it.addEventListener('click', e => {
           e.stopPropagation();
+          /* A language switch replays the current segment; it is navigation. */
+          if (window.RwaVoice && window.RwaVoice.listeningLock &&
+              window.RwaVoice.listeningLock.isLocked()) return;
           I18N.setLang(l.code);           /* переведёт лаунчер и все iframe */
           paintButton();
           close();
@@ -944,7 +955,9 @@
 <script src="shared/voice/voice-ui-model.js"></script>
 <script src="shared/voice/voice-ui.js"></script>
 <script src="shared/voice/voice-scenario.js"></script>
+<script src="shared/voice/voice-intro.js"></script>
 <script src="shared/voice/voice-autoplay.js"></script>
+<script src="shared/voice/voice-listening-lock.js"></script>
 <script src="shared/voice/voice-boot.js"></script>
 </body>
 </html>

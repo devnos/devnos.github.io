@@ -63,6 +63,13 @@
     centerPlay: null,
     gestureDoc: null,
     gate: gate,
+    help: null,
+    introData: null,
+    intro: null,
+    introDone: false,
+    startRequested: false,
+    listeningLock: null,
+    arrowNavigator: null,
   };
 
   const observers = [];
@@ -177,6 +184,14 @@
 
   function resolveStep(stepId, cfg) {
     if (!state.scenarioIndex || !cfg) return null;
+    /* The new combined first-slide speech has its own stable ID. The old
+       visual step ID s01.imagine.s03 is kept in VoiceSlides; this explicit
+       adapter is the only bridge, and it fires only when the extra asset is
+       approved, ready and hashed in the current language. */
+    if (window.VoiceIntro && state.introData) {
+      const override = window.VoiceIntro.resolveStepOverride(state.introData, cfg.slideId, stepId, currentLang());
+      if (override) return override;
+    }
     const segment = state.scenarioIndex.forStep(cfg.slideId, stepId);
     return segment ? segment.id : null;
   }
@@ -221,10 +236,22 @@
   }
 
   function render() {
+    if (gate && !gateStarted() && typeof gate.syncReady === 'function') gate.syncReady();
     if (state.ui) state.ui.render();
     if (!state.controller) return;
     const snap = state.controller.snapshot();
     if (state.hint) state.hint.update(snap);
+    if (state.listeningLock) state.listeningLock.update(snap);
+    if (state.intro) {
+      state.intro.onSnapshot(snap);
+      /* If the intro ended before the route/config existed, retry the handover
+         on every render instead of leaving the deck silent. */
+      if (state.intro.phase() === 'advancing' && state.config) {
+        const first = state.config.steps[0];
+        const segmentId = resolveStep(first, state.config);
+        if (segmentId && snap.currentId !== segmentId) selectStep(first, true);
+      }
+    }
     /* Before the start gate, the gate's own Play is the only control; the
        fallback must not appear behind the shield as a second button. */
     if (state.centerPlay) state.centerPlay.update(gateStarted() ? snap : null);
@@ -232,6 +259,10 @@
 
   function selectStep(stepId, follow) {
     if (!state.config || !state.controller) return;
+    /* The welcome owns the screen until it ends: mount/reconcile/rescan may
+       call selectStep every 600ms and must not replace the intro with the
+       first content step. During the handover phase selection is allowed. */
+    if (state.intro && state.intro.blocksSelection()) return;
     const index = state.config.steps.indexOf(stepId);
     if (index < 0) return;
     state.stepId = stepId;
@@ -248,6 +279,187 @@
       autoplay,
       paused: !state.autoNarrate && snap.status === 'paused',
     }).then(render).catch(function () {});
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Voice welcome + screen arrows                                       */
+
+  /*
+   * The spoken welcome is a guide for the root deck and for the first slide
+   * opened on its own. Every other standalone slide keeps its own strict Play
+   * and its own step narration; no welcome there.
+   */
+  function introHost() {
+    const path = window.location.pathname || '';
+    if (!/\/slides\/|\/calc\//.test(path)) return true;
+    const cfg = window.VoiceSlides.getSlideConfig(path);
+    return !!(cfg && cfg.slideId === 's01.imagine');
+  }
+
+  function introPlayableNow() {
+    const data = state.introData;
+    if (!data || !data.intro) return false;
+    return data.intro.playable[currentLang()] === true;
+  }
+
+  function makeIntroFlow() {
+    if (!window.VoiceIntro) return null;
+    return window.VoiceIntro.createIntroFlow({
+      hasIntro: !state.introDone && introHost() && introPlayableNow(),
+      introId: window.VoiceIntro.INTRO_ID,
+      getFirstStepId: function () { return state.config ? state.config.steps[0] : null; },
+      /* Always the LIVE controller: it is replaced after scenario.json loads. */
+      select: function (id, options2) { return state.controller.select(id, options2); },
+      onAdvance: advanceFromIntro,
+    });
+  }
+
+  function advanceFromIntro() {
+    if (!state.config || !state.controller) return;
+    selectStep(state.config.steps[0], true);
+  }
+
+  /*
+   * The single entry point after the trusted Play. It plays the welcome when a
+   * real approved recording exists; otherwise it starts the first title step
+   * exactly as before. A missing route waits for applyTarget instead of
+   * burning the one-per-page-open intro.
+   */
+  function startPlayback() {
+    state.startRequested = true;
+    if (state.dataStatus !== 'ready' || !state.controller) return;
+    if (state.intro && state.intro.isActive()) return;
+    if (state.introDone) {
+      if (state.config) selectStep(state.config.steps[0], true);
+      return;
+    }
+    if (window.VoiceIntro && introHost()) {
+      if (!state.config) return; /* route not resolved yet; applyTarget retries */
+      if (introPlayableNow()) {
+        if (!state.intro) state.intro = makeIntroFlow();
+        if (state.intro) {
+          state.introDone = true;
+          const result = state.intro.begin();
+          if (result && result.started) return;
+        }
+      }
+    }
+    state.introDone = true;
+    if (state.config) selectStep(state.config.steps[0], true);
+  }
+
+  /*
+   * Real availability for the post-`ended` arrows. Positional only: a shared
+   * recording may cover a group of stepIds, so currentId equality is never the
+   * source of truth. Intro (including the ended->first-step microtact) shows
+   * no arrows at all.
+   */
+  function navigationState() {
+    if (state.intro && state.intro.isActive()) return { hasNext: false, hasPrevious: false };
+    if (screenFrameIfOpen()) return { hasNext: true, hasPrevious: true };
+    const cfg = state.config;
+    if (!cfg || !Array.isArray(cfg.steps) || !cfg.steps.length) {
+      return { hasNext: false, hasPrevious: false };
+    }
+    const stepIndex = Number.isInteger(state.stepIndex) ? state.stepIndex : 0;
+    const lastStep = cfg.steps.length - 1;
+    let slideIndex = null;
+    let total = 0;
+    try {
+      if (typeof SLIDES !== 'undefined' && typeof currentIndex !== 'undefined') {
+        slideIndex = currentIndex;
+        total = SLIDES.length;
+      }
+    } catch (e) {
+      slideIndex = null;
+    }
+    const hasPrevStep = stepIndex > 0;
+    const hasNextStep = stepIndex < lastStep;
+    const hasPrevSlide = slideIndex !== null && slideIndex > 0;
+    const hasNextSlide = slideIndex !== null && slideIndex < total - 1;
+    /* The first absolute step never offers Back; the last never offers Next. */
+    return {
+      hasNext: hasNextStep || hasNextSlide,
+      hasPrevious: hasPrevStep || hasPrevSlide,
+    };
+  }
+
+  function arrowNavigatorInstance() {
+    if (!window.VoiceArrows) return null;
+    if (state.arrowNavigator) return state.arrowNavigator;
+    state.arrowNavigator = window.VoiceArrows.createArrowNavigator({
+      getFrame: activeFrame,
+      onEdge: function (direction) {
+        let index = null;
+        let total = 0;
+        try {
+          if (typeof SLIDES !== 'undefined' && typeof currentIndex !== 'undefined') {
+            index = currentIndex;
+            total = SLIDES.length;
+          }
+        } catch (e) {
+          return false;
+        }
+        if (index === null || !total) return false;
+        const next = direction === 'next' ? index + 1 : index - 1;
+        if (next < 0 || next >= total) return false;
+        if (typeof window.goToSlide === 'function') {
+          window.goToSlide(next, direction === 'next' ? 'forward' : 'backward');
+          return true;
+        }
+        return false;
+      },
+    });
+    return state.arrowNavigator;
+  }
+
+  function dispatchArrowToDoc(doc, direction) {
+    try {
+      const Kb = window.KeyboardEvent;
+      if (!Kb || !doc || typeof doc.dispatchEvent !== 'function') return false;
+      const key = direction === 'next' ? 'ArrowRight' : 'ArrowLeft';
+      const code = direction === 'next' ? 39 : 37;
+      doc.dispatchEvent(new Kb('keydown', {
+        key: key, code: key, keyCode: code, which: code, bubbles: true, cancelable: true,
+      }));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function dispatchIntoFrame(frame, direction) {
+    if (!frame || !window.VoiceArrows) return false;
+    try {
+      const navigator = window.VoiceArrows.createArrowNavigator({
+        getFrame: function () { return frame; },
+      });
+      return navigator.dispatch(direction);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /*
+   * Screen arrows dispatch the same ArrowRight/ArrowLeft the deck already
+   * owns: the deepest visible nested screen first, then the live deck frame,
+   * then (standalone slide) the slide document itself.
+   */
+  function navigateFromArrows(direction) {
+    if (direction !== 'next' && direction !== 'prev') return false;
+    const screen = screenFrameIfOpen();
+    if (screen && dispatchIntoFrame(screen, direction)) return true;
+    const navigator = arrowNavigatorInstance();
+    if (navigator && navigator.dispatch(direction)) return true;
+    let deck = false;
+    try { deck = typeof SLIDES !== 'undefined'; } catch (e) { deck = false; }
+    if (!deck) return dispatchArrowToDoc(document, direction);
+    return false;
+  }
+
+  function refreshLock() {
+    if (!state.listeningLock || !state.controller) return;
+    state.listeningLock.update(state.controller.snapshot());
   }
 
   function resetSelection() {
@@ -288,7 +500,8 @@
     if (state.ui) state.ui.setConfig(state.config);
 
     if (state.dataStatus === 'ready' && state.controller) {
-      selectStep(state.config.steps[0], gateStarted());
+      if (gateStarted() && state.startRequested) startPlayback();
+      else selectStep(state.config.steps[0], gateStarted());
     }
     render();
   }
@@ -374,7 +587,10 @@
     state.stepId = null;
     state.stepIndex = 0;
     if (state.ui) state.ui.setConfig(cfg);
-    if (state.dataStatus === 'ready' && state.controller) selectStep(cfg.steps[0], gateStarted());
+    if (state.dataStatus === 'ready' && state.controller) {
+      if (gateStarted() && state.startRequested) startPlayback();
+      else selectStep(cfg.steps[0], gateStarted());
+    }
     render();
   }
 
@@ -518,6 +734,9 @@
       fetchFirst([base + 'scenario.json']),
       fetchOptional([base + 'audio-manifest.json', base + 'manifest.json']),
       fetchOptional([base + 'inventory-map.json']),
+      /* Optional: generated welcome + dynamic first-slide speech. Absent or
+         broken data is a normal state, never a reason to lose the 86. */
+      fetchOptional([base + 'onboarding-audio.json']),
     ]).then(function (rows) {
       const raw = rows[0];
       const canonical = raw && raw.meta && raw.meta.schemaVersion === 1
@@ -529,10 +748,18 @@
       });
       state.canonical = canonical;
       state.mapping = rows[2] || null;
+      /* scenarioIndex is built from the canonical 86 only, so scenario lookups
+         never see the two extra runtime records. */
       state.scenarioIndex = window.VoiceScenario.createScenarioIndex(segments);
+      state.introData = window.VoiceIntro
+        ? window.VoiceIntro.adaptOnboarding(rows[3], { assetBaseUrl })
+        : null;
+      const extraSegments = state.introData && state.introData.segments
+        ? state.introData.segments
+        : [];
 
       const previous = state.controller;
-      const controller = createController(segments, previous);
+      const controller = createController(segments.concat(extraSegments), previous);
       state.controller = controller;
       state.deck = createDeck(controller);
       state.dataStatus = 'ready';
@@ -542,7 +769,8 @@
       }
       if (previous) previous.destroy();
       if (state.config) {
-        selectStep(state.config.steps[state.stepIndex || 0], gateStarted());
+        if (gateStarted() && state.startRequested) startPlayback();
+        else selectStep(state.config.steps[state.stepIndex || 0], gateStarted());
       } else {
         refreshRoute();
       }
@@ -550,6 +778,7 @@
     }).catch(function (error) {
       state.dataStatus = 'error';
       if (state.ui) state.ui.setDataStatus('error');
+      render();
       try { console.warn('[voice] narration data could not be loaded:', error && error.message); } catch (e) {}
     });
   }
@@ -612,18 +841,67 @@
   });
 
   /*
+   * The listening lock is wired to the LIVE controller here (not to a captured
+   * placeholder), so the controller swap after scenario.json is invisible to
+   * it. It stays inert until the gate has been pressed; the start gate alone
+   * owns input before that.
+   */
+  if (window.VoiceListeningLock && typeof window.VoiceListeningLock.createListeningLock === 'function') {
+    state.listeningLock = window.VoiceListeningLock.createListeningLock({
+      doc: document,
+      win: window,
+      getController: function () { return state.controller; },
+      isStarted: gateStarted,
+      isHelpOpen: function () {
+        return !!(state.help && typeof state.help.isOpen === 'function' && state.help.isOpen());
+      },
+      onNavigate: navigateFromArrows,
+      getNavigationState: navigationState,
+    });
+    state.listeningLock.bindDocument(document);
+  }
+
+  /*
+   * Repeat help is a second, independent state: it is mounted only once the
+   * start gate has been pressed, so reopening it never re-arms the gate, never
+   * wraps timers again and never produces another Play. It reads the live
+   * controller, which may be replaced after scenario.json finishes loading.
+   */
+  function mountHelp() {
+    if (state.help) return state.help;
+    if (!window.VoiceGate || typeof window.VoiceGate.createHelp !== 'function') return null;
+    state.help = window.VoiceGate.createHelp({
+      doc: document,
+      win: window,
+      getController: function () { return state.controller; },
+      /* Closing help at an already-ended segment must bring the arrows back;
+         opening it hides them immediately (isHelpOpen is also read live). */
+      onOpen: refreshLock,
+      onClose: refreshLock,
+    });
+    state.help.mount();
+    return state.help;
+  }
+
+  /*
    * The explicit Play is the single audio start. It is handled synchronously
    * inside the button click, so the browser still sees a user gesture. The
-   * gesture retry observer is armed only now; a playback failure leaves the
+   * spoken welcome (or the first title step when no welcome asset exists) is
+   * selected on the SAME controller/Audio inside this gesture. The gesture
+   * retry observer is armed only now; a playback failure leaves the
    * controller's Play (blocked/error) visible for another press.
    */
   if (gate && typeof gate.onStart === 'function') {
     gate.onStart(function () {
       if (state.narrator) state.narrator.bind(state.gestureDoc || document);
+      mountHelp();
       if (!state.controller) return;
       state.controller.unlock();
-      Promise.resolve(state.controller.play()).catch(function () {}).then(render);
+      startPlayback();
+      render();
     });
+  } else {
+    mountHelp();
   }
 
   /*
@@ -671,6 +949,25 @@
     get controller() { return state.controller; },
     get ui() { return state.ui; },
     get hint() { return state.hint; },
+    get help() { return state.help; },
+    get listeningLock() { return state.listeningLock; },
+    intro: function () {
+      const data = state.introData;
+      return {
+        available: !!(data && data.intro && data.intro.present),
+        playable: !!(data && data.intro && data.intro.playable[currentLang()]),
+        reason: data && data.intro ? data.intro.reasons[currentLang()] : 'no-data',
+        phase: state.intro ? state.intro.phase() : 'idle',
+        done: state.introDone === true,
+        dynamicReady: !!(data && data.dynamic &&
+          data.dynamic.playable[currentLang()] === true),
+        activateReady: !!(data && data.activate &&
+          data.activate.playable[currentLang()] === true),
+      };
+    },
+    helpOpen: function () {
+      return !!(state.help && typeof state.help.isOpen === 'function' && state.help.isOpen());
+    },
     startGate: function () {
       return gate ? {
         present: true,

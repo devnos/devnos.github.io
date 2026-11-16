@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "records": [
+    {
+      "id": "onboarding.voice-intro",
+      "kind": "container",
+      "slideId": "onboarding",
+      "stepIds": [],
+      "display": {
+        "ru": "Добро пожаловать в интерактивную презентацию RWA NFT. На компьютере листайте шаги стрелками или колёсиком мыши, а на телефоне свайпайте влево, чтобы продолжить, и вправо, чтобы вернуться. Дослушайте объяснение: когда оно закончится, появятся стрелки для перехода дальше или назад.",
+        "en": "Welcome to this interactive RWA NFT presentation. On a computer, use the arrow keys or mouse wheel; on a phone, swipe left to continue and right to go back. Listen to each explanation in full: when it ends, navigation arrows will appear so you can move forward or back."
+      },
+      "tts": {
+        "ru": "Добро пожаловать в интерактивную презентацию Эрвиэй энэфти. На компьютере листайте шаги стрелками или колёсиком мыши, а на телефоне свайпайте влево, чтобы продолжить, и вправо, чтобы вернуться. Дослушайте объяснение: когда оно закончится, появятся стрелки для перехода дальше или назад.",
+        "en": "Welcome to this interactive R-W-A N-F-T presentation. On a computer, use the arrow keys or mouse wheel; on a phone, swipe left to continue and right to go back. Listen to each explanation in full: when it ends, navigation arrows will appear so you can move forward or back."
+      },
+      "assets": {
+        "ru": {
+          "path": "audio/onboarding/ru/intro.mp3",
+          "sha256": "717da785d120f1172f87703cad953a5fe845c3b45df33824537fef88f1c62ea6",
+          "durationMs": 18920,
+          "approved": true,
+          "status": "ready",
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "temperature": 1,
+            "style": "Speak in Russian as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading."
+          }
+        },
+        "en": {
+          "path": "audio/onboarding/en/intro.mp3",
+          "sha256": "ce027fe5b0b414f17c5b0460b98360d3387f98d7e5178064d51c588a8e17ba65",
+          "durationMs": 17800,
+          "approved": true,
+          "status": "ready",
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "temperature": 1,
+            "style": "Speak in English as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading."
+          }
+        }
+      }
+    },
+    {
+      "id": "s01.imagine.dynamic",
+      "kind": "step",
+      "slideId": "s01.imagine",
+      "stepIds": [
+        "s01.imagine.s03"
+      ],
+      "display": {
+        "ru": "У такого актива может быть несколько владельцев. Каждый получает свою долю дохода. Теперь представьте, что одна из этих долей принадлежит вам. RWA NFT связывает цифровую долю с реальным активом. Вы становитесь его совладельцем и получаете доход, который приходится на вашу долю.",
+        "en": "An asset like this can have several owners, each receiving a share of its income. Now imagine that one of those shares belongs to you. RWA NFT connects a digital share to a real asset. You become a co-owner and receive the income attributable to your share."
+      },
+      "tts": {
+        "ru": "У такого актива может быть несколько владельцев. Каждый получает свою долю дохода. Теперь представьте, что одна из этих долей принадлежит вам. Эрвиэй энэфти связывает цифровую долю с реальным активом. Вы становитесь его совладельцем и получаете доход, который приходится на вашу долю.",
+        "en": "An asset like this can have several owners, each receiving a share of its income. Now imagine that one of those shares belongs to you. R-W-A N-F-T connects a digital share to a real asset. You become a co-owner and receive the income attributable to your share."
+      },
+      "assets": {
+        "ru": {
+          "path": "audio/onboarding/ru/dynamic.mp3",
+          "sha256": "de1e80d140e0627ff4bb0d3b186e0af786b7035c5c328ea06c6534e2f30e988f",
+          "durationMs": 18960,
+          "approved": true,
+          "status": "ready",
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "temperature": 1,
+            "style": "Speak in Russian as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading."
+          }
+        },
+        "en": {
+          "path": "audio/onboarding/en/dynamic.mp3",
+          "sha256": "10bfbe2aaab6e41ba0574cdcaae5a15f89fa5d708b3ec940ea70b6e2371760fb",
+          "durationMs": 19120,
+          "approved": true,
+          "status": "ready",
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "temperature": 1,
+            "style": "Speak in English as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading."
+          }
+        }
+      }
+    },
+    {
+      "id": "s14.choose.activate",
+      "kind": "step",
+      "slideId": "s14.choose",
+      "stepIds": [
+        "s14.choose.s03"
+      ],
+      "display": {
+        "ru": "Создайте свои цифровые активы, финансовую независимость! Принимайте решение прямо сейчас",
+        "en": "Build your digital assets and financial independence! Make your decision right now."
+      },
+      "tts": {
+        "ru": "Создайте свои цифровые активы, финансовую независимость! Принимайте решение прямо сейчас",
+        "en": "Build your digital assets and financial independence! Make your decision right now."
+      },
+      "assets": {
+        "ru": {
+          "path": "audio/onboarding/ru/activate.mp3",
+          "sha256": "4cf28965664461c790a723fe0c44c370eb89348ed06f0d7a7a462c6f9193f609",
+          "durationMs": 6680,
+          "approved": true,
+          "status": "ready",
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "temperature": 1,
+            "style": "Speak in Russian as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading."
+          }
+        },
+        "en": {
+          "path": "audio/onboarding/en/activate.mp3",
+          "sha256": "f6a257561d316018ea27e8c808496d248bffe65fe8f79ddd909875a056ea5b9e",
+          "durationMs": 6600,
+          "approved": true,
+          "status": "ready",
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "temperature": 1,
+            "style": "Speak in English as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading."
+          }
+        }
+      }
+    }
+  ]
+}

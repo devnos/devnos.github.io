@@ -13,9 +13,16 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
+  /*
+   * Two visual steps: the title, then the dynamic video with the combined
+   * speech. `s01.imagine.s03` is kept as the visual step ID for the old,
+   * approved mapping; the boot resolves it to the new stable segment
+   * `s01.imagine.dynamic` only when that recording is ready. The old
+   * s01.imagine.s02 row stays in scenario.json untouched as history.
+   */
   const S01_IMAGINE = Object.freeze({
     slideId: "s01.imagine",
-    steps: Object.freeze(["s01.imagine.s01", "s01.imagine.s02", "s01.imagine.s03"]),
+    steps: Object.freeze(["s01.imagine.s01", "s01.imagine.s03"]),
     actions: Object.freeze(["s01.imagine.s01.a01", "s01.imagine.s02.a01"]),
   });
   const S02_BRIDGE = Object.freeze({
@@ -28,9 +35,15 @@
     steps: Object.freeze(["s06.system.s01", "s06.system.s02", "s06.system.s03", "s06.system.s04", "s06.system.s05", "s06.system.s06", "s06.system.s07", "s06.system.s08", "s06.system.s09", "s06.system.s10", "s06.system.s11"]),
     actions: Object.freeze(["s06.system.s01.a01", "s06.system.s02.a01", "s06.system.s02.a02", "s06.system.s02.a03", "s06.system.s05.a01", "s06.system.s06.a01", "s06.system.s07.a01"]),
   });
+  /*
+   * Three visual steps: title, carousel, and the final CTA step. The old
+   * `s14.choose.s03` visual ID resolves to the new generated speech
+   * `s14.choose.activate` only when that recording is ready; the CTA slide
+   * itself is owned by the parent.
+   */
   const S14_CHOOSE = Object.freeze({
     slideId: "s14.choose",
-    steps: Object.freeze(["s14.choose.s01", "s14.choose.s02"]),
+    steps: Object.freeze(["s14.choose.s01", "s14.choose.s02", "s14.choose.s03"]),
     actions: Object.freeze(["s14.choose.s02.a01", "s14.choose.s02.a02", "s14.choose.s02.a03"]),
   });
   const S08_FINFLOW = Object.freeze({
