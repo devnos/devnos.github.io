@@ -157,15 +157,17 @@
   };
 
   /*
-   * True only for a real, actionable blocked state: a current playable step
-   * whose playback the browser refused. Idle/unprepared, unsupported,
-   * unavailable, disabled and already-playing states get no button.
+   * True only for a real, actionable state: a current playable step whose
+   * playback the browser refused (blocked/needs-gesture) or that failed after
+   * the start gate (error). Idle/unprepared, unsupported, unavailable, disabled
+   * and already-playing states get no button, so the failed control can never
+   * become a dead end: one press retries the same recording.
    */
   function centerPlayVisible(snap) {
     if (!snap || snap.enabled === false) return false;
     if (!snap.currentId) return false;
     if (snap.canPlay === false) return false;
-    return snap.status === 'blocked' || snap.status === 'needs-gesture';
+    return snap.status === 'blocked' || snap.status === 'needs-gesture' || snap.status === 'error';
   }
 
   /*

@@ -3,7 +3,7 @@
   "frameworkVersion": "7.4.12",
   "base": "/rwa-nft/",
   "site": "https://devnos.github.io",
-  "sourceCommit": "6ecb6c9860f20eb3a44e7e2a9540de9b8ef143fd",
+  "sourceCommit": "3127932789e9f6f786a5044fa283176038cfb6b1",
   "releaseId": "r13ec20720d83-8c7b771ef6",
   "audioRecordings": 172,
   "languages": [
@@ -12,6 +12,8 @@
   ],
   "runtimeManifestSha256": "3fce07f9246f1707f362f86810ade1109d2f51fc1beea1a92700ae33f6e328d5",
   "runtimeScenarioSha256": "d74d18311cac43dbb95a97d0b6aa1e545731f4209f45f99bd8fb7b95f31a585a",
-  "builtAt": "2026-11-16T08:51:26.678008+00:00",
-  "centerPlayFallback": true
+  "builtAt": "2026-11-16T09:38:26.764157+00:00",
+  "centerPlayFallback": true,
+  "explicitPlayRequired": true,
+  "playAfterLoaderFade": true
 }

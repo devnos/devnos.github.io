@@ -27,6 +27,20 @@
     return;
   }
 
+  /*
+   * The strict start gate owns the first interaction. Until its round Play is
+   * pressed, no step is auto-played and the gesture observer stays unarmed, so
+   * even a browser that allows autoplay stays silent and inactive. A page
+   * without the gate (older embed, unit harness) keeps the previous behaviour.
+   */
+  const gate = window.VoiceGate && typeof window.VoiceGate.started === 'function'
+    ? window.VoiceGate
+    : null;
+
+  function gateStarted() {
+    return !gate || gate.started() === true;
+  }
+
   const state = {
     controller: null,
     ui: null,
@@ -48,6 +62,7 @@
     hint: null,
     centerPlay: null,
     gestureDoc: null,
+    gate: gate,
   };
 
   const observers = [];
@@ -123,7 +138,7 @@
     if (state.gestureDoc === doc) return;
     if (state.gestureDoc && state.narrator) state.narrator.unbind(state.gestureDoc);
     state.gestureDoc = doc || null;
-    if (state.gestureDoc && state.narrator) state.narrator.bind(state.gestureDoc);
+    if (state.gestureDoc && state.narrator && gateStarted()) state.narrator.bind(state.gestureDoc);
   }
 
   /* Duck media in the active tree (hub video + the nested FinFlow frame). */
@@ -210,7 +225,9 @@
     if (!state.controller) return;
     const snap = state.controller.snapshot();
     if (state.hint) state.hint.update(snap);
-    if (state.centerPlay) state.centerPlay.update(snap);
+    /* Before the start gate, the gate's own Play is the only control; the
+       fallback must not appear behind the shield as a second button. */
+    if (state.centerPlay) state.centerPlay.update(gateStarted() ? snap : null);
   }
 
   function selectStep(stepId, follow) {
@@ -224,8 +241,9 @@
     const snap = state.controller.snapshot();
     /* Speaker mode: every visible step transition attempts native playback.
        A blocked browser reply is handled by the controller and retried on the
-       first real gesture; it is never a reason to stay silent. */
-    const autoplay = follow === true && snap.enabled !== false;
+       first real gesture; it is never a reason to stay silent. Before the start
+       gate is pressed nothing is auto-played. */
+    const autoplay = follow === true && snap.enabled !== false && gateStarted();
     state.controller.select(segmentId, {
       autoplay,
       paused: !state.autoNarrate && snap.status === 'paused',
@@ -270,7 +288,7 @@
     if (state.ui) state.ui.setConfig(state.config);
 
     if (state.dataStatus === 'ready' && state.controller) {
-      selectStep(state.config.steps[0], true);
+      selectStep(state.config.steps[0], gateStarted());
     }
     render();
   }
@@ -356,7 +374,7 @@
     state.stepId = null;
     state.stepIndex = 0;
     if (state.ui) state.ui.setConfig(cfg);
-    if (state.dataStatus === 'ready' && state.controller) selectStep(cfg.steps[0], true);
+    if (state.dataStatus === 'ready' && state.controller) selectStep(cfg.steps[0], gateStarted());
     render();
   }
 
@@ -524,7 +542,7 @@
       }
       if (previous) previous.destroy();
       if (state.config) {
-        selectStep(state.config.steps[state.stepIndex || 0], true);
+        selectStep(state.config.steps[state.stepIndex || 0], gateStarted());
       } else {
         refreshRoute();
       }
@@ -578,10 +596,11 @@
   state.deck = createDeck(state.controller);
   state.narrator = window.VoiceAutoplay.createAutoNarrator({
     getController: function () { return state.controller; },
-    /* Center Play activates itself; the capture observer must not play twice. */
+    /* Center Play and the start gate activate themselves; the capture observer
+       must not play twice. */
     ignoreSelector: '.voice-play',
   });
-  state.narrator.bind(document);
+  if (gateStarted()) state.narrator.bind(document);
   const voiceRoot = document.getElementById('voiceRoot') || document.body;
   state.hint = window.VoiceAutoplay.createLiveHint(document, voiceRoot);
   state.centerPlay = window.VoiceAutoplay.createCenterPlay(document, voiceRoot, {
@@ -591,6 +610,21 @@
       Promise.resolve(state.controller.play()).catch(function () {}).then(render);
     },
   });
+
+  /*
+   * The explicit Play is the single audio start. It is handled synchronously
+   * inside the button click, so the browser still sees a user gesture. The
+   * gesture retry observer is armed only now; a playback failure leaves the
+   * controller's Play (blocked/error) visible for another press.
+   */
+  if (gate && typeof gate.onStart === 'function') {
+    gate.onStart(function () {
+      if (state.narrator) state.narrator.bind(state.gestureDoc || document);
+      if (!state.controller) return;
+      state.controller.unlock();
+      Promise.resolve(state.controller.play()).catch(function () {}).then(render);
+    });
+  }
 
   /*
    * No permanent narration bar. The old renderer stays available only as an
@@ -637,6 +671,14 @@
     get controller() { return state.controller; },
     get ui() { return state.ui; },
     get hint() { return state.hint; },
+    startGate: function () {
+      return gate ? {
+        present: true,
+        started: gate.started() === true,
+        locked: gate.locked() === true,
+        ready: typeof gate.ready === 'function' ? gate.ready() === true : null,
+      } : { present: false, started: true, locked: false, ready: true };
+    },
     autoNarrate: true,
     get deck() { return state.deck; },
     get config() { return state.config; },
