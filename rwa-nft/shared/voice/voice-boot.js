@@ -46,6 +46,7 @@
     autoNarrate: true,
     narrator: null,
     hint: null,
+    centerPlay: null,
     gestureDoc: null,
   };
 
@@ -206,7 +207,10 @@
 
   function render() {
     if (state.ui) state.ui.render();
-    if (state.hint && state.controller) state.hint.update(state.controller.snapshot());
+    if (!state.controller) return;
+    const snap = state.controller.snapshot();
+    if (state.hint) state.hint.update(snap);
+    if (state.centerPlay) state.centerPlay.update(snap);
   }
 
   function selectStep(stepId, follow) {
@@ -574,12 +578,19 @@
   state.deck = createDeck(state.controller);
   state.narrator = window.VoiceAutoplay.createAutoNarrator({
     getController: function () { return state.controller; },
+    /* Center Play activates itself; the capture observer must not play twice. */
+    ignoreSelector: '.voice-play',
   });
   state.narrator.bind(document);
-  state.hint = window.VoiceAutoplay.createLiveHint(
-    document,
-    document.getElementById('voiceRoot') || document.body
-  );
+  const voiceRoot = document.getElementById('voiceRoot') || document.body;
+  state.hint = window.VoiceAutoplay.createLiveHint(document, voiceRoot);
+  state.centerPlay = window.VoiceAutoplay.createCenterPlay(document, voiceRoot, {
+    onActivate: function () {
+      if (!state.controller) return;
+      state.controller.unlock();
+      Promise.resolve(state.controller.play()).catch(function () {}).then(render);
+    },
+  });
 
   /*
    * No permanent narration bar. The old renderer stays available only as an
