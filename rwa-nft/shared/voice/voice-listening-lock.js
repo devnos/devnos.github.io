@@ -29,12 +29,25 @@
  *    synthetic global keys (VoiceArrows) are guarded exactly like physical
  *    ones. `isTrusted` is deliberately not consulted.
  *  - Startup Play (`.voice-gate-play`), the fallback `.voice-play`, Help
- *    (`[data-voice-help]`, `.voice-help`, `.voice-help-dialog`) and the
- *    non-navigation screen close stay usable. Plain hover (`mousemove`,
- *    `pointermove`) is not intercepted.
- *  - Navigation postMessages from slide frames (`slide-end-*`, `open-screen`,
- *    ...) are dropped in the window capture phase. Service messages
- *    (`step-changed`, `voice-registration`, deck control) pass untouched.
+ *    (`[data-voice-help]`, `.voice-help`, `.voice-help-dialog`), the
+ *    non-navigation screen close and the language selector (`#langBtn`,
+ *    `#langPanel` and their descendants) stay usable. Plain hover
+ *    (`mousemove`, `pointermove`) is not intercepted.
+ *  - Deliberate UI stays interactive during speech: real controls (button, a,
+ *    input, select, textarea, label, [contenteditable], [role=button|tab|...],
+ *    `[data-voice-action]`, `[data-voice-interactive]`, `[data-no-click]`, the
+ *    `.flip3d`/`.nftflip` cards with `#finproFlip`/`#careerFlip`/... ids) keep
+ *    their pointer, click and key events, including their native defaults. A
+ *    navigation key on such a control is isolated with `stopPropagation` so a
+ *    document-level deck handler cannot flip a step under it. This is not a
+ *    blanket unlock: the document/body and every unmarked container still
+ *    block taps, and wheel/`touchmove` pass only over a local card surface
+ *    (`[data-voice-interactive]` / `[data-no-swipe]`). The startup gate is
+ *    untouched — nothing here runs before Play.
+ *  - Navigation postMessages from slide frames (`slide-end-*`, `next-slide`,
+ *    ...) are dropped in the window capture phase. `open-screen` is an explicit
+ *    UI request and passes (the deck keeps its origin/URL allow-list). Service
+ *    messages (`step-changed`, `voice-registration`, deck control) pass.
  *  - Blocked input is neither buffered nor replayed after `ended`; the user
  *    must make a fresh gesture.
  *  - The hint is one element with inline, prefixed styles. It is throttled, so
@@ -43,14 +56,19 @@
  *
  * Post-ended navigation:
  *  - Once the live controller reports `ended` (not a timer, not `ready`), the
- *    helper shows a pair of round 44px+ buttons: a calm Prev and a warm-gold
- *    pulsing Next. They are hidden for playing/starting/paused/idle/ready/
- *    error, while Help is open, and before the start gate.
+ *    helper shows two large translucent gold chevrons pinned to the left and
+ *    right screen edges, vertically centred: a still Prev and a slowly
+ *    breathing Next. No circle, plate, outline or glow disc. They are hidden
+ *    for playing/starting/paused/idle/ready/error, while Help is open, and
+ *    before the start gate.
  *  - `onNavigate('next'|'prev')` is optional; without it no controls are
  *    created. `getNavigationState()` may hide an unavailable direction
  *    (`{hasNext, hasPrevious}`); both missing means one or both ends.
  *  - A click hides the pair synchronously before calling `onNavigate`, so a
  *    fast double click cannot skip a step through the `ready` microtask.
+ *    A callback that returns strict `false` (the carousel moved to a neighbour
+ *    card without a new narration step) re-arms the pair immediately; any
+ *    other return value — `undefined` included — is a real transition.
  *  - The helper never calls nextStep/openScreen itself; the parent dispatches
  *    the real gesture into the live frame.
  *
@@ -70,10 +88,34 @@
   const HINT_MS = 1600;
   const HINT_GAP_MS = 1200;
   const PULSE_MS = 2800;
+  const GHOST_OPACITY = 0.6;
+  const PULSE_DIM = 0.34;
+  const PULSE_PEAK = 0.78;
   const HINT_CLASS = 'voice-listening-lock-hint';
   const NAV_ROOT_CLASS = 'voice-listening-nav';
   const NAV_CLASS = 'voice-listening-nav-btn';
-  const NAV_GLOW_CLASS = 'voice-listening-nav-glow';
+  /* Real language-selector ids from index.html. The startup gate stays in
+     charge before Play; this allow-list only matters while speech is locked. */
+  const LANGUAGE_IDS = new Set(['langBtn', 'langPanel']);
+  const LANGUAGE_CLASSES = ['lang-item', 'lang-panel', 'lang-menu'];
+  /* Deliberate UI: a pointer or keyboard gesture on one of these is the user
+     operating a control, not a request to change the step. Background taps and
+     the global step gestures stay blocked. */
+  const UI_TAGS = new Set([
+    'BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA', 'LABEL', 'OPTION',
+    'SUMMARY', 'DETAILS',
+  ]);
+  const UI_ROLES = new Set([
+    'button', 'tab', 'checkbox', 'radio', 'switch', 'link', 'menuitem',
+    'option', 'slider', 'spinbutton', 'textbox', 'combobox', 'dialog',
+    'alertdialog', 'toolbar',
+  ]);
+  const UI_ATTRS = ['data-voice-action', 'data-voice-interactive', 'data-no-click'];
+  const UI_CLASSES = ['lang-item', 'lang-panel', 'lang-menu', 'flip3d', 'nftflip'];
+  /* Flip cards of the canonical deck (slide_06_system.html). */
+  const UI_IDS = new Set(['langBtn', 'langPanel', 'finproFlip', 'careerFlip', 'nftFlip', 'partnerFlip']);
+  /* A local card surface keeps its own pointer/touch/wheel gestures. */
+  const LOCAL_SURFACE_ATTRS = ['data-voice-interactive', 'data-no-swipe'];
   const HINT_STYLE = [
     'position:fixed',
     'left:50%',
@@ -91,34 +133,37 @@
     'box-shadow:0 8px 24px rgba(0,0,0,0.28)',
     'white-space:normal',
   ].join(';');
-  /* Bottom centre, above the existing centered help toggle (14px) and below
-     the help overlay (10090). The hint lives at the same anchor but is never
-     shown at `ended`; update() removes it before the arrows appear. */
+  /* Bottom centre hint, above the existing centered help toggle (14px) and
+     below the help overlay (10090). The hint lives at the same anchor as the
+     old row but is never shown at `ended`; update() removes it first. */
+  /* Full-viewport, click-through layer. The arrows are pinned to the screen
+     edges; the layer itself never takes a tap away from the deck. */
   const NAV_ROOT_STYLE = [
     'position:fixed',
-    'left:50%',
-    'bottom:calc(76px + env(safe-area-inset-bottom, 0px))',
-    'transform:translateX(-50%)',
+    'inset:0',
     'z-index:10075',
     'display:none',
-    'align-items:center',
-    'justify-content:center',
-    'gap:14px',
     'pointer-events:none',
     'touch-action:manipulation',
   ].join(';');
+  /* Ghost chevron: no disc, no plate, no ring, no shadow. clamp() keeps the
+     icon large on desktop and inside the side gutter on a phone, while the
+     44px minimum tap target is preserved. */
   const NAV_BUTTON_STYLE = [
-    'position:relative',
-    'width:52px',
-    'height:52px',
+    'position:fixed',
+    'top:50%',
+    'transform:translateY(-50%)',
+    'width:clamp(64px, 9vw, 92px)',
+    'height:clamp(64px, 9vw, 92px)',
     'min-width:44px',
     'min-height:44px',
+    'margin:0',
     'padding:0',
-    'border-radius:50%',
-    'border:1px solid rgba(240,198,116,0.55)',
-    'background:rgba(14,16,23,0.92)',
+    'border:0',
+    'border-radius:0',
+    'background:none',
+    'box-shadow:none',
     'color:#f0c674',
-    'font:400 26px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
     'display:inline-flex',
     'align-items:center',
     'justify-content:center',
@@ -126,22 +171,13 @@
     'pointer-events:auto',
     'touch-action:manipulation',
     '-webkit-tap-highlight-color:transparent',
-    'box-shadow:0 6px 18px rgba(0,0,0,0.30)',
+    '-webkit-appearance:none',
+    'appearance:none',
     'user-select:none',
   ].join(';');
-  const NAV_PREV_STYLE = [
-    'border:1px solid rgba(240,198,116,0.30)',
-    'color:#d4a857',
-    'box-shadow:0 6px 18px rgba(0,0,0,0.24)',
-  ].join(';');
-  const NAV_GLOW_STYLE = [
-    'position:absolute',
-    'inset:-7px',
-    'border-radius:50%',
-    'pointer-events:none',
-    'background:radial-gradient(circle, rgba(240,198,116,0.55) 0%, rgba(240,198,116,0) 70%)',
-    'opacity:0.22',
-  ].join(';');
+  /* Edge anchors keep the chevrons off the central cards and inside notches. */
+  const NAV_PREV_STYLE = 'left:calc(env(safe-area-inset-left, 0px) + 6px)';
+  const NAV_NEXT_STYLE = 'right:calc(env(safe-area-inset-right, 0px) + 6px)';
 
   /* Only navigational keys. Letters stay with form fields; Tab, Escape, "?"
      and every Ctrl/Meta/Alt system shortcut are never taken from the browser. */
@@ -203,12 +239,73 @@
     return flag !== null && flag !== undefined && flag !== false;
   }
 
+  function isLanguageNode(node) {
+    if (!node) return false;
+    const id = attrOf(node, 'id');
+    if (typeof id === 'string' && LANGUAGE_IDS.has(id)) return true;
+    for (const name of LANGUAGE_CLASSES) if (hasClass(node, name)) return true;
+    return false;
+  }
+
+  function isUiNode(node) {
+    if (!node) return false;
+    const tag = typeof node.tagName === 'string' ? node.tagName.toUpperCase() : '';
+    if (UI_TAGS.has(tag)) return true;
+    if ((tag === 'VIDEO' || tag === 'AUDIO') &&
+        (node.controls === true || attrOf(node, 'controls') !== null)) return true;
+    const role = attrOf(node, 'role');
+    if (typeof role === 'string' && UI_ROLES.has(role.toLowerCase())) return true;
+    for (const name of UI_ATTRS) if (attrOf(node, name) !== null) return true;
+    const editable = attrOf(node, 'contenteditable');
+    if (editable !== null && String(editable).toLowerCase() !== 'false') return true;
+    const id = attrOf(node, 'id');
+    if (typeof id === 'string' && UI_IDS.has(id)) return true;
+    for (const name of UI_CLASSES) if (hasClass(node, name)) return true;
+    return isLanguageNode(node);
+  }
+
+  /* Walks up from the event target; the document/body themselves are never UI,
+     so a background tap stays a step request. */
+  function isUiTarget(target, doc) {
+    let node = target || null;
+    let depth = 0;
+    while (node && depth < MAX_ANCESTOR_DEPTH) {
+      if (node === doc) return false;
+      if (isUiNode(node)) return true;
+      node = node.parentNode || null;
+      depth += 1;
+    }
+    return false;
+  }
+
+  /* A card/stage that owns its own drag and wheel (canonical `data-no-click`
+     stages plus the [data-voice-interactive] stage the parent adds to a local
+     carousel). Only these may receive wheel/touchmove while speech is locked. */
+  function isLocalSurface(target, doc) {
+    let node = target || null;
+    let depth = 0;
+    while (node && depth < MAX_ANCESTOR_DEPTH) {
+      if (node === doc) return false;
+      for (const name of LOCAL_SURFACE_ATTRS) {
+        if (attrOf(node, name) !== null) return true;
+      }
+      node = node.parentNode || null;
+      depth += 1;
+    }
+    return false;
+  }
+
   function isAllowedNode(target, doc, helpOpen) {
     let node = target || null;
     let depth = 0;
     while (node && depth < MAX_ANCESTOR_DEPTH) {
       if (node === doc) return false;
       if (isPlayNode(node) || isHelpNode(node)) return true;
+      /* The language selector (index.html #langBtn/#langPanel and their
+         descendants) must switch language mid-sentence: a physical click there
+         replaces the current segment in the single audio element. The startup
+         gate is untouched because this guard only runs once speech started. */
+      if (isLanguageNode(node)) return true;
       /* Compatibility fallback: a help implementation may only expose
          isHelpOpen() plus a role="dialog" ancestor, without our classes. */
       if (helpOpen && attrOf(node, 'role') === 'dialog') return true;
@@ -286,7 +383,7 @@
     let navRoot = null;
     let navNext = null;
     let navPrev = null;
-    let navGlow = null;
+    let navPulse = null;      /* the next ghost chevron (SVG), animated itself */
     let navAnimation = null;
     let navConsumed = false;
     let navSyncQueued = false;
@@ -455,29 +552,42 @@
       try { if (typeof event.stopPropagation === 'function') event.stopPropagation(); } catch (e) {}
     }
 
+    function containControlKey(event) {
+      const target = event && event.target;
+      if (!target || typeof target.addEventListener !== 'function') return;
+      /* Let the control handle its own key, then contain the bubble. */
+      const stop = function (current) {
+        if (current !== event) return;
+        containEvent(current);
+        target.removeEventListener(event.type, stop);
+      };
+      target.addEventListener(event.type, stop);
+      Promise.resolve().then(function () { target.removeEventListener(event.type, stop); });
+    }
+
     function stopPulse() {
       if (navAnimation) {
         try { navAnimation.cancel(); } catch (e) {}
         navAnimation = null;
       }
-      if (navGlow) setOpacity(navGlow, 0.22);
+      if (navPulse) setOpacity(navPulse, GHOST_OPACITY);
     }
 
     function startPulse() {
-      stopPulse();
-      if (!navGlow || !navNext || navNext.hidden) return;
-      if (prefersReducedMotion() || typeof navGlow.animate !== 'function') {
-        setOpacity(navGlow, 0.24);
+      if (!navPulse || !navNext || navNext.hidden) return;
+      if (prefersReducedMotion() || typeof navPulse.animate !== 'function') {
+        setOpacity(navPulse, GHOST_OPACITY);
         return;
       }
+      if (navAnimation) return; /* already breathing */
       try {
-        navAnimation = navGlow.animate([
-          { opacity: 0.16 },
-          { opacity: 0.5 },
-          { opacity: 0.16 },
+        navAnimation = navPulse.animate([
+          { opacity: PULSE_DIM },
+          { opacity: PULSE_PEAK },
+          { opacity: PULSE_DIM },
         ], { duration: PULSE_MS, iterations: Infinity, easing: 'ease-in-out' });
       } catch (e) {
-        setOpacity(navGlow, 0.24);
+        setOpacity(navPulse, GHOST_OPACITY);
       }
     }
 
@@ -504,7 +614,17 @@
       navConsumed = true;
       hideNavigation();
       hideHint();
-      try { onNavigate(direction); } catch (e) {}
+      let result;
+      try { result = onNavigate(direction); } catch (e) { result = undefined; }
+      /* Strict false means "nothing moved": a carousel stepped onto a
+         neighbour card without a new narration step, so the pair must be
+         usable again at once — no speech rearm required. undefined and every
+         other value are a real transition and stay consumed until new speech
+         starts. */
+      if (result === false) {
+        navConsumed = false;
+        syncNavigation();
+      }
     }
 
     function ensureNavigation() {
@@ -529,7 +649,10 @@
         button.setAttribute('data-noswipe', '1');
         button.setAttribute('data-no-swipe', '1');
         button.setAttribute('style', NAV_BUTTON_STYLE + (extraStyle ? ';' + extraStyle : ''));
-        button.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none"><path d="' + path + '" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        /* One bold chevron, stretched to the full tap target: no disc, no
+           plate, no ring. The opacity attribute is the ghost resting state. */
+        button.innerHTML = '<svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden="true" fill="none" opacity="' + GHOST_OPACITY + '">' +
+          '<path d="' + path + '" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'keydown', 'keyup', 'keypress']) {
           try { button.addEventListener(type, containEvent); } catch (e) {}
         }
@@ -541,14 +664,8 @@
         return button;
       };
 
-      const prev = makeButton('prev', 'M19 12H5M11 6l-6 6 6 6', NAV_PREV_STYLE);
-      const next = makeButton('next', 'M5 12h14M13 6l6 6-6 6', '');
-
-      const glow = doc.createElement('span');
-      glow.className = NAV_GLOW_CLASS;
-      glow.setAttribute('aria-hidden', 'true');
-      glow.setAttribute('style', NAV_GLOW_STYLE);
-      next.insertBefore ? next.insertBefore(glow, next.firstChild) : next.appendChild(glow);
+      const prev = makeButton('prev', 'M16 4.5 L8 12 L16 19.5', NAV_PREV_STYLE);
+      const next = makeButton('next', 'M8 4.5 L16 12 L8 19.5', NAV_NEXT_STYLE);
 
       root.appendChild(prev);
       root.appendChild(next);
@@ -558,7 +675,7 @@
       navRoot = root;
       navPrev = prev;
       navNext = next;
-      navGlow = glow;
+      navPulse = next.querySelector ? next.querySelector('svg') : null;
       return root;
     }
 
@@ -659,18 +776,64 @@
       try { helpOpen = isHelpOpen() === true; } catch (e) { helpOpen = false; }
       if (type === 'keydown') {
         if (!isNavigationKey(event)) return;
-        if (keyIsExempt(event, target, entry.doc, helpOpen)) return;
+        if (keyIsExempt(event, target, entry.doc, helpOpen)) {
+          /* Even a pre-exempt control (play/help/language) must not leak the
+             key into a document-level deck handler. */
+          if (isUiTarget(target, entry.doc)) {
+            containControlKey(event);
+          }
+          return;
+        }
+        /* A navigation key on a focused control is the control's own key. Keep
+           its native default (button activation, caret, selection) but stop the
+           bubble so a document-level deck handler cannot flip a step too. */
+        if (isUiTarget(target, entry.doc)) {
+          containControlKey(event);
+          return;
+        }
         blockedKeys.add(keyName(event));
         block(event);
         return;
       }
+      if (type === 'keyup') {
+        /* Keyup never navigates; a UI target keeps it (and its own focus
+           handling) instead of getting a prevented default. */
+        if (isUiTarget(target, entry.doc)) { containControlKey(event); return; }
+        if (isAllowedNode(target, entry.doc, helpOpen)) return;
+        block(event);
+        return;
+      }
       if (isAllowedNode(target, entry.doc, helpOpen)) return;
+
+      /* Wheel and drag are the deck's step gestures. They stay blocked on the
+         background and open only over a local card surface (the flip stages and
+         the [data-voice-interactive] carousel), which owns its own gestures. */
+      if (type === 'wheel' || type === 'touchmove') {
+        if (isLocalSurface(target, entry.doc)) return;
+        block(event);
+        return;
+      }
+      if (type === 'touchstart' || type === 'touchend' || type === 'touchcancel') {
+        /* A tap on a control still has to produce its synthetic click; a drag
+           is caught by touchmove above. */
+        if (isUiTarget(target, entry.doc) || isLocalSurface(target, entry.doc)) return;
+        block(event);
+        return;
+      }
+      /* click, dblclick and every pointer/mouse press: a deliberate control
+         gesture passes, a background tap is still a step request. */
+      if (isUiTarget(target, entry.doc) || isLocalSurface(target, entry.doc)) return;
       block(event);
     }
 
     function onMessage(event) {
       if (destroyed || !isLocked()) return;
-      if (!isNavigationMessage(event && event.data)) return;
+      const data = event && event.data;
+      if (!isNavigationMessage(data)) return;
+      /* `open-screen` is an explicit UI request from the active frame (the
+         origin and URL allow-list stay in the deck). Only step/slide advances
+         are navigation and stay blocked. */
+      if (data.type === 'open-screen') return;
       block(event);
     }
 
@@ -817,7 +980,7 @@
       navRoot = null;
       navNext = null;
       navPrev = null;
-      navGlow = null;
+      navPulse = null;
       navAnimation = null;
       blockedKeys.clear();
       for (const entry of Array.from(entries.values())) {

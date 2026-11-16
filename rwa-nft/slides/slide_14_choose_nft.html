@@ -389,7 +389,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--body);overflow
     <div class="sub" data-i18n="s14.sub">Чем выше уровень, тем больше доход</div>
   </div>
 
-  <div class="stage reveal" id="stage" data-no-click>
+  <div class="stage reveal" id="stage" data-no-click data-no-swipe data-voice-interactive>
     <div class="rail" id="rail"></div>
   </div>
 
@@ -514,12 +514,29 @@ dots=[...dotsEl.children];
 
 /* ===== ФИЗИКА КАРУСЕЛИ ===== */
 let pos=0;          /* старт: GENESIS за $28 */
+let targetCard=0;
+let currentVisualStep=0;
+const viewedCards=new Set();
 let incomeAuto=false;
 let vel=0;          /* скорость, карт/кадр */
 let dragging=false;
 let lastX=0,lastT=0;
-const FRICTION=0.94;
 const SNAP=0.12;
+
+/* ===== CARD NAVIGATION ===== */
+function carouselIsSettled(){
+  return !dragging && Math.abs(pos-targetCard)<0.035;
+}
+function markViewedCard(){
+  if(currentVisualStep===1 && carouselIsSettled()) viewedCards.add(targetCard);
+}
+function moveCard(direction){
+  if(!carouselIsSettled()) return false;
+  const next=Math.max(0,Math.min(NFT.length-1,targetCard+direction));
+  if(next===targetCard) return false;
+  targetCard=next;vel=0;
+  return true;
+}
 
 function spacing(){
   const portrait = window.innerHeight > window.innerWidth && window.innerWidth <= 620;
@@ -586,6 +603,7 @@ function layout(){
     else if(!v.paused) v.pause();
   });
   dots.forEach((d,i)=>d.classList.toggle('on',i===nearest));
+  markViewedCard();
   if(nearest>=0&&nearest<cards.length){
     /* страховка: если по какой-то причине текст тира пуст, печатаем заново */
     const tEl=cards[nearest].querySelector('.ti-text');
@@ -610,13 +628,9 @@ function clampPos(){
 
 function tick(){
   if(!dragging){
-    if(Math.abs(vel)>0.002){
-      pos+=vel; vel*=FRICTION;
-    } else {
-      const target=Math.max(0,Math.min(NFT.length-1,Math.round(pos)));
-      pos+=(target-pos)*SNAP;
-      vel=0;
-    }
+    pos+=(targetCard-pos)*SNAP;
+    if(Math.abs(targetCard-pos)<0.004) pos=targetCard;
+    vel=0;
     clampPos();
   }
   layout();
@@ -624,9 +638,11 @@ function tick(){
 }
 
 const stage=document.getElementById('stage');
-let downX=0,downY=0,moved=0;
+let downX=0,downY=0,moved=0,downCard=0;
 stage.addEventListener('pointerdown',e=>{
+  if(!carouselIsSettled()) return;
   dragging=true; vel=0;
+  downCard=targetCard;
   lastX=e.clientX; lastT=performance.now();
   downX=e.clientX; downY=e.clientY; moved=0;
   stage.classList.add('dragging');
@@ -638,6 +654,7 @@ stage.addEventListener('pointermove',e=>{
   const now=performance.now();
   const dt=Math.max(1,now-lastT);
   pos-=dx/spacing();
+  pos=Math.max(downCard-1,Math.min(downCard+1,pos));
   vel=-(dx/spacing())*(16/dt); /* скорость в картах за кадр */
   moved=Math.max(moved,Math.hypot(e.clientX-downX,e.clientY-downY));
   clampPos();
@@ -647,7 +664,11 @@ function endDrag(e){
   if(!dragging)return;
   dragging=false;
   stage.classList.remove('dragging');
-  vel=Math.max(-0.6,Math.min(0.6,vel));
+  const displacement=pos-downCard;
+  const offset=moved>=6 && (Math.abs(displacement)>0.18 || Math.abs(vel)>0.035)
+    ? Math.sign(displacement || vel) : 0;
+  targetCard=Math.max(0,Math.min(NFT.length-1,downCard+offset));
+  vel=0;
   /* тап (не протяжка): переворот центральной карты */
   if(e && moved<6){
     const nearest=Math.max(0,Math.min(cards.length-1,Math.round(pos)));
@@ -670,11 +691,8 @@ stage.addEventListener('pointercancel',()=>endDrag(null));
 /* колесо над каруселью тоже листает карты */
 stage.addEventListener('wheel',e=>{
   e.preventDefault(); e.stopPropagation();
-  if (e.deltaY > 0 && Math.round(pos) >= cards.length - 1) {
-    document.dispatchEvent(new CustomEvent('rwa-cta-next'));
-    return;
-  }
-  vel+=Math.sign(e.deltaY)*0.06;
+  const delta=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
+  if(delta) document.dispatchEvent(new CustomEvent('rwa-carousel-navigate',{detail:{direction:Math.sign(delta)}}));
 },{passive:false});
 
 window.addEventListener('resize',layout);
@@ -696,14 +714,16 @@ document.getElementById('ctaLink').addEventListener('click',e=>e.stopPropagation
    2: открывается кнопка активации NFT
    Блок дохода появляется ТОЛЬКО сам, когда лента доехала до Premium */
 function applyStep(step){
+  currentVisualStep=step;
   document.getElementById('rvHead').classList.toggle('shown',step>=0);
   document.getElementById('stage').classList.toggle('shown',step>=1);
-  const cta = step >= 2;
+  const cta = step >= 2 && viewedCards.size===NFT.length;
   document.getElementById('ctaRow').classList.toggle('open',cta);
   document.getElementById('rvCta').classList.toggle('cta-mode',cta);
   document.getElementById('rvCta').classList.toggle('shown',cta || (step >= 1 && incomeAuto));
-  if(step<1){pos=0;vel=0;incomeAuto=false;
+  if(step<1){pos=0;targetCard=0;vel=0;incomeAuto=false;viewedCards.clear();
     document.getElementById('rvCta').classList.remove('shown');}
+  markViewedCard();
 }
 
 /* ===== ENGINE (inline) ===== */
@@ -712,11 +732,28 @@ function applyStep(step){
   let currentStep=0;const totalSteps=3;
   function post(type,data){if(!isInIframe)return;try{window.parent.postMessage({source:'slide',type,...(data||{})},'*')}catch(e){}}
   function onStep(s){applyStep(s)}
-  function nextStep(){if(currentStep<totalSteps-1){currentStep++;onStep(currentStep);post('step-changed',{step:currentStep})}else{post('slide-end-forward')}}
-  function prevStep(){if(currentStep>0){currentStep--;onStep(currentStep);post('step-changed',{step:currentStep})}else{post('slide-end-backward')}}
-  document.addEventListener('rwa-cta-next',()=>{if(currentStep===1)nextStep()});
+  function narrationLocked(){
+    try{const v=(isInIframe?window.parent:window).RwaVoice;return !!(v&&v.listeningLock&&v.listeningLock.isLocked());}catch(e){return false;}
+  }
+  function nextStep(){
+    if(currentStep===1){
+      if(!carouselIsSettled()) return;
+      markViewedCard();
+      if(targetCard<NFT.length-1){moveCard(1);return;}
+      if(viewedCards.size!==NFT.length){targetCard=NFT.findIndex((_,i)=>!viewedCards.has(i));return;}
+    }
+    if(narrationLocked()) return;
+    if(currentStep<totalSteps-1){currentStep++;onStep(currentStep);post('step-changed',{step:currentStep})}else{post('slide-end-forward')}
+  }
+  function prevStep(){
+    if(currentStep===1){if(!carouselIsSettled())return;if(targetCard>0){moveCard(-1);return;}}
+    if(narrationLocked()) return;
+    if(currentStep>0){currentStep--;onStep(currentStep);post('step-changed',{step:currentStep})}else{post('slide-end-backward')}
+  }
+  document.addEventListener('rwa-carousel-navigate',e=>{if(e.detail.direction>0)nextStep();else prevStep()});
   function reset(){currentStep=0;onStep(0)}
-  function gotoLast(){currentStep=totalSteps-1;onStep(currentStep)}
+  function gotoLast(){currentStep=viewedCards.size===NFT.length?totalSteps-1:1;onStep(currentStep);post('step-changed',{step:currentStep})}
+  window.RwaNftCarousel={state:()=>({step:currentStep,index:targetCard,name:NFT[targetCard].name,count:NFT.length,viewedCount:viewedCards.size,completed:viewedCards.size===NFT.length,settled:carouselIsSettled()})};
   post('slide-ready',{totalSteps});
   onStep(0);
   document.addEventListener('keydown',e=>{

@@ -447,14 +447,20 @@
    */
   function navigateFromArrows(direction) {
     if (direction !== 'next' && direction !== 'prev') return false;
+    let carousel = null;
+    try { const f=activeFrame();carousel=(f?f.contentWindow:window).RwaNftCarousel; } catch(e) {}
+    const before = carousel && carousel.state();
     const screen = screenFrameIfOpen();
-    if (screen && dispatchIntoFrame(screen, direction)) return true;
+    let dispatched = !!(screen && dispatchIntoFrame(screen, direction));
     const navigator = arrowNavigatorInstance();
-    if (navigator && navigator.dispatch(direction)) return true;
+    if (!dispatched && navigator) dispatched=navigator.dispatch(direction);
     let deck = false;
     try { deck = typeof SLIDES !== 'undefined'; } catch (e) { deck = false; }
-    if (!deck) return dispatchArrowToDoc(document, direction);
-    return false;
+    if (!dispatched && !deck) dispatched=dispatchArrowToDoc(document, direction);
+    const after = carousel && carousel.state();
+    /* Local card movement does not start speech: keep the edge controls ready. */
+    if (dispatched && before && after && before.step===1 && after.step===1) return false;
+    return dispatched;
   }
 
   function refreshLock() {
@@ -627,6 +633,12 @@
   }
 
   function stop(reason) {
+    if ((reason === 'navigation' || reason === 'screen' || reason === 'modal') &&
+        state.intro && state.intro.isActive()) {
+      state.intro = null;
+      state.introDone = true;
+      state.startRequested = false;
+    }
     if (state.controller) state.controller.stop();
     if (reason === 'navigation' || reason === 'screen' || reason === 'modal') {
       resetSelection();

@@ -550,9 +550,8 @@
   }
 
   function openScreen(url) {
-    /* Direct/programmatic callers cannot bypass the listening lock either. */
-    if (window.RwaVoice && window.RwaVoice.listeningLock &&
-        window.RwaVoice.listeningLock.isLocked()) return false;
+    /* Explicit UI remains usable during narration; only startup is sealed. */
+    if (window.VoiceGate && !window.VoiceGate.started()) return false;
     if (screenCloseTimer !== null) clearTimeout(screenCloseTimer);
     screenCloseTimer = null;
     if (window.RwaVoice) window.RwaVoice.stop('screen');
@@ -700,11 +699,9 @@
   }
 
   function goToSlide(index, direction) {
-    /* Navigation guards: while the current narration is sounding, no
-       programmatic path (menu, home, edge arrows) may change the slide. The
-       initial load uses frame.src directly and is not affected. */
-    if (window.RwaVoice && window.RwaVoice.listeningLock &&
-        window.RwaVoice.listeningLock.isLocked()) return false;
+    /* The listening helper blocks background gestures. Menu/home are explicit
+       UI actions and may navigate without waiting for speech to end. */
+    if (window.VoiceGate && !window.VoiceGate.started()) return false;
     if (index < 0 || index >= SLIDES.length || isTransitioning) return false;
     if (window.RwaVoice) window.RwaVoice.stop('navigation');
 
@@ -893,9 +890,6 @@
                        '<span class="li-check">&#10003;</span>';
         it.addEventListener('click', e => {
           e.stopPropagation();
-          /* A language switch replays the current segment; it is navigation. */
-          if (window.RwaVoice && window.RwaVoice.listeningLock &&
-              window.RwaVoice.listeningLock.isLocked()) return;
           I18N.setLang(l.code);           /* переведёт лаунчер и все iframe */
           paintButton();
           close();

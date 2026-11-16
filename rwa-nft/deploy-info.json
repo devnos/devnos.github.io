@@ -3,8 +3,8 @@
   "frameworkVersion": "7.4.12",
   "base": "/rwa-nft/",
   "site": "https://devnos.github.io",
-  "sourceCommit": "7697716bbaba82491c5a7f41528706a2bb77e05b",
-  "releaseId": "onboarding-7697716bbaba",
+  "sourceCommit": "ce83c8ce1e09e2c8607209bbbf18d1cf29b8eb5a",
+  "releaseId": "controls-ce83c8ce1e09",
   "audioRecordings": 178,
   "languages": [
     "ru",
@@ -12,14 +12,19 @@
   ],
   "runtimeManifestSha256": "3fce07f9246f1707f362f86810ade1109d2f51fc1beea1a92700ae33f6e328d5",
   "runtimeScenarioSha256": "d74d18311cac43dbb95a97d0b6aa1e545731f4209f45f99bd8fb7b95f31a585a",
-  "builtAt": "2026-11-16T14:05:28.914019+00:00",
+  "builtAt": "2026-11-16T16:11:37.311313+00:00",
   "centerPlayFallback": true,
   "explicitPlayRequired": true,
   "playAfterLoaderFade": true,
   "speakerReleaseId": "r13ec20720d83-8c7b771ef6",
-  "newNarrationRecordings": 6,
+  "newNarrationRecordings": 0,
   "onboardingManifestSha256": "9cacda4f7af236e2bbdbbff9c534818f328b16b4900935e453276fc78236f352",
   "voiceIntro": true,
   "listeningLockUntilEnded": true,
-  "finalActivationStep": true
+  "finalActivationStep": true,
+  "supplementalNarrationRecordings": 6,
+  "interactiveControlsDuringNarration": true,
+  "physicalNavigationLockOnly": true,
+  "ctaRequiresAllCards": true,
+  "edgeGhostArrows": true
 }
