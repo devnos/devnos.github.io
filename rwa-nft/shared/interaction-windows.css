@@ -1,0 +1,323 @@
+/*
+ * Nested-window exit affordances for the RWA NFT deck.
+ * Paired with shared/interaction-windows.js — the module owns all text,
+ * visibility and progress; this file only decides how the block sits next to
+ * the existing ✕ and how the ✕ itself advertises its return direction.
+ *
+ * Rules of the visual contract:
+ *   - one compact block, top-right, aligned to the real cross (never a second
+ *     floating panel, never a blinking marker);
+ *   - the block is click-through except for its two buttons, so it cannot
+ *     steal content clicks or the arrow columns;
+ *   - at least 44 CSS px of real target for every control;
+ *   - no rotation on hover (the formulas ✕ used to spin 90°);
+ *   - no animation at all with prefers-reduced-motion.
+ */
+
+.rwa-iw-cluster {
+  position: absolute;
+  z-index: 9;
+  top: 14px;
+  right: 66px;
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  max-width: min(320px, 62vw);
+  pointer-events: none;
+  text-align: right;
+  /* Inline inverse scale (set by the module inside a scaled mobile frame)
+     must grow the block away from the cross, not over it. */
+  transform-origin: top right;
+  font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.rwa-iw-cluster.is-on {
+  display: flex;
+  /* Opacity only: a transform keyframe would override the inline inverse
+     scale that keeps the block readable on a 0.53 phone canvas. */
+  animation: rwaIwIn 0.24s ease-out both;
+}
+
+@keyframes rwaIwIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---- permanent "where the cross goes" label ---------------------------- */
+
+.rwa-iw-close-row {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.rwa-iw-close-label {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(240, 198, 116, 0.45);
+  background: rgba(8, 8, 12, 0.82);
+  color: #f0c674;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.15;
+  letter-spacing: 0.015em;
+  white-space: nowrap;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.rwa-iw-close-label:hover,
+.rwa-iw-close-label:focus-visible {
+  background: rgba(212, 168, 87, 0.22);
+  border-color: rgba(240, 198, 116, 0.85);
+}
+
+.rwa-iw-close-label:focus-visible {
+  outline: 2px solid rgba(240, 198, 116, 0.9);
+  outline-offset: 2px;
+}
+
+/* ---- title + local progress ------------------------------------------- */
+
+.rwa-iw-meta {
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 8, 12, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.rwa-iw-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f5f5f7;
+}
+
+.rwa-iw-progress {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(245, 245, 247, 0.62);
+}
+
+.rwa-iw-title:empty,
+.rwa-iw-progress:empty,
+.rwa-iw-hint:empty {
+  display: none;
+}
+
+/* ---- one-time explanation --------------------------------------------- */
+
+.rwa-iw-hint {
+  pointer-events: none;
+  max-width: min(300px, 62vw);
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: rgba(8, 8, 12, 0.6);
+  color: rgba(245, 245, 247, 0.74);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* ---- return CTA at the end of the section ----------------------------- */
+
+.rwa-iw-cta {
+  display: none;
+  pointer-events: auto;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(240, 198, 116, 0.65);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(240, 198, 116, 0.95), rgba(212, 168, 87, 0.95));
+  color: #14100a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  -webkit-tap-highlight-color: transparent;
+  transition: filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rwa-iw-cta.is-on {
+  display: inline-flex;
+}
+
+.rwa-iw-cta:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 10px 28px rgba(212, 168, 87, 0.3);
+}
+
+.rwa-iw-cta:focus-visible {
+  outline: 2px solid #f0c674;
+  outline-offset: 3px;
+}
+
+/* ---- the existing cross itself ---------------------------------------- */
+
+/* 44px of real target: the circle may grow, the glyph stays centred. */
+#screenClose.rwa-iw-close,
+.calc-close.rwa-iw-close,
+.modal-close.rwa-iw-close,
+.rh-close.rwa-iw-close {
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  transform: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The formulas cross used to rotate 90° on hover; a cross that moves away
+   from the pointer is harder to hit and reads as decoration. */
+.calc-close.rwa-iw-close:hover,
+.calc-close.rwa-iw-close:focus,
+.modal-close.rwa-iw-close:hover,
+.modal-close.rwa-iw-close:focus,
+#screenClose.rwa-iw-close:hover,
+.rh-close.rwa-iw-close:hover {
+  transform: none;
+}
+
+#screenClose.rwa-iw-close:focus-visible,
+.calc-close.rwa-iw-close:focus-visible,
+.modal-close.rwa-iw-close:focus-visible,
+.rh-close.rwa-iw-close:focus-visible {
+  outline: 2px solid rgba(240, 198, 116, 0.9);
+  outline-offset: 3px;
+}
+
+/* ---- portrait rotate overlay ------------------------------------------ */
+
+/* #rotateHint is created by shared/mobile.js and sits above #screenModal.
+   The label is painted from the attribute the module sets, so the button's
+   own click handler (window.onRotateHintClose) stays untouched — clicking the
+   text is clicking the cross. */
+#rotateHint.over-screen .rh-close.rwa-iw-close {
+  display: flex;
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+}
+
+#rotateHint.over-screen .rh-close::after {
+  content: attr(data-rwa-iw-label);
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(240, 198, 116, 0.45);
+  background: rgba(8, 8, 12, 0.82);
+  color: #f0c674;
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  line-height: 1.15;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ---- small screens ----------------------------------------------------- */
+
+@media (max-width: 640px), (pointer: coarse) {
+  .rwa-iw-cluster {
+    top: max(10px, env(safe-area-inset-top));
+    right: 60px;
+    gap: 4px;
+    max-width: min(240px, 66vw);
+  }
+
+  .rwa-iw-close-label {
+    min-height: 44px;
+    padding: 0 11px;
+    font-size: 12px;
+  }
+
+  .rwa-iw-meta {
+    padding: 6px 10px;
+  }
+
+  .rwa-iw-title {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+
+  .rwa-iw-progress,
+  .rwa-iw-hint {
+    font-size: 11.5px;
+  }
+
+  .rwa-iw-hint {
+    padding: 5px 10px;
+  }
+
+  .rwa-iw-cta {
+    min-height: 44px;
+    padding: 0 15px;
+    font-size: 12.5px;
+  }
+
+  #rotateHint.over-screen .rh-close::after {
+    font-size: 12px;
+    padding: 0 11px;
+  }
+}
+
+@media (max-width: 400px) {
+  .rwa-iw-cluster {
+    max-width: 72vw;
+  }
+
+  .rwa-iw-hint {
+    max-width: 72vw;
+  }
+}
+
+/* ---- reduced motion ---------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .rwa-iw-cluster.is-on {
+    animation: none;
+  }
+
+  .rwa-iw-close-label,
+  .rwa-iw-cta {
+    transition: none;
+  }
+}
+
+/* Never let the overlay block the deck's own chrome (arrows, home, fullscreen)
+   even if a browser ignores pointer-events on an absolute child. */
+#screenModal .rwa-iw-cluster,
+.calc-modal .rwa-iw-cluster,
+.modal .rwa-iw-cluster {
+  pointer-events: none;
+}

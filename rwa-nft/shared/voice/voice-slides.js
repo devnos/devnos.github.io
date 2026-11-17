@@ -36,14 +36,14 @@
     actions: Object.freeze(["s06.system.s01.a01", "s06.system.s02.a01", "s06.system.s02.a02", "s06.system.s02.a03", "s06.system.s05.a01", "s06.system.s06.a01", "s06.system.s07.a01"]),
   });
   /*
-   * Three visual steps: title, carousel, and the final CTA step. The old
-   * `s14.choose.s03` visual ID resolves to the new generated speech
-   * `s14.choose.activate` only when that recording is ready; the CTA slide
-   * itself is owned by the parent.
+   * Two visual states: the carousel is visible immediately, followed by the
+   * final CTA after every NFT card was actually viewed. s01 stays in the
+   * frozen narration history; the local combined recording overrides s02.
+   * The existing s03 visual ID still resolves to the approved CTA recording.
    */
   const S14_CHOOSE = Object.freeze({
     slideId: "s14.choose",
-    steps: Object.freeze(["s14.choose.s01", "s14.choose.s02", "s14.choose.s03"]),
+    steps: Object.freeze(["s14.choose.s02", "s14.choose.s03"]),
     actions: Object.freeze(["s14.choose.s02.a01", "s14.choose.s02.a02", "s14.choose.s02.a03"]),
   });
   const S08_FINFLOW = Object.freeze({

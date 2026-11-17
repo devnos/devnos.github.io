@@ -130,6 +130,110 @@
           }
         }
       }
+    },
+    {
+      "id": "s14.choose.browse",
+      "kind": "step",
+      "slideId": "s14.choose",
+      "stepIds": [
+        "s14.choose.s02"
+      ],
+      "display": {
+        "ru": "Осталось выбрать уровень. Их десять, от GENESIS за двадцать восемь USDT до INFINITY за двадцать четыре тысячи USDT. Чем выше уровень, тем выше потенциал: от сорока до ста двадцати процентов в год и выше по финансовым продуктам и от ста пятидесяти до трёхсот процентов в год и выше по росту DA. Выберите уровень и сравните условия под свою сумму.",
+        "en": "One choice remains: the level. There are ten, from GENESIS at twenty-eight USDT to INFINITY at twenty-four thousand USDT. The higher the level, the higher the potential: forty to one hundred twenty percent a year or more on financial products, and one hundred fifty to three hundred percent a year or more in DA growth. Choose a level and compare the terms for your amount."
+      },
+      "tts": {
+        "ru": "Осталось выбрать уровень. Их десять, от GENESIS за двадцать восемь ю эс ди ти до INFINITY за двадцать четыре тысячи ю эс ди ти. Чем выше уровень, тем выше потенциал: от сорока до ста двадцати процентов в год и выше по финансовым продуктам и от ста пятидесяти до трёхсот процентов в год и выше по росту ди эй. Выберите уровень и сравните условия под свою сумму.",
+        "en": "One choice remains: the level. There are ten, from GENESIS at twenty-eight U-S-D-T to INFINITY at twenty-four thousand U-S-D-T. The higher the level, the higher the potential: forty to one hundred twenty percent a year or more on financial products, and one hundred fifty to three hundred percent a year or more in D-A growth. Choose a level and compare the terms for your amount."
+      },
+      "assets": {
+        "ru": {
+          "path": "audio/onboarding/ru/choose.mp3",
+          "sha256": "04cf7fefc53cdce80ec43782c5522a4780275e6895d79953f3d99e8e683ab54b",
+          "durationMs": 25000,
+          "approved": true,
+          "status": "ready",
+          "model": "local-concat",
+          "voice": "Charon",
+          "provenance": {
+            "kind": "local-merge",
+            "operation": "ffmpeg-concat-filter-reencode",
+            "providerCalls": 0,
+            "paidTts": false,
+            "newGeneration": false,
+            "taskId": null,
+            "approvalId": "anatoly-speaker-full-20261116",
+            "sourceModel": "google/gemini-3-8-flash-tts",
+            "sourceVoice": "Charon",
+            "sourceProvider": "kie.ai",
+            "note": "local composition of already user-approved parts; no new TTS request",
+            "parts": [
+              {
+                "segmentId": "s14.choose.s01",
+                "path": "audio/releases/r13ec20720d83-8c7b771ef6/ru/s14.choose.s01.mp3",
+                "sha256": "5458243688212e4d69faae57234589615c234e9e506bacaf63e061ee0102e628",
+                "durationMs": 9120
+              },
+              {
+                "segmentId": "s14.choose.s02",
+                "path": "audio/releases/r13ec20720d83-8c7b771ef6/ru/s14.choose.s02.mp3",
+                "sha256": "7ea3234c9b85bb8bebc44210541f9a81cd940c2784fe1c58dc78cfb014412004",
+                "durationMs": 15880
+              }
+            ],
+            "encoding": {
+              "codec": "mp3",
+              "sampleRate": 24000,
+              "channels": 1,
+              "bitRate": "96k",
+              "decoderCheck": "ffmpeg -v error -i <file> -f null -"
+            }
+          }
+        },
+        "en": {
+          "path": "audio/onboarding/en/choose.mp3",
+          "sha256": "06d7e86816a07f6fa4a37690b0853790f116f9ffcff770ff3dc5709f8f8c722b",
+          "durationMs": 24680,
+          "approved": true,
+          "status": "ready",
+          "model": "local-concat",
+          "voice": "Charon",
+          "provenance": {
+            "kind": "local-merge",
+            "operation": "ffmpeg-concat-filter-reencode",
+            "providerCalls": 0,
+            "paidTts": false,
+            "newGeneration": false,
+            "taskId": null,
+            "approvalId": "anatoly-speaker-full-20261116",
+            "sourceModel": "google/gemini-3-8-flash-tts",
+            "sourceVoice": "Charon",
+            "sourceProvider": "kie.ai",
+            "note": "local composition of already user-approved parts; no new TTS request",
+            "parts": [
+              {
+                "segmentId": "s14.choose.s01",
+                "path": "audio/releases/r13ec20720d83-8c7b771ef6/en/s14.choose.s01.mp3",
+                "sha256": "22ada6b74126f342994acbe2f70d75a0af7def0ff1abc7142fc063e1da8d3d33",
+                "durationMs": 9440
+              },
+              {
+                "segmentId": "s14.choose.s02",
+                "path": "audio/releases/r13ec20720d83-8c7b771ef6/en/s14.choose.s02.mp3",
+                "sha256": "8be3fa30f4a81983750debb3d958f66c050a782afd0f05efd5863ce64ed7c507",
+                "durationMs": 15240
+              }
+            ],
+            "encoding": {
+              "codec": "mp3",
+              "sampleRate": 24000,
+              "channels": 1,
+              "bitRate": "96k",
+              "decoderCheck": "ffmpeg -v error -i <file> -f null -"
+            }
+          }
+        }
+      }
     }
   ]
 }

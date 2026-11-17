@@ -576,7 +576,7 @@
     if (!dispatched && !deck) dispatched=dispatchArrowToDoc(document, direction);
     const after = carousel && carousel.state();
     /* Local card movement does not start speech: keep the edge controls ready. */
-    if (dispatched && before && after && before.step===1 && after.step===1) return false;
+    if (dispatched && before && after && before.step===0 && after.step===0) return false;
     return dispatched;
   }
 

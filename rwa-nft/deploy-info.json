@@ -1,36 +1,12 @@
 {
   "framework": "Astro 7",
-  "frameworkVersion": "7.4.12",
+  "astroVersion": "7.4.12",
   "base": "/rwa-nft/",
-  "site": "https://devnos.github.io",
-  "sourceCommit": "9a49dad05a9847ee062a188d551a4c8e0a48a567",
-  "releaseId": "adaptive-9a49dad05a98",
-  "audioRecordings": 178,
-  "languages": [
-    "ru",
-    "en"
-  ],
-  "runtimeManifestSha256": "3fce07f9246f1707f362f86810ade1109d2f51fc1beea1a92700ae33f6e328d5",
-  "runtimeScenarioSha256": "d74d18311cac43dbb95a97d0b6aa1e545731f4209f45f99bd8fb7b95f31a585a",
-  "builtAt": "2026-11-16T17:17:04.842125+00:00",
-  "centerPlayFallback": true,
-  "explicitPlayRequired": true,
-  "playAfterLoaderFade": true,
-  "speakerReleaseId": "r13ec20720d83-8c7b771ef6",
-  "newNarrationRecordings": 0,
-  "onboardingManifestSha256": "9cacda4f7af236e2bbdbbff9c534818f328b16b4900935e453276fc78236f352",
-  "voiceIntro": true,
-  "listeningLockUntilEnded": true,
-  "finalActivationStep": true,
-  "supplementalNarrationRecordings": 6,
-  "interactiveControlsDuringNarration": true,
-  "physicalNavigationLockOnly": true,
-  "ctaRequiresAllCards": true,
-  "edgeGhostArrows": true,
-  "adaptiveArrowContrast": true,
-  "forwardArrowPulse": "opacity-and-subtle-scale",
-  "repeatVisitorNavigation": true,
-  "repeatVisitorSkipsWelcome": true,
-  "firstVisitListeningLockOnly": true,
-  "presentationVisitStorageKey": "rwa-nft:presentation-started:v1"
+  "sourceCommit": "335449923b34cd0b7dff58b8c60c7931e9a84853",
+  "builtAt": "2026-11-17T05:57:45.733496+00:00",
+  "verification": {
+    "unitTests": 523,
+    "browserChecks": 221,
+    "mp3": 180
+  }
 }

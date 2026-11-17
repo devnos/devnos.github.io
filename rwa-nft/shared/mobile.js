@@ -13,29 +13,11 @@
    ============================================================ */
 (function () {
 
+  /* Языков ровно два: русский и английский. Незнакомый код (или старый
+     it/ka/de) ведёт себя как русский. */
   const TXT = {
     ru: { l1: 'Поверните телефон', l2: 'Так презентация раскроется полностью' },
-    en: { l1: 'Turn your phone', l2: 'The presentation opens up in landscape' },
-    it: { l1: 'Ruota il telefono', l2: 'La presentazione si apre in orizzontale' },
-    ka: { l1: 'გადააბრუნეთ ტელეფონი', l2: 'პრეზენტაცია სრულად გაიხსნება' },
-    es: { l1: 'Gire el teléfono', l2: 'La presentación se abre en horizontal' },
-    de: { l1: 'Drehen Sie das Telefon', l2: 'Im Querformat entfaltet sich die Präsentation' },
-    pt: { l1: 'Gire o telefone', l2: 'A apresentação abre na horizontal' },
-    tr: { l1: 'Telefonu çevirin', l2: 'Sunum yatay modda tam açılır' },
-    fr: { l1: 'Tournez le téléphone', l2: 'La présentation s’ouvre en paysage' },
-    uk: { l1: 'Поверніть телефон', l2: 'Так презентація розкриється повністю' },
-    zh: { l1: '请横屏观看', l2: '横屏下演示效果最佳' },
-    hi: { l1: 'फ़ोन घुमाएँ', l2: 'लैंडस्केप में प्रस्तुति पूरी खुलती है' },
-    id: { l1: 'Putar ponsel', l2: 'Presentasi terbuka penuh dalam mode lanskap' },
-    ja: { l1: '画面を横向きに', l2: '横向きで全体が表示されます' },
-    vi: { l1: 'Xoay ngang điện thoại', l2: 'Bản trình bày mở đầy đủ khi nằm ngang' },
-    ar: { l1: 'أدر الهاتف', l2: 'يظهر العرض بالكامل في الوضع الأفقي' },
-    el: { l1: 'Γυρίστε το τηλέφωνο', l2: 'Η παρουσίαση ανοίγει πλήρως οριζόντια' },
-    ro: { l1: 'Rotiți telefonul', l2: 'Prezentarea se deschide complet pe orizontală' },
-    lv: { l1: 'Pagrieziet telefonu', l2: 'Ainavas režīmā prezentācija atklājas pilnībā' },
-    lt: { l1: 'Pasukite telefoną', l2: 'Gulsčiai pristatymas atsiskleidžia visas' },
-    kk: { l1: 'Телефонды бұрыңыз', l2: 'Көлденең күйде презентация толық ашылады' },
-    uz: { l1: 'Telefonni buring', l2: 'Yotiq holatda taqdimot to‘liq ochiladi' }
+    en: { l1: 'Turn your phone', l2: 'The presentation opens up in landscape' }
   };
 
   const CSS = `

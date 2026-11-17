@@ -56,11 +56,23 @@
  *
  * Post-ended navigation:
  *  - Once the live controller reports `ended` (not a timer, not `ready`), the
- *    helper shows two large translucent gold chevrons pinned to the left and
- *    right screen edges, vertically centred: a still Prev and a slowly
- *    breathing Next. No circle, plate, outline or glow disc. They are hidden
- *    for playing/starting/paused/idle/ready/error, while Help is open, and
- *    before the start gate.
+ *    helper shows two large ghost chevrons pinned to the left and right screen
+ *    edges, vertically centred: a still Prev and a slowly breathing Next. No
+ *    circle, plate, outline disc or glow. They are hidden for
+ *    playing/starting/paused/idle/ready/error, while Help is open, and before
+ *    the start gate.
+ *  - Each chevron is ONE plain SVG stroke with ONE flat colour, chosen by
+ *    `VoiceNavContrast` from the average real background under that button:
+ *    graphite over a bright surface, warm light gold over a dark one. The two
+ *    arrows are sampled independently. There is no per-pixel backdrop filter
+ *    and no mask, so a glyph crossing a light/dark edge never changes colour
+ *    inside itself. If that module is absent, the SVG stays visible with one
+ *    thin contrast drop-shadow instead.
+ *  - The pair is re-sampled (bounded: nine points per arrow) whenever it is
+ *    shown, after a frame load, on resize/orientation change and every 1500 ms
+ *    while it stays on screen, so a playing video cannot leave the stroke on a
+ *    background that has already changed; a hysteresis margin keeps the tone
+ *    from flickering.
  *  - `onNavigate('next'|'prev')` is optional; without it no controls are
  *    created. `getNavigationState()` may hide an unavailable direction
  *    (`{hasNext, hasPrevious}`); both missing means one or both ends.
@@ -88,12 +100,17 @@
   const HINT_MS = 1600;
   const HINT_GAP_MS = 1200;
   const PULSE_MS = 2800;
+  /* A playing background video changes the surface under a visible arrow.
+     Re-sampling is bounded (nine points and at most four media crops) and the
+     sampler's hysteresis prevents flicker; it stops the moment the pair hides. */
+  const CONTRAST_REFRESH_MS = 1500;
   const GHOST_OPACITY = 0.8;
   const PULSE_DIM = 0.72;
   const PULSE_PEAK = 0.94;
-  /* Warm gold over dark pixels, graphite over bright pixels, sampled by the
-     compositor through a chevron mask. No rectangular plate is painted. */
-  const ADAPTIVE_FILTER = 'grayscale(1) brightness(1.18) contrast(1000) invert(1) brightness(0.8) sepia(1) saturate(1.2) contrast(0.9)';
+  /* Last-resort outline when VoiceNavContrast is unavailable: one thin dark
+     shadow so the gold stroke stays visible on a bright photo too. Never a
+     plate, ring or glow. */
+  const FALLBACK_SHADOW = 'filter:drop-shadow(0 0 1px #171318) drop-shadow(0 1px 1px #171318)';
   const HINT_CLASS = 'voice-listening-lock-hint';
   const NAV_ROOT_CLASS = 'voice-listening-nav';
   const NAV_CLASS = 'voice-listening-nav-btn';
@@ -399,6 +416,10 @@
     let navPrev = null;
     let navPulse = null;      /* the next ghost chevron (SVG), animated itself */
     let navAnimation = null;
+    let contrast = null;      /* VoiceNavContrast sampler, created lazily */
+    let contrastTried = false;
+    let contrastTimer = null;
+    let contrastInterval = null;
     let navConsumed = false;
     let navSyncQueued = false;
     const blockedKeys = new Set();
@@ -552,13 +573,89 @@
       }
     }
 
-    function supportsAdaptiveContrast() {
+    /* ---- adaptive solid glyph colour -------------------------------------- */
+
+    function contrastFactory() {
       try {
-        const css = win && win.CSS;
-        if (!css || typeof css.supports !== 'function') return false;
-        return (css.supports('backdrop-filter', 'invert(1)') || css.supports('-webkit-backdrop-filter', 'invert(1)')) &&
-          (css.supports('mask-image', 'linear-gradient(black,black)') || css.supports('-webkit-mask-image', 'linear-gradient(black,black)'));
-      } catch (e) { return false; }
+        const api = win && win.VoiceNavContrast;
+        return api && typeof api.createContrastSampler === 'function' ? api : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function contrastSampler() {
+      if (contrastTried) return contrast;
+      contrastTried = true;
+      const api = contrastFactory();
+      if (!api) return null;
+      try {
+        contrast = api.createContrastSampler({doc: doc, win: win});
+      } catch (e) {
+        contrast = null;
+      }
+      return contrast;
+    }
+
+    function applyFallbackShadow() {
+      for (const button of [navPrev, navNext]) {
+        if (!button) continue;
+        try {
+          const svg = button.querySelector ? button.querySelector('svg') : null;
+          if (button.setAttribute) button.setAttribute('data-voice-contrast', 'fallback');
+          if (svg) svg.setAttribute('style', FALLBACK_SHADOW);
+        } catch (e) {}
+      }
+    }
+
+    /* One flat colour per whole SVG: the sampler reads the average real
+       background under each button and paints `currentColor`. */
+    function paintNavigation() {
+      if (destroyed || !navRoot || navRoot.hidden) return;
+      const sampler = contrastSampler();
+      if (!sampler) { applyFallbackShadow(); return; }
+      let painted = false;
+      try {
+        const diag = sampler.update([navPrev, navNext]);
+        painted = !diag || !diag.buttons || diag.buttons.length > 0;
+      } catch (e) {
+        painted = false;
+      }
+      if (!painted) applyFallbackShadow();
+    }
+
+    /* A slide iframe loading, a resize or a rotation changes the surface under
+       the arrows. Throttled to one pending refresh. */
+    function scheduleContrastRefresh() {
+      if (destroyed || !navRoot || navRoot.hidden) return;
+      if (contrastTimer !== null) unschedule(contrastTimer);
+      contrastTimer = schedule(function () {
+        contrastTimer = null;
+        paintNavigation();
+      }, 140);
+    }
+
+    function stopContrastLoop() {
+      if (contrastInterval === null) return;
+      try {
+        if (win && typeof win.clearInterval === 'function') win.clearInterval(contrastInterval);
+        else if (typeof clearInterval === 'function') clearInterval(contrastInterval);
+      } catch (e) {}
+      contrastInterval = null;
+    }
+
+    /* Only while the pair is on screen; a hidden control costs nothing. */
+    function ensureContrastLoop() {
+      if (contrastInterval !== null || destroyed) return;
+      if (!win || typeof win.setInterval !== 'function') return;
+      try {
+        contrastInterval = win.setInterval(function () {
+          if (destroyed || !navRoot || navRoot.hidden) { stopContrastLoop(); return; }
+          paintNavigation();
+        }, CONTRAST_REFRESH_MS);
+      } catch (e) {
+        contrastInterval = null;
+      }
     }
 
     function navigationLabels() {
@@ -625,6 +722,11 @@
     }
 
     function hideNavigation() {
+      if (contrastTimer !== null) {
+        unschedule(contrastTimer);
+        contrastTimer = null;
+      }
+      stopContrastLoop();
       if (navNext) setDisplay(navNext, false, 'inline-flex');
       if (navPrev) setDisplay(navPrev, false, 'inline-flex');
       if (navRoot) setDisplay(navRoot, false, 'flex');
@@ -682,32 +784,19 @@
         button.setAttribute('data-noswipe', '1');
         button.setAttribute('data-no-swipe', '1');
         button.setAttribute('style', NAV_BUTTON_STYLE + (extraStyle ? ';' + extraStyle : ''));
-        /* One bold chevron, stretched to the full tap target: no disc, no
-           plate, no ring. The opacity attribute is the ghost resting state. */
+        /* One bold chevron stretched to the full tap target: a single SVG
+           stroke in `currentColor`. The colour is applied to the whole glyph
+           by VoiceNavContrast below; no disc, plate, ring or mask. */
         button.innerHTML = '<svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden="true" fill="none" opacity="' + GHOST_OPACITY + '">' +
           '<path d="' + path + '" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         const svg = button.querySelector('svg');
-        svg.setAttribute('data-voice-chevron', 'fallback');
-        if (supportsAdaptiveContrast()) {
-          const face = doc.createElement('span');
-          face.className = 'voice-listening-nav-face';
-          face.setAttribute('data-voice-chevron', 'adaptive');
-          face.setAttribute('aria-hidden', 'true');
-          const image = 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="' + path + '" fill="none" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>') + '")';
-          face.setAttribute('style', [
-            'position:absolute', 'inset:0', 'pointer-events:none',
-            'opacity:' + GHOST_OPACITY, 'transform-origin:50% 50%',
-            'backdrop-filter:' + ADAPTIVE_FILTER, '-webkit-backdrop-filter:' + ADAPTIVE_FILTER,
-            'mask-image:' + image, '-webkit-mask-image:' + image,
-            'mask-size:100% 100%', '-webkit-mask-size:100% 100%',
-            'mask-repeat:no-repeat', '-webkit-mask-repeat:no-repeat',
-          ].join(';'));
-          svg.setAttribute('style', 'display:none');
-          button.appendChild(face);
-          button.setAttribute('data-voice-contrast', 'adaptive');
-        } else {
-          svg.setAttribute('style', 'filter:drop-shadow(0 0 1px #171318) drop-shadow(0 1px 1px #171318)');
+        /* 'pending' until the first successful sample; 'fallback' only when the
+           sampler module is missing or fails, in which case one thin outline
+           keeps the gold stroke readable on any surface. */
+        button.setAttribute('data-voice-contrast', 'pending');
+        if (!contrastFactory()) {
           button.setAttribute('data-voice-contrast', 'fallback');
+          svg.setAttribute('style', FALLBACK_SHADOW);
         }
         for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'keydown', 'keyup', 'keypress']) {
           try { button.addEventListener(type, containEvent); } catch (e) {}
@@ -731,7 +820,7 @@
       navRoot = root;
       navPrev = prev;
       navNext = next;
-      navPulse = next.querySelector ? (next.querySelector('.voice-listening-nav-face') || next.querySelector('svg')) : null;
+      navPulse = next.querySelector ? next.querySelector('svg') : null;
       return root;
     }
 
@@ -774,6 +863,8 @@
       setDisplay(navPrev, available.hasPrevious, 'inline-flex');
       setDisplay(navNext, available.hasNext, 'inline-flex');
       setDisplay(navRoot, true, 'flex');
+      paintNavigation();
+      ensureContrastLoop();
       if (available.hasNext) startPulse();
       else stopPulse();
     }
@@ -949,6 +1040,8 @@
         const cleanup = bindDocument(nextDoc, depth + 1);
         frameBindings.set(frame, { doc: nextDoc, cleanup: cleanup });
         parentEntry.children.add(nextDoc);
+        /* The new document may change the pixels under a visible arrow. */
+        scheduleContrastRefresh();
       };
       parentEntry.hooks.push({ frame: frame, onLoad: onLoad });
       try {
@@ -1036,6 +1129,22 @@
       destroyed = true;
       hideHint();
       hideNavigation();
+      if (contrastTimer !== null) {
+        unschedule(contrastTimer);
+        contrastTimer = null;
+      }
+      if (win && typeof win.removeEventListener === 'function') {
+        try {
+          win.removeEventListener('resize', onViewportChange);
+          win.removeEventListener('orientationchange', onViewportChange);
+        } catch (e) {}
+      }
+      stopContrastLoop();
+      if (contrast && typeof contrast.destroy === 'function') {
+        try { contrast.destroy(); } catch (e) {}
+      }
+      contrast = null;
+      contrastTried = false;
       if (navRoot) {
         try {
           if (navRoot.parentNode) navRoot.parentNode.removeChild(navRoot);
@@ -1052,6 +1161,17 @@
       }
       entries.clear();
       lastSnapshot = null;
+    }
+
+    function onViewportChange() {
+      scheduleContrastRefresh();
+    }
+
+    if (win && typeof win.addEventListener === 'function') {
+      try {
+        win.addEventListener('resize', onViewportChange, {passive: true});
+        win.addEventListener('orientationchange', onViewportChange, {passive: true});
+      } catch (e) {}
     }
 
     return {

@@ -712,6 +712,61 @@ html, body {
   opacity: 0;
   transform: translateY(8px);
 }
+/* Настоящие кнопки: сбрасываем UA-оформление, но сохраняем кастомный вид */
+button.rank-tile {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+button.rank-tile:focus-visible {
+  outline: 2px solid rgba(240, 198, 116, 0.9);
+  outline-offset: 3px;
+}
+button.rank-tile:hover {
+  border-color: rgba(240, 198, 116, 0.45);
+  background:
+    radial-gradient(ellipse 80% 80% at center, rgba(32, 24, 14, 0.6) 0%, rgba(8, 8, 12, 0.75) 100%);
+}
+button.rank-tile:hover .rank-tile-name { color: rgba(245, 245, 247, 0.78); }
+/* Выбранный ранг — золото сразу, не дожидаясь анимации смены шага */
+button.rank-tile[aria-pressed="true"] {
+  border-color: rgba(240, 198, 116, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(240, 198, 116, 0.5),
+    0 0 26px rgba(212, 168, 87, 0.35);
+}
+button.rank-tile[aria-pressed="true"] .rank-tile-name {
+  color: var(--gold-2);
+  font-weight: 600;
+}
+
+/* Подпись группы рангов: видна вместе с плашками */
+.rank-pick-label {
+  flex: 0 0 auto;
+  text-align: center;
+  margin-bottom: calc(-1 * clamp(10px, 1.5vh, 20px));
+  font-family: 'Unbounded', sans-serif;
+  font-weight: 400;
+  font-size: clamp(8px, 0.72vw, 11px);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(212, 168, 87, 0.6);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+  pointer-events: none;
+}
+.rank-pick-label.shown {
+  opacity: 1;
+  transform: translateY(0);
+}
 .rank-tile.appeared {
   opacity: 1;
   transform: translateY(0);
@@ -823,6 +878,8 @@ html, body {
 }
 </style>
 <link rel="stylesheet" href="../shared/voice/voice.css">
+<link rel="stylesheet" href="../shared/interaction-windows.css">
+<link rel="stylesheet" href="../shared/interaction-controls.css">
 <script src="../shared/voice/voice-protocol.js"></script>
 <script src="../shared/voice/voice-slides.js"></script>
 <script src="../shared/voice/voice-scenario.js"></script>
@@ -913,15 +970,16 @@ html, body {
     </div>
 
     <!-- РЯД ПЛАШЕК РАНГОВ -->
+    <div class="rank-pick-label" id="rankPickLabel" data-i18n="s09.pick">Выберите ранг</div>
     <div class="ranks-row" id="ranksRow">
-      <div class="rank-tile" data-idx="0"><div class="rank-tile-name">Beginner</div></div>
-      <div class="rank-tile" data-idx="1"><div class="rank-tile-name">Partner</div></div>
-      <div class="rank-tile" data-idx="2"><div class="rank-tile-name">Manager</div></div>
-      <div class="rank-tile" data-idx="3"><div class="rank-tile-name">Leader</div></div>
-      <div class="rank-tile" data-idx="4"><div class="rank-tile-name">Senior<br>Leader</div></div>
-      <div class="rank-tile" data-idx="5"><div class="rank-tile-name">Director</div></div>
-      <div class="rank-tile" data-idx="6"><div class="rank-tile-name">Vice<br>President</div></div>
-      <div class="rank-tile" data-idx="7"><div class="rank-tile-name">CEO</div></div>
+      <button type="button" class="rank-tile" data-idx="0" aria-pressed="false" aria-current="false"><span class="rank-tile-name">Beginner</span></button>
+      <button type="button" class="rank-tile" data-idx="1" aria-pressed="false" aria-current="false"><span class="rank-tile-name">Partner</span></button>
+      <button type="button" class="rank-tile" data-idx="2" aria-pressed="false" aria-current="false"><span class="rank-tile-name">Manager</span></button>
+      <button type="button" class="rank-tile" data-idx="3" aria-pressed="false" aria-current="false"><span class="rank-tile-name">Leader</span></button>
+      <button type="button" class="rank-tile" data-idx="4" aria-pressed="false" aria-current="false"><span class="rank-tile-name">Senior<br>Leader</span></button>
+      <button type="button" class="rank-tile" data-idx="5" aria-pressed="false" aria-current="false"><span class="rank-tile-name">Director</span></button>
+      <button type="button" class="rank-tile" data-idx="6" aria-pressed="false" aria-current="false"><span class="rank-tile-name">Vice<br>President</span></button>
+      <button type="button" class="rank-tile" data-idx="7" aria-pressed="false" aria-current="false"><span class="rank-tile-name">CEO</span></button>
     </div>
 
     <!-- ФИНАЛЬНАЯ ФРАЗА -->
@@ -1104,6 +1162,7 @@ const els = {
   conditionsBar:     document.getElementById('conditionsBar'),
   conditionsText:    document.getElementById('conditionsText'),
   ranksRow:          document.getElementById('ranksRow'),
+  rankPickLabel:     document.getElementById('rankPickLabel'),
   rankTiles:         document.querySelectorAll('.rank-tile'),
   finalPhrase:       document.getElementById('finalPhrase'),
   introChart:        document.getElementById('introChart'),
@@ -1150,12 +1209,91 @@ function applyRankContent(idx, textOnly){
     if (i < idx) tile.classList.add('passed');
     else if (i === idx) tile.classList.add('active');
   });
+
+  // Выбор: aria-состояние на настоящих кнопках
+  if (!textOnly && window.RwaRanks) window.RwaRanks.sync(idx);
 }
 
 // Сброс плашек (для шага 1)
 function resetRankTiles(){
   els.rankTiles.forEach(tile => tile.classList.remove('active', 'passed'));
+  if (window.RwaRanks) window.RwaRanks.sync(-1);
 }
+
+/* ===== RANK SELECTION (real tiles) ===== */
+/* Плашки — настоящие кнопки. Выбор идёт через существующий lexical
+   SlideEngine.go(idx + 2): шаг 2 = Beginner … шаг 9 = CEO. Шаг-колбэк сам
+   объявляет и озвучивает ранг через единственный звуковой канал voice-boot,
+   поэтому здесь нет ни своего таймера, ни своей озвучки, ни новых запросов. */
+(function(){
+  const TOTAL = 8;
+  let wired = false;
+
+  /* Подпись группы: локальный ключ, общий словарь не правим. */
+  if (window.I18N && I18N.dict && !I18N.dict['s09.pick']) {
+    I18N.dict['s09.pick'] = { en: 'Choose a rank' };
+  }
+
+  function sync(idx){
+    const tiles = els.rankTiles;
+    if (!tiles) return;
+    Array.prototype.forEach.call(tiles, function(tile, i){
+      const on = i === idx;
+      tile.setAttribute('aria-pressed', on ? 'true' : 'false');
+      tile.setAttribute('aria-current', on ? 'step' : 'false');
+    });
+  }
+
+  function select(idx){
+    const n = Number(idx);
+    if (!Number.isInteger(n) || n < 0 || n >= TOTAL) return false;
+    if (!RANKS || !RANKS[n]) return false;
+    window._rankIdx = n;
+    SlideEngine.go(n + 2);   /* существующий движок шагов и озвучки */
+    /* Выбор с затравки: рамку приза ещё не показывали — включаем её сами,
+       иначе картинка ранга осталась бы прозрачной. */
+    if (els.prizeFrame) els.prizeFrame.classList.add('frame-shown');
+    sync(n);
+    return true;
+  }
+
+  function wire(){
+    if (wired) return;
+    wired = true;
+    const tiles = els.rankTiles || [];
+    Array.prototype.forEach.call(tiles, function(tile){
+      tile.addEventListener('click', function(e){
+        /* клик по плашке — это выбор, а не «следующий шаг» документа */
+        e.stopPropagation();
+        select(tile.getAttribute('data-idx'));
+      });
+      tile.addEventListener('keydown', function(e){
+        const k = e.key;
+        if (k === 'Enter' || k === ' ' || k === 'Spacebar' || e.code === 'Enter' || e.code === 'Space') {
+          /* Enter/Space принадлежат плашке: нативная активация кнопки
+             произойдёт сама, документный обработчик шагов её не увидит */
+          e.stopPropagation();
+        }
+      });
+    });
+    sync(Number.isInteger(window._rankIdx) ? window._rankIdx : -1);
+  }
+
+  window.RwaRanks = {
+    select: select,
+    sync: sync,
+    wire: wire,
+    state: function(){
+      return {
+        count: TOTAL,
+        index: Number.isInteger(window._rankIdx) ? window._rankIdx : -1,
+        step: Number.isInteger(window._currentStep) ? window._currentStep
+          : (Number.isInteger(window._rankIdx) ? window._rankIdx + 2 : 1)
+      };
+    }
+  };
+})();
+/* ===== END RANK SELECTION ===== */
 
 // Анимация смены ранга
 function transitionToRank(idx, isFirstShow){
@@ -1206,6 +1344,7 @@ function step(n){
     resetRankTiles();
     // Сбрасываем плашки в невидимое состояние
     els.rankTiles.forEach(tile => tile.classList.remove('appeared'));
+    els.rankPickLabel.classList.remove('shown');
     els.prizeFrame.classList.remove('frame-shown');
     els.conditionsBar.classList.remove('shown');
     els.prizeCaption.classList.remove('shown');
@@ -1226,6 +1365,9 @@ function step(n){
       later(() => tile.classList.add('appeared'), tileDelays[i]);
     });
 
+    // Подпись «Выберите ранг» появляется вместе с первыми плашками
+    later(() => els.rankPickLabel.classList.add('shown'), 300);
+
     // Подпись появляется в конце роста
     later(() => els.introCaption.classList.add('shown'), 1900);
     // Сквозной блик по всем столбикам слева направо после роста
@@ -1234,6 +1376,7 @@ function step(n){
     // ШАГ 2+: РАНГИ
     // Все плашки должны быть видны
     els.rankTiles.forEach(tile => tile.classList.add('appeared'));
+    els.rankPickLabel.classList.add('shown');
 
     // Скрываем график
     els.introChart.classList.remove('grown', 'swept');
@@ -1268,6 +1411,8 @@ function start(){
       slideTotal: 14,
       onStep: (n) => { window._currentStep = n; step(n); }
     });
+    // Настоящий выбор ранга: те же плашки, но уже кнопки
+    if (window.RwaRanks) window.RwaRanks.wire();
   });
 }
 
@@ -1280,6 +1425,8 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 <div id="voiceRoot"></div>
 <script src="../shared/voice/voice-autoplay.js"></script>
 <script src="../shared/voice/voice-listening-lock.js"></script>
+<script src="../shared/interaction-windows.js"></script>
+<script src="../shared/interaction-controls.js"></script>
 <script src="../shared/voice/voice-boot.js"></script>
 </body>
 </html>

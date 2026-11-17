@@ -12,7 +12,7 @@ assert.equal(info.base,'/rwa-nft/');
 assert.match(info.sourceCommit,/^[a-f0-9]{40}$/);
 assert.equal(manifest.segments.length,172);
 assert.equal(extra.schemaVersion,1);
-assert.deepEqual(extra.records.map(r=>r.id).sort(),['onboarding.voice-intro','s01.imagine.dynamic','s14.choose.activate']);
+assert.deepEqual(extra.records.map(r=>r.id).sort(),['onboarding.voice-intro','s01.imagine.dynamic','s14.choose.activate','s14.choose.browse']);
 const claimed=new Set(manifest.segments.map(r=>r.audio));
 for(const record of extra.records){
  assert.deepEqual(Object.keys(record.assets).sort(),['en','ru']);
@@ -25,7 +25,23 @@ for(const record of extra.records){
   assert.match(a.sha256,/^[a-f0-9]{64}$/);
   assert.equal(createHash('sha256').update(bytes).digest('hex'),a.sha256);
   assert.ok(a.approved&&a.status==='ready'&&Number.isInteger(a.durationMs)&&a.durationMs>0);
-  assert.equal(a.voice,'Charon');assert.match(a.params?.style||'',/professional presentation speaker/);
+  assert.equal(a.voice,'Charon');
+  if(record.id==='s14.choose.browse'){
+   assert.equal(a.model,'local-concat');
+   const provenance=a.provenance;
+   assert.equal(provenance?.operation,'ffmpeg-concat-filter-reencode');
+   assert.equal(provenance.providerCalls,0);assert.equal(provenance.paidTts,false);
+   assert.equal(provenance.newGeneration,false);assert.equal(provenance.taskId,null);
+   assert.deepEqual(provenance.parts.map(part=>part.segmentId),['s14.choose.s01','s14.choose.s02']);
+   let duration=0;
+   for(const part of provenance.parts){
+    const original=manifest.segments.find(row=>row.id===part.segmentId&&row.lang===lang);
+    assert.ok(original?.approved&&original.status==='ready');assert.equal(part.path,original.audio);
+    assert.equal(createHash('sha256').update(read(part.path)).digest('hex'),part.sha256);
+    assert.equal(part.durationMs,original.durationMs);duration+=part.durationMs;
+   }
+   assert.ok(Math.abs(a.durationMs-duration)<=250);
+  }else assert.match(a.params?.style||'',/professional presentation speaker/);
   assert.ok(record.display[lang]&&record.tts[lang]);
  }
 }
@@ -48,5 +64,5 @@ for(const name of ['index.html','slides/slide_01_imagine.html','slides/slide_06_
  assert.match(text,/voice-boot\.js/);
 }
 for(const name of ['tools','generation','qa','tests','.env'])assert.equal(fs.existsSync(path.join(root,name)),false,name+' must not be public');
-assert.match(read('slides/slide_14_choose_nft.html').toString(),/>Активировать свой первый NFT<\/button>/);
+assert.match(read('slides/slide_14_choose_nft.html').toString(),/>Активировать Бизнес<\/button>/);
 console.log(JSON.stringify({ok:true,mp3:claimed.size,legacy:manifest.segments.length,additional:extra.records.length*2,framework:info.framework,sourceCommit:info.sourceCommit}));

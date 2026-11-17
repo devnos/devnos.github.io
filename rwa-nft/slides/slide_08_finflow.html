@@ -133,9 +133,6 @@ html, body {
   transition: transform 1s var(--ease);
   will-change: transform;
 }
-/* лента блоков всегда идёт слева направо, иначе в RTL первый блок уезжает за экран */
-html[dir="rtl"] .strip { direction: ltr; }
-html[dir="rtl"] .strip > .blk { direction: rtl; }
 .blk {
   position: relative; flex: 0 0 auto; overflow: hidden;
   border: 1px solid var(--line); border-radius: 20px;
@@ -624,6 +621,8 @@ input[type=range].mkt::-moz-range-thumb {
 }
 </style>
 <link rel="stylesheet" href="../shared/voice/voice.css">
+<link rel="stylesheet" href="../shared/interaction-windows.css">
+<link rel="stylesheet" href="../shared/interaction-controls.css">
 <script src="../shared/voice/voice-scenario.js"></script>
 <script src="../shared/voice/voice-core.js"></script>
 <script src="../shared/voice/voice-deck.js"></script>
@@ -841,7 +840,7 @@ input[type=range].mkt::-moz-range-thumb {
   <div class="modal-box">
     <div class="modal-head">
       <h2 data-i18n="s08.h2">Математика, <em>с которой не спорят</em></h2>
-      <div class="modal-close" id="modalClose">✕</div>
+      <button class="modal-close" id="modalClose" type="button" aria-label="Закрыть формулы и вернуться к FinFlow">✕</button>
     </div>
 
     <div class="fcard-zone">
@@ -1375,6 +1374,10 @@ document.getElementById('modal').addEventListener('click', (e) => {
 // Пока открыто окно формул, клавиши и колесо листают формулы, а не слайд.
 document.addEventListener('keydown', (e) => {
   if (!modalOpen()) return;
+  /* Native controls own Enter/Space; the modal shortcuts must not cycle a
+     formula instead of activating its return button. Escape still closes. */
+  if (e.key !== 'Escape' && e.target && typeof e.target.closest === 'function' &&
+      e.target.closest('button, [role="button"], input, select, textarea, a[href]')) return;
   e.stopPropagation();
   if (e.key === 'Escape') { e.preventDefault(); closeModal(); }
   else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); fcMove(1); }
@@ -1487,6 +1490,8 @@ if (window.I18N) I18N.onChange(function(){
 <div id="voiceRoot"></div>
 <script src="../shared/voice/voice-autoplay.js"></script>
 <script src="../shared/voice/voice-listening-lock.js"></script>
+<script src="../shared/interaction-windows.js"></script>
+<script src="../shared/interaction-controls.js"></script>
 <script src="../shared/voice/voice-boot.js"></script>
 </body>
 </html>

@@ -284,6 +284,8 @@
   }
 </style>
 <link rel="stylesheet" href="shared/voice/voice.css">
+<link rel="stylesheet" href="shared/interaction-windows.css">
+<link rel="stylesheet" href="shared/interaction-controls.css">
 </head>
 <body>
 
@@ -311,7 +313,7 @@
 <div id="langPanel"></div>
 
 <div id="screenModal">
-  <div id="screenClose">&#10005;</div>
+  <button id="screenClose" type="button" aria-label="Закрыть окно и вернуться к презентации">&#10005;</button>
   <iframe id="screenFrame" src="about:blank" title="Экран"></iframe>
 </div>
 
@@ -951,7 +953,10 @@
 <script src="shared/voice/voice-scenario.js"></script>
 <script src="shared/voice/voice-intro.js"></script>
 <script src="shared/voice/voice-autoplay.js"></script>
+<script src="shared/voice/voice-nav-contrast.js"></script>
 <script src="shared/voice/voice-listening-lock.js"></script>
+<script src="shared/interaction-windows.js"></script>
+<script src="shared/interaction-controls.js"></script>
 <script src="shared/voice/voice-boot.js"></script>
 </body>
 </html>
