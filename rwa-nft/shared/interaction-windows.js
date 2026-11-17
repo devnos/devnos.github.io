@@ -355,6 +355,59 @@
       return scale;
     }
 
+    /* Phone return controls live in the unscaled launcher viewport. A child
+       window owns that single toolbar; the parent yields until it closes. */
+    function mobileViewport() {
+      try {
+        const top = win.top || win;
+        return top.document && top.matchMedia && top.matchMedia('(pointer: coarse)').matches &&
+          Math.min(top.innerWidth, top.innerHeight) <= 560 ? top : null;
+      } catch (e) { return null; }
+    }
+
+    function childWindowOpen(host) {
+      const child = contentDocument(host);
+      if (!child) return false;
+      for (const id of ['modal', 'screenModal']) {
+        const node = child.getElementById && child.getElementById(id);
+        if (hasClass(node, 'open')) return true;
+      }
+      return all(child, '.calc-modal').some(node => hasClass(node, 'open'));
+    }
+
+    function parentWindowVisible() {
+      try {
+        let view = win;
+        for (let depth = 0; depth < 6 && view && view.frameElement; depth++) {
+          const frame = view.frameElement;
+          const owner = frame.ownerDocument;
+          if (frame.id === 'screenFrame' && owner &&
+              !hasClass(owner.getElementById('screenModal'), 'open')) return false;
+          if (hasClass(frame, 'slide-frame') && !hasClass(frame, 'active')) return false;
+          const modal = frame.closest && frame.closest('.calc-modal');
+          if (modal && !hasClass(modal, 'open')) return false;
+          view = view.parent;
+        }
+      } catch (e) {}
+      return true;
+    }
+
+    function mountGuidance(host, top) {
+      const target = top ? top.document.body : host.root;
+      if (host.cluster.parentNode !== target) target.appendChild(host.cluster);
+      host.cluster.classList.toggle('rwa-iw-mobile', !!top);
+      if (top) {
+        host.cluster.style.transform = '';
+        host.cluster.style.top = '';
+        host.cluster.style.right = '';
+        host.cluster.style.left = '';
+        host.cluster.style.bottom = '';
+        host.close.setAttribute('data-rwa-mobile-close', '1');
+      } else {
+        host.close.removeAttribute('data-rwa-mobile-close');
+      }
+    }
+
     /* Keep the block and the cross at real, touchable size. */
     function applyScale(host) {
       const scale = outerScale();
@@ -687,6 +740,8 @@
     function updateHost(host, allowed, code) {
       const open = hasClass(host.root, 'open');
       host.open = open;
+      const mobile = mobileViewport();
+      mountGuidance(host, mobile);
 
       /* The cross always says where it goes, even while the nested document is
          still about:blank. That label is the whole point of the change. */
@@ -702,7 +757,7 @@
         host.nodes.label.setAttribute('aria-label', ariaLabel);
       }
 
-      if (!open || !allowed) {
+      if (!open || !allowed || (mobile && (!parentWindowVisible() || childWindowOpen(host)))) {
         host.hintVisible = false;
         host.ctaVisible = false;
         setVisible(host.cluster, false);
@@ -715,11 +770,12 @@
 
       /* Scale first, then place: the measured cross already includes its own
          inverse transform, so the gap stays visually constant. */
-      applyScale(host);
+      if (!mobile) applyScale(host);
 
       const progress = progressFor(host, host.kind, code);
       host.progress = progress ? progress.text : '';
-      setText(host.nodes.progress, host.progress);
+      const compactCount = mobile && /(\d+)\s+(?:из|of)\s+(\d+)$/.exec(host.progress);
+      setText(host.nodes.progress, compactCount ? compactCount[1] + ' ' + dict(code).of + ' ' + compactCount[2] : host.progress);
 
       /* A preload frame is not a viewed section: no hint, no completion. */
       const real = host.kind !== 'blank';
@@ -736,11 +792,12 @@
 
       const atEnd = host.kind !== 'single' && host.kind !== 'blank' && !!(progress && progress.atEnd);
       host.ctaVisible = atEnd;
+      host.cluster.setAttribute('data-at-end', atEnd ? '1' : '0');
       setText(host.nodes.cta, atEnd ? ctaTextFor(host, code) : '');
       setVisible(host.nodes.cta, atEnd);
 
       setVisible(host.cluster, true);
-      place(host);
+      if (!mobile) place(host);
       bindDismiss(host);
     }
 
@@ -881,6 +938,7 @@
         }
         unbindAll();
         for (const host of hosts) {
+          if (host.close) host.close.removeAttribute('data-rwa-mobile-close');
           if (host.cluster && host.cluster.parentNode) {
             try { host.cluster.parentNode.removeChild(host.cluster); } catch (e) {}
           }
@@ -891,6 +949,10 @@
       },
     };
     win.rwaInteractionWindows = instance;
+
+    /* Portalled DOM belongs to the top document; unload must remove it when
+       the iframe itself is replaced with about:blank or another screen. */
+    if (win.top && win.top !== win) bind(win, 'pagehide', function () { instance.destroy(); });
 
     return instance;
   }

@@ -1,8 +1,13 @@
 {
   "framework": "Astro 7",
-  "frameworkVersion": "7.4.12",
   "base": "/rwa-nft/",
-  "sourceCommit": "7d102932f389f0cef7e241aa83513622322d5f5f",
-  "builtAt": "2026-11-17T09:30:27.336423+00:00",
-  "release": "ranks-vip-followup"
+  "sourceCommit": "4a4eeb5d0e59c85de62c0f1c90d5cb79b41505bf",
+  "builtAt": "2026-11-17T11:48:25.407042+00:00",
+  "release": "mobile-hints-layout-fix",
+  "checks": {
+    "unitTests": 576,
+    "mobileLayoutChecks": 183,
+    "interactionChecks": 86,
+    "mobileStates": 46
+  }
 }

@@ -143,6 +143,37 @@
   transition: opacity 0.4s ease;
 }
 
+/* Scaled landscape canvas: use an independent footer lane, not the tiny
+   active card's dimensions, for the readable 44px action and swipe hint. */
+.rwa-nft-compact .rwa-card-action {
+  top: auto;
+  bottom: calc(52px * var(--rwa-inv-scale, 1));
+  left: 50%;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  min-height: calc(44px * var(--rwa-inv-scale, 1));
+  max-width: calc(260px * var(--rwa-inv-scale, 1));
+  padding: calc(8px * var(--rwa-inv-scale, 1)) calc(16px * var(--rwa-inv-scale, 1));
+  white-space: nowrap;
+}
+.rwa-nft-compact .rwa-card-action:active { transform: translateX(-50%) scale(.97); }
+.rwa-nft-compact .rwa-nft-swipe {
+  bottom: calc(28px * var(--rwa-inv-scale, 1));
+  padding: 0 calc(12px * var(--rwa-inv-scale, 1));
+  box-sizing: border-box;
+}
+.rwa-nft-compact #dots { bottom: calc(104px * var(--rwa-inv-scale, 1)); }
+
+@media (pointer: coarse) {
+  .rwa-flip-mark {
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: none;
+    font-size: calc(12px * var(--rwa-inv-scale, 1));
+    overflow: visible;
+  }
+}
+
 @media (orientation: portrait) and (max-width: 620px) {
   /* Keep progress in the free footer lane: placing it under the fullscreen
      icon overlaps the subtitle on a native 390px phone viewport. */

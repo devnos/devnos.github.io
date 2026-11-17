@@ -78,4 +78,21 @@ for(const name of ['index.html','slides/slide_01_imagine.html','slides/slide_06_
 }
 for(const name of ['tools','generation','qa','tests','.env'])assert.equal(fs.existsSync(path.join(root,name)),false,name+' must not be public');
 assert.match(read('slides/slide_14_choose_nft.html').toString(),/>Активировать Бизнес<\/button>/);
-console.log(JSON.stringify({ok:true,mp3:claimed.size,legacy:manifest.segments.length,additional:extra.records.length*2,framework:info.framework,sourceCommit:info.sourceCommit}));
+const windows=read('shared/interaction-windows.js').toString();
+const windowCss=read('shared/interaction-windows.css').toString();
+const controls=read('shared/interaction-controls.js').toString();
+const controlsCss=read('shared/interaction-controls.css').toString();
+const mobile=read('shared/mobile.js').toString();
+assert.match(windows,/function mobileViewport\(/);
+assert.match(windows,/function childWindowOpen\(/);
+assert.match(windows,/function parentWindowVisible\(/);
+assert.match(windows,/target\.appendChild\(host\.cluster\)/);
+assert.match(windows,/pagehide/);
+assert.match(windowCss,/\.rwa-iw-cluster\.rwa-iw-mobile/);
+assert.match(windowCss,/min-height: 44px/);
+assert.match(windowCss,/font-size: 13px/);
+assert.match(controls,/action\.bottom - area\.top/);
+assert.match(controlsCss,/\.rwa-nft-compact \.rwa-card-action/);
+assert.match(mobile,/body:has\(> #rotateHint\.on\) > \.voice-listening-nav/);
+assert.match(read('index.html').toString(),/const header = phone \? 60 : 0/);
+console.log(JSON.stringify({ok:true,mobileGuidance:true,mp3:claimed.size,legacy:manifest.segments.length,additional:extra.records.length*2,framework:info.framework,sourceCommit:info.sourceCommit}));

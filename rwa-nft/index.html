@@ -587,17 +587,27 @@
     const needRotate = phone && portrait && !nativeOk;
     if (window.setMobileReady) window.setMobileReady(!needRotate);
     if (window.setRotateHintOverScreen) window.setRotateHintOverScreen(needRotate);
+    /* The phone's single return toolbar owns a real 60px lane. Fit the
+       content below it instead of painting instructions over the slide. */
+    const header = phone ? 60 : 0;
+    const availableHeight = Math.max(1, window.innerHeight - header);
+    screenFrame.style.position = phone ? 'absolute' : '';
+    screenFrame.style.left = phone ? '0px' : '';
+    screenFrame.style.top = phone ? header + 'px' : '';
     /* Виртуальный экран нужен всегда, кроме одного случая: телефон в портрете
        с экраном, у которого есть своя вертикальная вёрстка. В альбоме даже
        калькулятору отдаём 1600x900, иначе по высоте телефона он обрезается. */
     if (phone && !(portrait && nativeOk)) {
-      const sc = canvasScale();
+      const height = Math.max(CANVAS_H_MIN, Math.min(CANVAS_H_BASE,
+        Math.round(CANVAS_W * availableHeight / window.innerWidth)));
+      const sc = Math.min(window.innerWidth / CANVAS_W, availableHeight / height);
       screenFrame.style.width = CANVAS_W + 'px';
-      screenFrame.style.height = canvasHeight() + 'px';
+      screenFrame.style.height = height + 'px';
       screenFrame.style.transformOrigin = 'top left';
-      screenFrame.style.transform = canvasTransform(sc);
+      screenFrame.style.transform = 'translate(' + ((window.innerWidth - CANVAS_W * sc) / 2) + 'px,' +
+        ((availableHeight - height * sc) / 2) + 'px) scale(' + sc + ')';
     } else {
-      screenFrame.style.width = ''; screenFrame.style.height = '';
+      screenFrame.style.width = ''; screenFrame.style.height = phone ? availableHeight + 'px' : '';
       screenFrame.style.transform = ''; screenFrame.style.transformOrigin = '';
     }
   }

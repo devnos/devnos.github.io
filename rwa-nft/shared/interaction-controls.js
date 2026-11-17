@@ -390,7 +390,9 @@
           setAttr(rec.host, 'tabindex', started ? '0' : '-1');
         }
         applyScale(rec.mark, scale);
-        hide(rec.mark, !started);
+        /* The exposed back already has named buttons; another floating
+           "choose an action" badge only covers those controls on a phone. */
+        hide(rec.mark, !started || (rec.nested && flipped));
       });
     }
 
@@ -498,6 +500,7 @@
 
       const box = ensureNftBox();
       applyScale(box.box, scale);
+      applyScale(box.host, scale);
       const onChooser = step === 0;
       const active = frameActive(box.host);
 
@@ -518,13 +521,32 @@
         return;
       }
       if (!cardButton) createCardButton();
-      if (cardButton.parentNode !== center) {
+      const compact = scale < 0.99;
+      box.host.classList.toggle('rwa-nft-compact', compact);
+      const buttonHost = compact ? box.box : center;
+      if (cardButton.parentNode !== buttonHost) {
         detach(cardButton);
-        center.appendChild(cardButton); /* the active card owns the only action */
+        buttonHost.appendChild(cardButton);
       }
       syncCardButton(center);
       applyScale(cardButton, scale);
       hide(cardButton, !(started && onChooser && active));
+      /* The action may wrap on a narrow portrait card. Place the instruction
+         after its actual rendered bottom rather than at an unrelated vh. */
+      try {
+        const top = win.top || win;
+        const phone = top.matchMedia && top.matchMedia('(pointer: coarse)').matches &&
+          Math.min(top.innerWidth, top.innerHeight) <= 560;
+        if (phone && started && onChooser && active && cardButton.getBoundingClientRect) {
+          const action = cardButton.getBoundingClientRect();
+          const area = box.box.getBoundingClientRect();
+          box.hint.style.top = (action.bottom - area.top + 12 / scale) + 'px';
+          box.hint.style.bottom = 'auto';
+        } else {
+          box.hint.style.top = '';
+          box.hint.style.bottom = '';
+        }
+      } catch (e) {}
     }
 
     /* ---------- real sliders ---------- */

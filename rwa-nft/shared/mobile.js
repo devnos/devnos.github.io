@@ -22,7 +22,7 @@
 
   const CSS = `
     #rotateHint {
-      position: fixed; inset: 0; z-index: 10050;   /* выше окна поверх слайда (10000) */
+      position: fixed; inset: 0; z-index: 10085;   /* above navigation, below Help */
       display: none; flex-direction: column;
       align-items: center; justify-content: center; gap: 18px;
       background: radial-gradient(ellipse at center, #0c0b12 0%, #050507 100%);
@@ -30,6 +30,7 @@
       font-family: 'Unbounded', system-ui, sans-serif;
     }
     #rotateHint.on { display: flex; }
+    body:has(> #rotateHint.on) > .voice-listening-nav { display: none !important; }
     #rotateHint .rh-ico {
       width: 74px; height: 74px;
       animation: rhTurn 2.6s ease-in-out infinite;

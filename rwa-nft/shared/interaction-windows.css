@@ -301,6 +301,50 @@
   }
 }
 
+/* Phone toolbar is portalled to the unscaled launcher. Content is fitted
+   below its 60px lane; only the active nested level exposes a return. */
+.rwa-iw-cluster.rwa-iw-mobile {
+  position: fixed;
+  z-index: 10030;
+  inset: 0 0 auto 0;
+  height: 60px;
+  max-width: none;
+  box-sizing: border-box;
+  padding: 8px 64px 8px 8px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #0b0b10;
+  text-align: left;
+  transform: none;
+  animation: none;
+}
+.rwa-iw-mobile .rwa-iw-close-row { width: auto; min-width: 0; justify-content: flex-start; }
+.rwa-iw-mobile .rwa-iw-close-label,
+.rwa-iw-mobile .rwa-iw-cta {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 4px 12px;
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.rwa-iw-mobile .rwa-iw-meta { border: 0; padding: 0; background: none; backdrop-filter: none; flex-shrink: 0; }
+.rwa-iw-mobile .rwa-iw-title,
+.rwa-iw-mobile .rwa-iw-hint { display: none; }
+.rwa-iw-mobile .rwa-iw-progress { font-size: 13px; white-space: nowrap; color: #e2d7bf; }
+.rwa-iw-mobile[data-at-end="1"] .rwa-iw-close-row { display: none; }
+.rwa-iw-mobile .rwa-iw-cta { order: -1; }
+[data-rwa-mobile-close="1"] { display: none !important; }
+@media (pointer: coarse) {
+  html:has(#screenModal.open) #langBtn { left: auto; right: 12px; top: 12px; z-index: 10035; }
+  html:has(#screenModal.open) #langPanel { left: auto; right: 12px; top: 52px; z-index: 10036; }
+}
+body:has(> #rotateHint.on) > .rwa-iw-mobile { display: none; }
+
 /* ---- reduced motion ---------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
