@@ -1,8 +1,9 @@
 /*
  * Strict start gate for the presentation.
  *
- * The deck must not react to ANY user action until the one round Play control
- * is pressed. This module is loaded early in <head>, before the page's own
+ * The deck must not navigate or play narration until the round Play control
+ * is pressed; language selection remains available on the startup screen.
+ * This module is loaded early in <head>, before the page's own
  * navigation scripts, and installs:
  *
  *   - a transparent fixed shield over the viewport with the Play button on top;
@@ -113,6 +114,7 @@
     const startHandlers = [];
     const guardDocs = new Map();
     const inertDocs = new Map();
+    const languageControls = [];
 
     /* ------------------------------------------------------------------ */
     /* Shared helpers                                                      */
@@ -174,6 +176,15 @@
       if (!locked || !event) return true;
       const type = event.type;
       if (type === 'message') return stop(event);
+      /* Only language pointer gestures pass before Play; navigation keys and
+         every action during the startup fade remain guarded. */
+      if (!started && ready && BUTTON_EVENTS.has(type)) {
+        let target = event.target;
+        while (target && target !== overlay) {
+          if (languageControls.some(entry => entry.node === target)) return true;
+          target = target.parentNode;
+        }
+      }
 
       const onButton = isButtonTarget(event);
       if (onButton) {
@@ -458,6 +469,16 @@
       btn.addEventListener('click', activate);
 
       overlay.appendChild(btn);
+      /* Reuse the real controls and their listeners above the scrim, outside
+         the inert body. Restore their exact DOM position when the gate exits. */
+      for (const id of ['langBtn', 'langPanel']) {
+        const node = doc.getElementById(id);
+        if (!node || !node.parentNode) continue;
+        const parent = node.parentNode;
+        languageControls.push({ node, parent, next: node.nextSibling });
+        parent.removeChild(node);
+        overlay.appendChild(node);
+      }
       doc.documentElement.appendChild(overlay);
       return true;
     }
@@ -550,6 +571,14 @@
         }
         for (const type of BUTTON_KEY_EVENTS) {
           try { btn.removeEventListener(type, contain); } catch (e) {}
+        }
+      }
+      for (const entry of languageControls.splice(0).reverse()) {
+        if (entry.node.parentNode) entry.node.parentNode.removeChild(entry.node);
+        if (entry.next && entry.next.parentNode === entry.parent) {
+          entry.parent.insertBefore(entry.node, entry.next);
+        } else {
+          entry.parent.appendChild(entry.node);
         }
       }
       if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);

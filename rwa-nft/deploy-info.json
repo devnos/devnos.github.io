@@ -1,12 +1,11 @@
 {
   "framework": "Astro 7",
   "base": "/rwa-nft/",
-  "sourceCommit": "6aef70b1284141dd7843430824587fc5a2ad848a",
-  "release": "first-step-contextual-guidance",
-  "builtAt": "2026-11-17T14:49:54.878577+00:00",
+  "sourceCommit": "a9ae698678fa1cd7f71ad463651be7c16ebeec73",
+  "release": "startup-language-unlocked",
+  "builtAt": "2026-11-17T16:20:51.899898+00:00",
   "checks": {
-    "unit": 582,
-    "systemBrowser": 73,
-    "insideBrowser": 40
+    "unit": 583,
+    "startupLanguageBrowser": 2
   }
 }
