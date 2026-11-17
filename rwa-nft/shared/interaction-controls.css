@@ -54,12 +54,13 @@
 .rwa-card-action {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 100%;
   z-index: 7;
   display: inline-flex;
   align-items: center;
   gap: 0.45em;
-  padding: 0.5em 0.95em;
+  width: max-content;
+  padding: 0.85em 1.35em;
   transform: translate(-50%, -50%);
   pointer-events: auto;
   cursor: pointer;
@@ -70,8 +71,8 @@
   font-family: 'DM Sans', system-ui, sans-serif;
   font-size: calc(clamp(12px, 0.78vw, 13px) * var(--rwa-inv-scale, 1));
   /* scaled frames: keep a real ~44px touch target in the upper viewport */
-  min-height: calc(var(--rwa-touch-min, 44px) * var(--rwa-inv-scale, 1));
-  max-width: calc(100% - 16px);
+  min-height: calc(max(52px, var(--rwa-touch-min, 44px)) * var(--rwa-inv-scale, 1));
+  max-width: min(calc(100% - 24px), calc(176px * var(--rwa-inv-scale, 1)));
   text-align: center;
   line-height: 1.25;
   letter-spacing: 0.05em;

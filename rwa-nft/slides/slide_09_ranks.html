@@ -1228,13 +1228,16 @@ function resetRankTiles(){
 (function(){
   const TOTAL = 8;
   let wired = false;
+  /* Озвучка ждёт визуального коммита: 0 = затравка, null = смена идёт,
+     idx + 1 = ранг уже показан (картинка, подпись, условия, плашки). */
+  let committed = 0;
 
   /* Подпись группы: локальный ключ, общий словарь не правим. */
   if (window.I18N && I18N.dict && !I18N.dict['s09.pick']) {
     I18N.dict['s09.pick'] = { en: 'Choose a rank' };
   }
 
-  function sync(idx){
+  function sync(idx, commit){
     const tiles = els.rankTiles;
     if (!tiles) return;
     Array.prototype.forEach.call(tiles, function(tile, i){
@@ -1242,18 +1245,28 @@ function resetRankTiles(){
       tile.setAttribute('aria-pressed', on ? 'true' : 'false');
       tile.setAttribute('aria-current', on ? 'step' : 'false');
     });
+    /* Коммит только когда показан именно этот шаг: смена языка на затравке
+       не должна «коммитить» старый _rankIdx в скрытой рамке. */
+    if (commit !== false && (idx < 0 || window._currentStep === idx + 2)) {
+      committed = idx < 0 ? 0 : idx + 1;
+    }
   }
 
   function select(idx){
     const n = Number(idx);
     if (!Number.isInteger(n) || n < 0 || n >= TOTAL) return false;
     if (!RANKS || !RANKS[n]) return false;
+    /* Повторный клик по уже выбранному рангу: не перезапускаем анимацию. */
+    if (committed === n + 1 && window._currentStep === n + 2) {
+      sync(n, false);
+      return true;
+    }
     window._rankIdx = n;
     SlideEngine.go(n + 2);   /* существующий движок шагов и озвучки */
     /* Выбор с затравки: рамку приза ещё не показывали — включаем её сами,
        иначе картинка ранга осталась бы прозрачной. */
     if (els.prizeFrame) els.prizeFrame.classList.add('frame-shown');
-    sync(n);
+    sync(n, false);          /* только aria; голос ждёт визуального коммита */
     return true;
   }
 
@@ -1283,6 +1296,11 @@ function resetRankTiles(){
     select: select,
     sync: sync,
     wire: wire,
+    /* Узкий контракт готовности для эмиттера: индекс шага или null. */
+    committedStep: function(){
+      return Number.isInteger(committed) ? committed : null;
+    },
+    pending: function(){ committed = null; },
     state: function(){
       return {
         count: TOTAL,
@@ -1332,6 +1350,7 @@ function transitionToRank(idx, isFirstShow){
 
 function step(n){
   clearAllTimers();
+  if (n >= 2 && window.RwaRanks) window.RwaRanks.pending();
 
   // На любом шаге — eyebrow и контейнер рангов (контейнер всегда виден)
   if (n >= 1){

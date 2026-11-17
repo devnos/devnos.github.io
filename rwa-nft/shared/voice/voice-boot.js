@@ -96,6 +96,9 @@
         return { embedded: true, returning: false, storageAvailable: false, launchedThisSession: false };
       },
       stop() {},
+      /* A subframe never owns narration; a closing window that happens to run
+         this stub must not throw. The real owner lives at the top. */
+      prepareSilentReturn() { return false; },
       onSlideChanged() {},
       snapshot() { return null; },
     };
@@ -167,6 +170,11 @@
     startRequested: false,
     listeningLock: null,
     arrowNavigator: null,
+    /* Closing a window is a return, not a replay: the pending marker is
+       consumed when the parent route is selected, the quiet step keeps the
+       edge arrows usable until real navigation happens. */
+    pendingSilentReturn: null,
+    quietStep: null,
   };
 
   const observers = [];
@@ -356,6 +364,10 @@
 
   function selectStep(stepId, follow) {
     if (!state.config || !state.controller) return;
+    /* Any explicit step selection is real navigation: it supersedes a quiet
+       return and must be allowed to speak again. */
+    state.pendingSilentReturn = null;
+    state.quietStep = null;
     /* The welcome owns the screen until it ends: mount/reconcile/rescan may
        call selectStep every 600ms and must not replace the intro with the
        first content step. During the handover phase selection is allowed. */
@@ -567,6 +579,10 @@
     let carousel = null;
     try { const f=activeFrame();carousel=(f?f.contentWindow:window).RwaNftCarousel; } catch(e) {}
     const before = carousel && carousel.state();
+    const cfg = state.config;
+    const owner = state.sourceWindow || window;
+    const beforeStep = currentSilentStep(owner, cfg);
+    const beforeVoice = state.controller && state.controller.snapshot();
     const screen = screenFrameIfOpen();
     let dispatched = !!(screen && dispatchIntoFrame(screen, direction));
     const navigator = arrowNavigatorInstance();
@@ -577,6 +593,13 @@
     const after = carousel && carousel.state();
     /* Local card movement does not start speech: keep the edge controls ready. */
     if (dispatched && before && after && before.step===0 && after.step===0) return false;
+    /* This explicit visual continuation starts no new audio lifecycle, so
+       there will be no playing/ended signal to re-arm the edge arrows. */
+    const afterStep = currentSilentStep(owner, cfg);
+    if (dispatched && cfg && cfg.continueNarrationFrom &&
+        cfg.continueNarrationFrom[afterStep] === beforeStep && beforeVoice &&
+        beforeVoice.currentId === resolveStep(beforeStep, cfg) &&
+        ['playing', 'starting', 'ended', 'paused'].includes(beforeVoice.status)) return false;
     return dispatched;
   }
 
@@ -602,6 +625,111 @@
     render();
   }
 
+  /* @silent-return:start */
+  /*
+   * Silent return helpers. Closing a nested window gives the parent screen
+   * back; it must not restart the parent's narration. These functions only
+   * decide WHICH parent step to restore and HOW (paused, never autoplay):
+   * they never own Audio, never pretend a recording ended and never touch the
+   * step numbers of the slide.
+   */
+  const SILENT_RETURN_DEPTH = 6;
+  const SILENT_RETURN_TTL_MS = 2500;
+
+  /* The closed window itself or one of its bounded, same-origin ancestors. */
+  function isOwnOrAncestorWindow(from, target, maxDepth) {
+    if (!from || !target) return false;
+    const depth = typeof maxDepth === 'number' ? maxDepth : SILENT_RETURN_DEPTH;
+    let view = from;
+    for (let hop = 0; hop <= depth; hop++) {
+      if (view === target) return true;
+      let parent = null;
+      try { parent = view.parent || null; } catch (e) { parent = null; }
+      if (!parent || parent === view) return false;
+      view = parent;
+    }
+    return false;
+  }
+
+  /* The parent document's real, existing step API; never guessed from index. */
+  function currentSilentStep(targetWin, cfg) {
+    if (!targetWin || !cfg || !Array.isArray(cfg.steps)) return null;
+    let stepId = null;
+    try {
+      const slide = targetWin.VoiceSlide;
+      if (slide && typeof slide.currentStep === 'function') stepId = slide.currentStep();
+    } catch (e) {
+      stepId = null;
+    }
+    return stepId && cfg.steps.indexOf(stepId) !== -1 ? stepId : null;
+  }
+
+  /*
+   * A pending marker is consumed only by the route that just became visible.
+   * Desktop returns are detected by the previous sourceWindow's parent chain;
+   * the mobile screen frame is a sibling of the deck frame, so its closing
+   * stop reason marks the return explicitly.
+   */
+  function silentReturnPlan(marker, targetWin, cfg) {
+    if (!marker || !targetWin || !cfg || !Array.isArray(cfg.steps) || !cfg.steps.length) return null;
+    if (marker.until && Date.now() > marker.until) return null;
+    if (marker.kind !== 'screen' && !isOwnOrAncestorWindow(marker.from, targetWin)) return null;
+    const stepId = currentSilentStep(targetWin, cfg) || cfg.steps[0];
+    if (!stepId) return null;
+    return { stepId: stepId, autoplay: false, paused: true };
+  }
+  /* @silent-return:end */
+
+  function clearSilentReturn() {
+    state.pendingSilentReturn = null;
+    state.quietStep = null;
+  }
+
+  function silentReturnActive() {
+    return !!state.quietStep;
+  }
+
+  /* @silent-apply:start */
+  /*
+   * Select the restored parent step without speaking. Paused is deliberate:
+   * VoiceAutoplay.needsSound() retries every 'ready' segment on the next real
+   * gesture, which would restart a paragraph the viewer just left.
+   */
+  function applySilentPlan(win, cfg, plan) {
+    const stepId = plan && cfg.steps.indexOf(plan.stepId) !== -1 ? plan.stepId : cfg.steps[0];
+    state.stepId = stepId;
+    state.stepIndex = cfg.steps.indexOf(stepId);
+    state.pendingSilentReturn = null;
+    const segmentId = resolveStep(stepId, cfg);
+    if (!segmentId) return false;
+    state.quietStep = { slideId: cfg.slideId, stepId: stepId };
+    state.controller.select(segmentId, { autoplay: false, paused: true })
+      .then(render).catch(function () {});
+    return true;
+  }
+  /* @silent-apply:end */
+
+  /* Called by the close controls (through the top audio owner). */
+  function prepareSilentReturn(closeWin) {
+    if (!closeWin || !state.controller) return false;
+    const from = state.sourceWindow || window;
+    if (!isOwnOrAncestorWindow(from, closeWin)) return false;
+    const now = Date.now();
+    state.pendingSilentReturn = {
+      kind: 'close',
+      from: from,
+      doc: closeWin,
+      at: now,
+      until: now + SILENT_RETURN_TTL_MS,
+    };
+    const snap = state.controller.snapshot();
+    if (snap && (snap.status === 'playing' || snap.status === 'starting')) {
+      state.controller.pause();
+    }
+    render();
+    return true;
+  }
+
   function applyTarget(hit) {
     if (!hit) {
       clearSelection();
@@ -612,7 +740,8 @@
       state.config.slideId === hit.config.slideId &&
       state.mountedPath === hit.path &&
       state.sourceWindow === hit.win;
-    if (sameRoute) return;
+    const silentPlan = silentReturnPlan(state.pendingSilentReturn, hit.win, hit.config);
+    if (sameRoute && !silentPlan) return;
 
     state.config = hit.config;
     state.mountedPath = hit.path;
@@ -620,10 +749,15 @@
     bindGestureDoc(hit.doc || null);
     state.stepId = null;
     state.stepIndex = 0;
+    /* A different route that is not the closed window's parent is ordinary
+       navigation: the quiet step from the previous screen no longer applies. */
+    state.quietStep = null;
+    if (!silentPlan) state.pendingSilentReturn = null;
     if (state.ui) state.ui.setConfig(state.config);
 
     if (state.dataStatus === 'ready' && state.controller) {
-      if (gateStarted() && state.startRequested) startPlayback();
+      if (silentPlan && gateStarted()) applySilentPlan(hit.win, state.config, silentPlan);
+      else if (gateStarted() && state.startRequested) startPlayback();
       else selectStep(state.config.steps[0], gateStarted());
     }
     render();
@@ -701,17 +835,23 @@
       clearSelection();
       return;
     }
+    /* A standalone parent also consumes a close when its voice route stays
+       unchanged (for example a calculator with no independent narration). */
+    const silentPlan = silentReturnPlan(state.pendingSilentReturn, window, cfg);
     if (state.config && state.config.slideId === cfg.slideId &&
-        state.mountedPath === null && state.sourceWindow === null) return;
+        state.mountedPath === null && state.sourceWindow === null && !silentPlan) return;
     state.config = cfg;
     state.mountedPath = null;
     state.sourceWindow = null;
     bindGestureDoc(null);
     state.stepId = null;
     state.stepIndex = 0;
+    state.quietStep = null;
+    if (!silentPlan) state.pendingSilentReturn = null;
     if (state.ui) state.ui.setConfig(cfg);
     if (state.dataStatus === 'ready' && state.controller) {
-      if (gateStarted() && state.startRequested) startPlayback();
+      if (silentPlan && gateStarted()) applySilentPlan(window, cfg, silentPlan);
+      else if (gateStarted() && state.startRequested) startPlayback();
       else selectStep(cfg.steps[0], gateStarted());
     }
     render();
@@ -744,20 +884,60 @@
 
   function onSlideChanged(path) {
     state.basePath = path || null;
+    /* A slide change is real navigation, never a modal return. */
+    clearSilentReturn();
     if (state.config) resetSelection();
     render();
     scheduleRefresh(0);
   }
 
   function stop(reason) {
-    if ((reason === 'navigation' || reason === 'screen' || reason === 'modal') &&
+    const closingScreen = reason === 'screen-close';
+    if (closingScreen) {
+      /*
+       * Closing the mobile screen must not keep the parent identity: the
+       * screen frame is a sibling of the deck frame, so mark this as a return
+       * explicitly. Opening still uses 'screen' and must silence the deck
+       * without arming any quiet state.
+       */
+      if (state.sourceWindow && screenFrameIfOpen()) {
+        const now = Date.now();
+        state.pendingSilentReturn = {
+          kind: 'screen',
+          from: state.sourceWindow,
+          doc: window,
+          at: now,
+          until: now + SILENT_RETURN_TTL_MS,
+        };
+      }
+      state.quietStep = null;
+    } else {
+      state.pendingSilentReturn = null;
+      state.quietStep = null;
+    }
+    if ((reason === 'navigation' || reason === 'screen' || reason === 'modal' ||
+         closingScreen) &&
         state.intro && state.intro.isActive()) {
       state.intro = null;
       state.introDone = true;
       state.startRequested = false;
     }
-    if (state.controller) state.controller.stop();
-    if (reason === 'navigation' || reason === 'screen' || reason === 'modal') {
+    if (state.controller) {
+      if (closingScreen) {
+        const snap = state.controller.snapshot();
+        if (snap && (snap.status === 'playing' || snap.status === 'starting' ||
+            snap.status === 'paused')) {
+          /* pause(), not stop(): stop() turns the parent back into 'ready' and
+             the gesture narrator would replay the closed screen on the next
+             unrelated tap. */
+          state.controller.pause();
+        }
+      } else {
+        state.controller.stop();
+      }
+    }
+    if (reason === 'navigation' || reason === 'screen' || reason === 'modal' ||
+        closingScreen) {
       resetSelection();
     }
     render();
@@ -813,6 +993,8 @@
     const payload = check.data;
     if (payload.type === 'voice-step') {
       if (state.stepId === payload.stepId) return;
+      /* A real step change is navigation: it ends the quiet return. */
+      clearSilentReturn();
       state.stepId = payload.stepId;
       state.stepIndex = payload.stepIndex;
       state.deck.step(payload.stepId, payload.stepIndex).then(render).catch(function () {});
@@ -822,6 +1004,18 @@
     if (payload.stepId) {
       state.stepId = payload.stepId;
       state.stepIndex = state.config.steps.indexOf(payload.stepId);
+    }
+    const closingAction = typeof payload.actionId === 'string' &&
+      payload.actionId.endsWith('.close');
+    if (closingAction) {
+      /* The deck selects the parent paused; keep only the narrow quiet marker
+         so first-visit edge arrows stay available on this screen. */
+      state.pendingSilentReturn = null;
+      state.quietStep = state.stepId
+        ? { slideId: state.config.slideId, stepId: state.stepId }
+        : null;
+    } else {
+      clearSilentReturn();
     }
     state.deck.action(payload.actionId, state.stepId).then(render).catch(function () {});
   }
@@ -898,8 +1092,18 @@
       }
       if (previous) previous.destroy();
       if (state.config) {
-        if (gateStarted() && state.startRequested) startPlayback();
-        else selectStep(state.config.steps[state.stepIndex || 0], gateStarted());
+        const silentPlan = silentReturnPlan(
+          state.pendingSilentReturn,
+          state.sourceWindow || window,
+          state.config,
+        );
+        if (silentPlan && gateStarted()) {
+          applySilentPlan(state.sourceWindow || window, state.config, silentPlan);
+        } else if (gateStarted() && state.startRequested) {
+          startPlayback();
+        } else {
+          selectStep(state.config.steps[state.stepIndex || 0], gateStarted());
+        }
       } else {
         refreshRoute();
       }
@@ -925,6 +1129,7 @@
     if (kind === 'step') {
       if (!state.config.steps.includes(payload.stepId)) return;
       if (state.stepId === payload.stepId) return; /* coalesce duplicate syncs */
+      clearSilentReturn();
       state.stepId = payload.stepId;
       state.stepIndex = payload.stepIndex;
       state.deck.step(payload.stepId, payload.stepIndex).then(render).catch(function () {});
@@ -934,6 +1139,14 @@
     if (payload.stepId) {
       state.stepId = payload.stepId;
       state.stepIndex = state.config.steps.indexOf(payload.stepId);
+    }
+    if (payload.actionId.endsWith('.close')) {
+      state.pendingSilentReturn = null;
+      state.quietStep = state.stepId
+        ? { slideId: state.config.slideId, stepId: state.stepId }
+        : null;
+    } else {
+      clearSilentReturn();
     }
     state.deck.action(payload.actionId, state.stepId).then(render).catch(function () {});
   }
@@ -982,8 +1195,11 @@
       getController: function () { return state.controller; },
       isStarted: gateStarted,
       /* Repeat visit: after the mandatory Play the narration no longer locks
-         navigation. The snapshot is per launch, not per status. */
-      canSkipNarration: repeatNavigation,
+         navigation. The snapshot is per launch, not per status; a silent
+         return from a window is likewise free, because nothing is speaking. */
+      canSkipNarration: function () {
+        return repeatNavigation() || silentReturnActive();
+      },
       isHelpOpen: function () {
         return !!(state.help && typeof state.help.isOpen === 'function' && state.help.isOpen());
       },
@@ -1069,6 +1285,9 @@
     lastEvent: function () { return state.lastEvent; },
     eventSeq: function () { return state.eventSeq; },
     refreshRoute: refreshRoute,
+    /* Narrow owner hook for window close controls: stop the current route and
+       restore its parent without speaking. */
+    prepareSilentReturn: prepareSilentReturn,
     route: function () {
       return state.config ? {
         slideId: state.config.slideId,

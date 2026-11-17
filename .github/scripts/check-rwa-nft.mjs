@@ -12,7 +12,20 @@ assert.equal(info.base,'/rwa-nft/');
 assert.match(info.sourceCommit,/^[a-f0-9]{40}$/);
 assert.equal(manifest.segments.length,172);
 assert.equal(extra.schemaVersion,1);
-assert.deepEqual(extra.records.map(r=>r.id).sort(),['onboarding.voice-intro','s01.imagine.dynamic','s14.choose.activate','s14.choose.browse']);
+const rankNames=['intro','beginner','partner','manager','leader','senior-leader','director','vice-president','ceo'];
+const expectedExtras=['onboarding.voice-intro','s01.imagine.dynamic','s14.choose.activate','s14.choose.browse',...rankNames.map(name=>'s09.ranks.'+name)];
+assert.deepEqual(extra.records.map(r=>r.id).sort(),expectedExtras.sort());
+for(const [index,name] of rankNames.entries()){
+ const record=extra.records.find(r=>r.id==='s09.ranks.'+name);
+ assert.equal(record.kind,'step');assert.equal(record.slideId,'s09.ranks');
+ assert.deepEqual(record.stepIds,['s09.ranks.s'+String(index+1).padStart(2,'0')]);
+ for(const lang of ['ru','en']){
+  assert.equal(record.assets[lang].approvalId,'rwa-ranks-one-to-one-20261117');
+  assert.equal(record.assets[lang].model,'google/gemini-3-8-flash-tts');
+  assert.ok(record.assets[lang].provenance?.taskId);
+  assert.match(record.assets[lang].provenance?.cacheKey||'',/^sha256:[a-f0-9]{64}$/);
+ }
+}
 const claimed=new Set(manifest.segments.map(r=>r.audio));
 for(const record of extra.records){
  assert.deepEqual(Object.keys(record.assets).sort(),['en','ru']);

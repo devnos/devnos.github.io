@@ -107,8 +107,19 @@
       const target = stepTarget(stepId, cfg);
       if (!target) return { ok: false, reason: 'no-segment' };
       const stepKey = cfg.slideId + ':' + stepId;
-      const distinctStep = stepKey !== lastRoutedStep;
+      const previousStep = lastRoutedStep;
+      const distinctStep = stepKey !== previousStep;
       lastRoutedStep = stepKey;
+      /* An explicit visual continuation keeps the paragraph already heard.
+         Match its actual source step, including duplicate notifications; a
+         fresh entry or unrelated current recording must still narrate. */
+      const continuedFrom = cfg.continueNarrationFrom && cfg.continueNarrationFrom[stepId];
+      if (continuedFrom && cfg.steps.includes(continuedFrom) &&
+          (previousStep === cfg.slideId + ':' + continuedFrom || previousStep === stepKey) &&
+          currentId() === stepTarget(continuedFrom, cfg) &&
+          ['playing', 'starting', 'ended', 'paused'].includes(controller.snapshot().status)) {
+        return unchanged();
+      }
       if (target === currentId()) {
         if (autoNarrate && distinctStep && followsNavigation()) {
           if (controller.snapshot().unlocked && typeof controller.repeat === 'function') {
@@ -132,12 +143,21 @@
       const playing = isActive();
       const paused = isPaused();
 
-      /* Closing a nested window is a stop event, not a new narration. */
+      /* Closing a nested window is a return to the parent screen, not a new
+         narration. Selecting the parent with autoplay would restart a
+         paragraph the user has already heard (and, at a fresh route, replay
+         the first step). Keep the parent identity but leave it paused: a
+         'ready' segment is retried by the gesture narrator on the next
+         unrelated tap. Legacy callers keep the old silent-select shape. */
       if (actionId.endsWith('.close')) {
         controller.stop();
         const step = stepId && cfg.steps.includes(stepId) ? stepId : cfg.steps[0];
-        const target = autoNarrate ? stepTarget(step, cfg) : step;
-        return controller.select(target, { autoplay: autoNarrate && followsNavigation() });
+        if (!autoNarrate) {
+          return controller.select(step, { autoplay: false });
+        }
+        const target = stepTarget(step, cfg);
+        if (!target) return { ok: false, reason: 'no-segment' };
+        return controller.select(target, { autoplay: false, paused: true });
       }
 
       const target = actionTarget(actionId, stepId, cfg);

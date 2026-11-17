@@ -362,7 +362,7 @@ html, body {
   </div>
 
   <!-- СЦЕНА С КАРТАМИ -->
-  <div class="cards-stage" id="cardsStage" data-state="0">
+  <div class="cards-stage" id="cardsStage" data-state="2">
 
     <!-- VIP CARD -->
     <div class="nft-card-wrap vip">
@@ -459,14 +459,15 @@ const els = {
 function step(n){
   els.eyebrow.classList.toggle('shown', n >= 1);
   els.titleBlock.classList.toggle('shown', n >= 1);
-  els.bottomBanner.classList.toggle('shown', n >= 3);
-  els.cardsStage.setAttribute('data-state', String(n));
+  els.bottomBanner.classList.toggle('shown', n >= 2);
+  // Первым идёт кадр с VIP-картой; прежний пустой титульный шаг удалён.
+  els.cardsStage.setAttribute('data-state', String(n + 1));
 }
 
 function start(){
   requestAnimationFrame(() => {
     SlideEngine.init({
-      totalSteps: 4,
+      totalSteps: 3,
       slideNumber: 10,
       slideTotal: 14,
       onStep: (n) => { window._currentStep = n; step(n); }

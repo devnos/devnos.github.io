@@ -306,6 +306,8 @@
     "s14.cap1": { en: "per year. Financial products" },
     "s14.cap2": { en: "per year. DA growth potential" },
     "s14.cta": { en: "Activate Business" },
+    "s14.cta.copy1": { en: "Build your digital assets and financial independence!" },
+    "s14.cta.copy2": { en: "Make your decision right now." },
     "s14.b.levels": { en: "Marketing levels" },
     "s14.b.of": { en: "of 22" },
     "s14.b.limit": { en: "Income limit" },

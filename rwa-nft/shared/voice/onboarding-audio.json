@@ -234,6 +234,636 @@
           }
         }
       }
+    },
+    {
+      "id": "s09.ranks.intro",
+      "kind": "step",
+      "slideId": "s09.ranks",
+      "stepIds": [
+        "s09.ranks.s01"
+      ],
+      "display": {
+        "ru": "В карьерной программе восемь рангов. Для каждого предусмотрены своя награда и условия: уровень NFT, оборот и квалификация команды.",
+        "en": "The career program has eight ranks. Each rank has its own reward and requirements: an NFT level, turnover, and team qualifications."
+      },
+      "tts": {
+        "ru": "В карьерной программе восемь рангов. Для каждого предусмотрены своя награда и условия: уровень энэфти, оборот и квалификация команды.",
+        "en": "The career program has eight ranks. Each rank has its own reward and requirements: an N-F-T level, turnover, and team qualifications."
+      },
+      "assets": {
+        "ru": {
+          "path": "audio/onboarding/ru/rank-intro.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "50a890ee9f4e1a6c8c025bd7eb35fdc3c036708134911f215848ba486b4ab664",
+          "durationMs": 9320,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in Russian as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "5d31a3eb4c48f623f2b326428d423c25",
+            "cacheKey": "sha256:8d99604fc7bf4781aefdf333f57e476e4f9d05d3b801a82da4f14b4ba4591cd9",
+            "sourceAudio": "ru/s09.ranks.intro.wav",
+            "sourceSha256": "3de24d3829efe72da40af1ce979e51865f1e04cecf0b3e9c12538e95518675f0",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        },
+        "en": {
+          "path": "audio/onboarding/en/rank-intro.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "21cb9a31f00986d54c55047b4569e22361d39b8f51560aa37866a2829a0da624",
+          "durationMs": 9720,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in English as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "fd5a86549093212694c349cf7bd4073c",
+            "cacheKey": "sha256:bc77edb68bf2e6e0666016283b18298133ab2b744b407cb1d87486bf66b2bafa",
+            "sourceAudio": "en/s09.ranks.intro.wav",
+            "sourceSha256": "61a8edd4179a0c890ea9a48c69ae7709011b06492303a154214d50e7f760de4c",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "s09.ranks.beginner",
+      "kind": "step",
+      "slideId": "s09.ranks",
+      "stepIds": [
+        "s09.ranks.s02"
+      ],
+      "display": {
+        "ru": "На ранге Beginner предусмотрен бонус пятьсот долларов. Условия: NFT HYDRO, оборот пятьдесят тысяч долларов и личный объём десять тысяч долларов.",
+        "en": "Beginner provides a five hundred dollar bonus. The requirements are a HYDRO NFT, fifty thousand dollars in turnover, and ten thousand dollars in personal volume."
+      },
+      "tts": {
+        "ru": "На ранге Beginner предусмотрен бонус пятьсот долларов. Условия: энэфти HYDRO, оборот пятьдесят тысяч долларов и личный объём десять тысяч долларов.",
+        "en": "Beginner provides a five hundred dollar bonus. The requirements are a HYDRO N-F-T, fifty thousand dollars in turnover, and ten thousand dollars in personal volume."
+      },
+      "assets": {
+        "ru": {
+          "path": "audio/onboarding/ru/rank-beginner.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "4c1182a4711785682d19428cc5f6613e1aa00f674af713640f2bd560809a7d69",
+          "durationMs": 10440,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in Russian as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "82a633d0e4880ae4680958623f2e622c",
+            "cacheKey": "sha256:532dec41132da3519385553441f2d05694e9522e3a22085bc1498c38890f321d",
+            "sourceAudio": "ru/s09.ranks.beginner.wav",
+            "sourceSha256": "7d87e840b2e704ee92430756788cd5e8526dec2e7434dc186be40e0ad8f81a71",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        },
+        "en": {
+          "path": "audio/onboarding/en/rank-beginner.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "110dbffea426a122b056a79617ce50ad5f621fc2879da85cb1aa6bcc712d2220",
+          "durationMs": 11280,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in English as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "97e12534fb494a2a02a060b0944e099a",
+            "cacheKey": "sha256:4321e67deec586214ad6a058f97fad09398be51f94a34275937670f91da436e7",
+            "sourceAudio": "en/s09.ranks.beginner.wav",
+            "sourceSha256": "8d041731cb00478f00dfd86609753f893d92a635a43d5c692c256a31b7bccccc",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "s09.ranks.partner",
+      "kind": "step",
+      "slideId": "s09.ranks",
+      "stepIds": [
+        "s09.ranks.s03"
+      ],
+      "display": {
+        "ru": "На ранге Partner награда - тысяча долларов или iPhone. Условия: NFT QUANTUM, оборот пятьдесят тысяч долларов и два партнёра ранга Beginner.",
+        "en": "Partner offers a reward of one thousand dollars or an iPhone. The requirements are a QUANTUM NFT, fifty thousand dollars in turnover, and two partners at Beginner rank."
+      },
+      "tts": {
+        "ru": "На ранге Partner награда - тысяча долларов или iPhone. Условия: энэфти QUANTUM, оборот пятьдесят тысяч долларов и два партнёра ранга Beginner.",
+        "en": "Partner offers a reward of one thousand dollars or an iPhone. The requirements are a QUANTUM N-F-T, fifty thousand dollars in turnover, and two partners at Beginner rank."
+      },
+      "assets": {
+        "ru": {
+          "path": "audio/onboarding/ru/rank-partner.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "99202121eb28a74f0ae34b2e198f0b38c9b6e402bb6507156f68b37030983a30",
+          "durationMs": 11120,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in Russian as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "40637c4f485b5884a49ad1912f581452",
+            "cacheKey": "sha256:2a220cf9adff4830041d7190f43a6b01faedd8de43993e3a91c24deb453f7371",
+            "sourceAudio": "ru/s09.ranks.partner.wav",
+            "sourceSha256": "ec3dbd667a5011ea34fcdf7deffec5d5da5be4200c881bfc79f3b8cb90567d93",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        },
+        "en": {
+          "path": "audio/onboarding/en/rank-partner.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "498a151bddd2085d1370bad230d0a4e152acf548c4368211c9feffe52ed5b054",
+          "durationMs": 12240,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in English as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "761f4613452968cf60e9c7a730d438e8",
+            "cacheKey": "sha256:bec8194c388b5372a94edd3572ed840405050ff2775f658f132f252e80b3eadd",
+            "sourceAudio": "en/s09.ranks.partner.wav",
+            "sourceSha256": "8b583ab0313651e00bb6e49485f68d76856310a3f5de340341cb519131b9767f",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "s09.ranks.manager",
+      "kind": "step",
+      "slideId": "s09.ranks",
+      "stepIds": [
+        "s09.ranks.s04"
+      ],
+      "display": {
+        "ru": "На ранге Manager награда - две тысячи долларов или MacBook. Условия: NFT PULSE, оборот двести пятьдесят тысяч долларов и два партнёра ранга Partner.",
+        "en": "Manager offers a reward of two thousand dollars or a MacBook. The requirements are a PULSE NFT, two hundred fifty thousand dollars in turnover, and two partners at Partner rank."
+      },
+      "tts": {
+        "ru": "На ранге Manager награда - две тысячи долларов или MacBook. Условия: энэфти PULSE, оборот двести пятьдесят тысяч долларов и два партнёра ранга Partner.",
+        "en": "Manager offers a reward of two thousand dollars or a MacBook. The requirements are a PULSE N-F-T, two hundred fifty thousand dollars in turnover, and two partners at Partner rank."
+      },
+      "assets": {
+        "ru": {
+          "path": "audio/onboarding/ru/rank-manager.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "002664db6f2ae54c0aec3d2f263f1c832b41c39f702618843a03c437fb7705a3",
+          "durationMs": 10240,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in Russian as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "d6eccd09194467adaa2e83bf254035ba",
+            "cacheKey": "sha256:d3be12f63e461861e66371f02ec3557db9fa13f1a00bebfcf55236d52682f953",
+            "sourceAudio": "ru/s09.ranks.manager.wav",
+            "sourceSha256": "dff840e2bb8aee612967f80dc98d084e0701fb0ca97edeba94abfd979c00116f",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        },
+        "en": {
+          "path": "audio/onboarding/en/rank-manager.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "f9dd8f0c02e6353c92530de032edbdabc467adaf81dd8a1689bc3ab8859467e0",
+          "durationMs": 11720,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in English as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "bf673aeb3eb039010845f32d8af6894a",
+            "cacheKey": "sha256:d069f05b5481dccec203ca7ba0ede9a98a42e19f9147c502fc35b41249101584",
+            "sourceAudio": "en/s09.ranks.manager.wav",
+            "sourceSha256": "498ff031b4a20db852fe9ac3bacd1ea848200fd2e247182afe4b11410ab57d1f",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "s09.ranks.leader",
+      "kind": "step",
+      "slideId": "s09.ranks",
+      "stepIds": [
+        "s09.ranks.s05"
+      ],
+      "display": {
+        "ru": "На ранге Leader награда - четыре тысячи долларов или путешествие. Условия: NFT AURORA, оборот семьсот пятьдесят тысяч долларов и два партнёра ранга Manager.",
+        "en": "Leader offers a reward of four thousand dollars or a trip. The requirements are an AURORA NFT, seven hundred fifty thousand dollars in turnover, and two partners at Manager rank."
+      },
+      "tts": {
+        "ru": "На ранге Leader награда - четыре тысячи долларов или путешествие. Условия: энэфти AURORA, оборот семьсот пятьдесят тысяч долларов и два партнёра ранга Manager.",
+        "en": "Leader offers a reward of four thousand dollars or a trip. The requirements are an AURORA N-F-T, seven hundred fifty thousand dollars in turnover, and two partners at Manager rank."
+      },
+      "assets": {
+        "ru": {
+          "path": "audio/onboarding/ru/rank-leader.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "8562398323b04273fa48af9722a1f97c7c83a1ad599fea4ba7481be905858d28",
+          "durationMs": 11720,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in Russian as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "e150311e4ebfe710c713e3dd753fa015",
+            "cacheKey": "sha256:8c951e2cf764988ff20a76ef497ba4d8f35b7ea9b5b1e6ec5f64be13245e5e70",
+            "sourceAudio": "ru/s09.ranks.leader.wav",
+            "sourceSha256": "909d40dfc270801eeadf433425acae18d176921b3b3798e90e6a6f972f5f1841",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        },
+        "en": {
+          "path": "audio/onboarding/en/rank-leader.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "7d36a768ee50cdf618623d35c6a8bcd3e56bdfbd264f30b6c5800e2894e3bebd",
+          "durationMs": 12680,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in English as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "d8287807c007aca90f5a8981c5df9665",
+            "cacheKey": "sha256:0318fd18707800fdce45595e2aa8a27eb15a79900374b2da7fd390f8b061ea89",
+            "sourceAudio": "en/s09.ranks.leader.wav",
+            "sourceSha256": "18611c251947eb9df5056195b30f702776c48dd40305263d961f3a4626cea93c",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "s09.ranks.senior-leader",
+      "kind": "step",
+      "slideId": "s09.ranks",
+      "stepIds": [
+        "s09.ranks.s06"
+      ],
+      "display": {
+        "ru": "На ранге Senior Leader награда - восемь тысяч долларов или VERTU. Условия: NFT AURORA, оборот полтора миллиона долларов и два партнёра ранга Leader.",
+        "en": "Senior Leader offers a reward of eight thousand dollars or a VERTU. The requirements are an AURORA NFT, one million five hundred thousand dollars in turnover, and two partners at Leader rank."
+      },
+      "tts": {
+        "ru": "На ранге Senior Leader награда - восемь тысяч долларов или VERTU. Условия: энэфти AURORA, оборот полтора миллиона долларов и два партнёра ранга Leader.",
+        "en": "Senior Leader offers a reward of eight thousand dollars or a VERTU. The requirements are an AURORA N-F-T, one million five hundred thousand dollars in turnover, and two partners at Leader rank."
+      },
+      "assets": {
+        "ru": {
+          "path": "audio/onboarding/ru/rank-senior-leader.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "60f892538ff001dc9262dbd95316c0511a31df7fc28eb03127e93d90e33ce96a",
+          "durationMs": 11080,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in Russian as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "c92ee16eece717c91ba795bc4d617a0d",
+            "cacheKey": "sha256:998ec650041d7d446226e60ce616e9b371a3b8a3ed88b23a9616ed32609aa977",
+            "sourceAudio": "ru/s09.ranks.senior-leader.wav",
+            "sourceSha256": "9e15882cea4bb1dbc4edd21b0df2b8128cf441ca97eb440ad3436a8f764b8363",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        },
+        "en": {
+          "path": "audio/onboarding/en/rank-senior-leader.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "521a98e6ded0fa0374e6d81ea7957e1fb8a59005864e2268b70fd12c31a15520",
+          "durationMs": 14080,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in English as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "894e3e1c5f89330342d77b690de043be",
+            "cacheKey": "sha256:bd1e04274ed1abb17f6c1218f9623e267c8fdfb977b0079a2d6f48254a5132b9",
+            "sourceAudio": "en/s09.ranks.senior-leader.wav",
+            "sourceSha256": "1912c44969a328802835d4e60a79b1fc360c9969c09aee993c5f4efcce777cc9",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "s09.ranks.director",
+      "kind": "step",
+      "slideId": "s09.ranks",
+      "stepIds": [
+        "s09.ranks.s07"
+      ],
+      "display": {
+        "ru": "На ранге Director награда - двадцать тысяч долларов или Rolex. Условия: NFT FLAME, оборот три миллиона долларов и два партнёра ранга Senior Leader.",
+        "en": "Director offers a reward of twenty thousand dollars or a Rolex. The requirements are a FLAME NFT, three million dollars in turnover, and two partners at Senior Leader rank."
+      },
+      "tts": {
+        "ru": "На ранге Director награда - двадцать тысяч долларов или Rolex. Условия: энэфти FLAME, оборот три миллиона долларов и два партнёра ранга Senior Leader.",
+        "en": "Director offers a reward of twenty thousand dollars or a Rolex. The requirements are a FLAME N-F-T, three million dollars in turnover, and two partners at Senior Leader rank."
+      },
+      "assets": {
+        "ru": {
+          "path": "audio/onboarding/ru/rank-director.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "8c93c3368ccbdb19fb373e5f4604eab84e725f6e7a5de6261613ebd85d293a48",
+          "durationMs": 12200,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in Russian as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "ab67d9e214c26b938494612105e3a5bc",
+            "cacheKey": "sha256:64259c96bdc365366a1531dc7c60ba6b271a0757d58977ec302dcc76207a565d",
+            "sourceAudio": "ru/s09.ranks.director.wav",
+            "sourceSha256": "4b750bcbbeec88ebffb5cbf3b4125260caa927fac8598f0cad6a2dae15a781e1",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        },
+        "en": {
+          "path": "audio/onboarding/en/rank-director.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "f2d8c64075d7f9dbf1182626e8dd26794e122e4c29e8ea3942c5d4891cdca2e7",
+          "durationMs": 11680,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in English as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "6a2d86ea823d5d48b180c41233826cf0",
+            "cacheKey": "sha256:3977b15abb45f194431f70176f634e469542127998852a1db1344e9fb4f52d19",
+            "sourceAudio": "en/s09.ranks.director.wav",
+            "sourceSha256": "5371699c7fa7025f1ad56decfb15a6f3dd4ef45ff9efe5a0b76d3e41730f37f8",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "s09.ranks.vice-president",
+      "kind": "step",
+      "slideId": "s09.ranks",
+      "stepIds": [
+        "s09.ranks.s08"
+      ],
+      "display": {
+        "ru": "На ранге Vice President награда - сто тысяч долларов или квартира. Условия: NFT INFINITY, оборот семь миллионов пятьсот тысяч долларов, один партнёр ранга Director и один ранга Senior Leader.",
+        "en": "Vice President offers a reward of one hundred thousand dollars or an apartment. The requirements are an INFINITY NFT, seven million five hundred thousand dollars in turnover, one partner at Director rank, and one at Senior Leader rank."
+      },
+      "tts": {
+        "ru": "На ранге Vice President награда - сто тысяч долларов или квартира. Условия: энэфти INFINITY, оборот семь миллионов пятьсот тысяч долларов, один партнёр ранга Director и один ранга Senior Leader.",
+        "en": "Vice President offers a reward of one hundred thousand dollars or an apartment. The requirements are an INFINITY N-F-T, seven million five hundred thousand dollars in turnover, one partner at Director rank, and one at Senior Leader rank."
+      },
+      "assets": {
+        "ru": {
+          "path": "audio/onboarding/ru/rank-vice-president.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "10bfb08bbd2ab1d470b066546f3f056a2ad7335795a455d9c17393aa58670d4d",
+          "durationMs": 13920,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in Russian as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "37e3f817a56fd70b3f5f3ff764eb81f9",
+            "cacheKey": "sha256:bc5d497f90f0ad0589700db00733e6f6ea0280d10163bdbf6a78796287f0a3bd",
+            "sourceAudio": "ru/s09.ranks.vice-president.wav",
+            "sourceSha256": "ed4dd016d4c21ecac9905158ba31dbef9380cd1d61a8cead7643e81230565912",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        },
+        "en": {
+          "path": "audio/onboarding/en/rank-vice-president.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "d53ba1224a2b98e57e38b8f485d2e9d0f087b18a9cbb3e7cbac75dc5a47a98d9",
+          "durationMs": 16120,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in English as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "64e21fdc06e54b0a5ea5a8a275dad03c",
+            "cacheKey": "sha256:888bcde18822b9ae74827373c07578365c4454b662af417e8b40d448ca3687b2",
+            "sourceAudio": "en/s09.ranks.vice-president.wav",
+            "sourceSha256": "6f09c761714e2b726e05ee8dd5e0f7608912c9a7551adcc00a986d31130d875f",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "s09.ranks.ceo",
+      "kind": "step",
+      "slideId": "s09.ranks",
+      "stepIds": [
+        "s09.ranks.s09"
+      ],
+      "display": {
+        "ru": "На ранге CEO награда - сто семьдесят пять тысяч долларов или Range Rover. Условия: NFT INFINITY и оборот пятнадцать миллионов долларов. По команде - один партнёр ранга Vice President или три партнёра ранга Director.",
+        "en": "CEO offers a reward of one hundred seventy-five thousand dollars or a Range Rover. The requirements are an INFINITY NFT and fifteen million dollars in turnover. The team requirement is one partner at Vice President rank or three partners at Director rank."
+      },
+      "tts": {
+        "ru": "На ранге CEO награда - сто семьдесят пять тысяч долларов или Range Rover. Условия: энэфти INFINITY и оборот пятнадцать миллионов долларов. По команде - один партнёр ранга Vice President или три партнёра ранга Director.",
+        "en": "CEO offers a reward of one hundred seventy-five thousand dollars or a Range Rover. The requirements are an INFINITY N-F-T and fifteen million dollars in turnover. The team requirement is one partner at Vice President rank or three partners at Director rank."
+      },
+      "assets": {
+        "ru": {
+          "path": "audio/onboarding/ru/rank-ceo.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "47f4708901e55fe71147c1e574682546e66e2bb2ca2b02232c6ca06c0c60896e",
+          "durationMs": 14920,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in Russian as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "0188832ce7f80f39cad5fe1ef95ecc43",
+            "cacheKey": "sha256:3a51e9886a42eba0b535849c07d615243ec5d959f97cc80e04f4a8cf8521ee2f",
+            "sourceAudio": "ru/s09.ranks.ceo.wav",
+            "sourceSha256": "a1602e9f3d3218177cb0ec63e529395bd5c228d77c0570305ad33a075db08fcc",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        },
+        "en": {
+          "path": "audio/onboarding/en/rank-ceo.mp3",
+          "status": "ready",
+          "approved": true,
+          "sha256": "a497be5afe26811e90d176b587e1b66c2bb40b45e9a6d7721522de57347483b8",
+          "durationMs": 17320,
+          "model": "google/gemini-3-8-flash-tts",
+          "voice": "Charon",
+          "params": {
+            "style": "Speak in English as a professional presentation speaker addressing a live audience. Use a confident, composed and engaging delivery, clear diction, natural conversational intonation and a measured medium pace. Emphasize the meaning of each sentence and pause briefly between ideas. Keep the delivery consistent across segments. No theatrical hype, announcer shouting or flat list reading.",
+            "temperature": 1
+          },
+          "approvalId": "rwa-ranks-one-to-one-20261117",
+          "provenance": {
+            "source": "kie.ai",
+            "taskId": "76395b697d77704c73ebb3644e7bf9fd",
+            "cacheKey": "sha256:1127460860af5d4908d358641f95c9b9b1280f0d3504bfd45d8382321ccf09b8",
+            "sourceAudio": "en/s09.ranks.ceo.wav",
+            "sourceSha256": "ff2ac27a841399cfb4bbda32aa8543f75aea5654bfe558a5cd0d9f6c4d657e41",
+            "encoding": {
+              "codec": "libmp3lame",
+              "quality": 2,
+              "container": "mp3"
+            }
+          }
+        }
+      }
     }
   ]
 }

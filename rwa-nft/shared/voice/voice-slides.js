@@ -74,7 +74,8 @@
   });
   const S10_VIP = Object.freeze({
     slideId: "s10.vip",
-    steps: Object.freeze(["s10.vip.s01", "s10.vip.s02", "s10.vip.s03", "s10.vip.s04"]),
+    steps: Object.freeze(["s10.vip.s02", "s10.vip.s03", "s10.vip.s04"]),
+    continueNarrationFrom: Object.freeze({ "s10.vip.s04": "s10.vip.s03" }),
     actions: Object.freeze(["s10.vip.s01.a01"]),
   });
   const S04_INSIDE = Object.freeze({

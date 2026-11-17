@@ -273,6 +273,14 @@
     opacity: 0; pointer-events: none; transition: opacity 0.35s var(--ease);
   }
   #screenModal.open { opacity: 1; pointer-events: auto; }
+  /* Язык доступен и внутри мобильного окна; остальная фоновая панель
+     остаётся под ним. Верхний левый угол не перекрывает плитки рангов. */
+  html:has(#screenModal.open) #langBtn {
+    z-index: 10001; left: 12px; right: auto; top: 12px; bottom: auto;
+  }
+  html:has(#screenModal.open) #langPanel {
+    z-index: 10002; left: 12px; right: auto; top: 44px; bottom: auto;
+  }
   #screenModal iframe { width: 100%; height: 100%; border: 0; display: block; }
   #screenClose {
     position: absolute; top: 10px; right: 10px; z-index: 2;
@@ -598,7 +606,9 @@
   });
 
   function closeScreen() {
-    if (window.RwaVoice) window.RwaVoice.stop('screen');
+    /* Closing is a return to the deck: silence the screen but keep the quiet
+       parent identity. Opening above still uses the plain screen stop. */
+    if (window.RwaVoice) window.RwaVoice.stop('screen-close');
     if (window.setRotateHintOverScreen) window.setRotateHintOverScreen(false);
     screenModal.classList.remove('open');
     if (screenCloseTimer !== null) clearTimeout(screenCloseTimer);

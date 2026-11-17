@@ -278,7 +278,13 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--body);overflow
 .income .q,.income .row{transition:opacity .4s var(--ease)}
 .income.cta-mode .q,.income.cta-mode .row{display:none}
 .income.cta-mode{top:75.5vh} /* кнопка с воздухом от карты */
-.cta-row{margin-top:2.2vh;pointer-events:auto}
+.cta-row{position:relative;margin-top:2.2vh;pointer-events:auto}
+.cta-copy{display:none;position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  width:min(90vw,640px);margin:12px 0 0;padding:0;font-family:var(--body);font-weight:400;
+  font-size:clamp(12px,1vw,14px);line-height:1.5;letter-spacing:0;color:var(--ink-3);
+  text-align:center;pointer-events:none}
+.cta-copy span{display:block}
+.cta-row.open .cta-copy{display:block}
 .income.cta-mode .cta-row{margin-top:0}
 /* зерно: дышащая точка и еле заметные шевроны с двух сторон */
 .cta-seed{display:inline-flex;align-items:center;gap:13px;cursor:pointer;padding:12px 18px}
@@ -318,6 +324,15 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--body);overflow
   100%{transform:scale(1);opacity:1}
 }
 
+
+/* Short landscape screens need space for the card, button and small caption. */
+@media (orientation: landscape) and (max-height: 450px) {
+  .head { top: 2vh; }
+  .ncard { width: 36.2vh; height: 48vh; margin-left: -18.1vh; margin-top: -24vh; }
+  .stage { top: 22vh; bottom: 28vh; }
+  .income.cta-mode { top: 80.5vh; }
+  .cta-copy { margin-top: 10px; }
+}
 
 /* ===================== ПОРТРЕТ НА ТЕЛЕФОНЕ ===================== */
 @media (orientation: portrait) and (max-width: 620px) {
@@ -410,7 +425,11 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--body);overflow
         <b class="seed-dot"></b>
         <i class="sc r2"></i><i class="sc r"></i>
       </div>
-      <button type="button" class="cta-btn" id="ctaBtn" data-no-click data-i18n="s14.cta">Активировать Бизнес</button>
+      <button type="button" class="cta-btn" id="ctaBtn" data-no-click data-i18n="s14.cta" aria-describedby="ctaCopy">Активировать Бизнес</button>
+      <p class="cta-copy" id="ctaCopy">
+        <span data-i18n="s14.cta.copy1">Создайте свои цифровые активы, финансовую независимость!</span>
+        <span data-i18n="s14.cta.copy2">Принимайте решение прямо сейчас</span>
+      </p>
 
     </div>
   </div>

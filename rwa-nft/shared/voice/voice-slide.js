@@ -14,6 +14,7 @@
   const targetOrigin = window.VoiceProtocol.isVoiceOrigin(window.location.origin)
     ? window.location.origin
     : null;
+  const isRankSlide = !!(config && config.slideId === 's09.ranks');
 
   let currentIndex = 0;
   const lastAction = { id: null, at: 0 };
@@ -53,10 +54,21 @@
 
   function step(index) {
     if (!config || !Number.isInteger(index) || index < 0 || index >= config.steps.length) return false;
+    /* Slide 09 commits image/prize/conditions 350-400ms after the step call.
+       Refuse the step until the slide itself reports exactly this rank. */
+    if (isRankSlide) {
+      const ranks = window.RwaRanks;
+      if (ranks && typeof ranks.committedStep === 'function') {
+        let committed = null;
+        try { committed = ranks.committedStep(); } catch (e) { committed = null; }
+        if (committed !== index) return false;
+      }
+    }
     currentIndex = index;
     const payload = window.VoiceSlides.buildVoiceStep(config, index);
     local('rwa-voice-step', payload);
-    return post(payload);
+    post(payload);
+    return true;
   }
 
   function action(actionId, stepId) {
@@ -86,8 +98,7 @@
   function syncStep() {
     const index = readIndex();
     if (index === null || index === lastIndex) return;
-    lastIndex = index;
-    step(index);
+    if (step(index)) lastIndex = index;
   }
 
   function wrapApplyStep() {
@@ -95,10 +106,7 @@
     const original = window.applyStep;
     const wrapped = function (n) {
       const result = original.apply(this, arguments);
-      if (Number.isInteger(n) && n !== lastIndex) {
-        lastIndex = n;
-        step(n);
-      }
+      if (Number.isInteger(n) && n !== lastIndex && step(n)) lastIndex = n;
       return result;
     };
     wrapped.__rwaVoiceWrapped = true;
@@ -111,10 +119,7 @@
     const original = window.step;
     const wrapped = function (n) {
       const result = original.apply(this, arguments);
-      if (Number.isInteger(n) && n - 1 !== lastIndex) {
-        lastIndex = n - 1;
-        step(n - 1);
-      }
+      if (Number.isInteger(n) && n - 1 !== lastIndex && step(n - 1)) lastIndex = n - 1;
       return result;
     };
     wrapped.__rwaVoiceWrapped = true;

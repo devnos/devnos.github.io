@@ -117,7 +117,7 @@
 
   const FALLBACK_STEPS = {
     slide_04_inside: 7,
-    slide_10_vip: 4,
+    slide_10_vip: 3,
     slide_08_finflow: 5,
     slide_09_ranks: 9,
   };
@@ -249,6 +249,38 @@
       const roots = all(doc, '.voice-help');
       for (const root of roots) if (!root.hidden) return true;
       return false;
+    }
+
+    /* The real audio owner may sit in a top document or an ancestor frame. */
+    function voiceOwner() {
+      try {
+        const top = win.top || win;
+        if (top && top.RwaVoice) return top.RwaVoice;
+      } catch (e) {}
+      try {
+        if (win.RwaVoice) return win.RwaVoice;
+      } catch (e) {}
+      return null;
+    }
+
+    /*
+     * A close is a return, not a replay. The owner is told before the slide's
+     * own close path runs, so even shells that emit no voice action silence
+     * the current narration and restore their parent step quietly.
+     */
+    function requestSilentReturn() {
+      let voice = null;
+      try {
+        voice = voiceOwner();
+      } catch (e) {
+        return false;
+      }
+      if (!voice || typeof voice.prepareSilentReturn !== 'function') return false;
+      try {
+        return voice.prepareSilentReturn(win) === true;
+      } catch (e) {
+        return false;
+      }
     }
 
     /* --------------------------------------------------- host discovery */
@@ -477,6 +509,16 @@
 
       decorateClose(host);
 
+      /* Clicking the dimmed shell itself is the same return as the cross.
+         The full-screen mobile modal has no backdrop close of its own. */
+      if (host.key !== 'screenModal') {
+        bind(host.root, 'click', function (event) {
+          if (!event || event.target !== host.root) return;
+          if (!hasClass(host.root, 'open')) return;
+          requestSilentReturn();
+        }, true);
+      }
+
       /* The block lives over a slide document: nothing that happens inside it
          may reach the deck's paging handlers. */
       for (const type of ['click', 'keydown', 'mousedown', 'pointerdown', 'wheel']) {
@@ -532,6 +574,9 @@
       bind(close, 'click', function (event) {
         if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
       });
+      /* Capture phase: mark the silent return before the slide's own close
+         handler removes the window and changes the voice route. */
+      bind(close, 'click', function () { requestSilentReturn(); }, true);
     }
 
     /* Calling the live control keeps the slide's own close path (voice stop,
@@ -740,6 +785,12 @@
         return;
       }
       close.classList.add(CLOSE_CLASS);
+      if (!rotate.bound) {
+        rotate.bound = true;
+        /* The portrait cross returns through closeScreen(); marking here keeps
+           the return silent on every host, including standalone slides. */
+        bind(close, 'click', function () { requestSilentReturn(); }, true);
+      }
       if (rotate.label !== words.backToDeck) {
         rotate.label = words.backToDeck;
         close.setAttribute('data-rwa-iw-label', words.backToDeck);
