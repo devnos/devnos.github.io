@@ -73,6 +73,13 @@
       showNft: 'Показать NFT',
       swipe: 'Листайте карты стрелками или перетаскивайте',
       range: 'Перетащите ползунок, чтобы изменить расчёт',
+      flipNftHint: 'Нажмите на карту NFT, чтобы перевернуть её.',
+      tapShort: 'Нажмите',
+      openShort: 'Открыть',
+      nftFlipBack: 'Нажмите ещё раз, чтобы открыть «Что внутри ключа».',
+
+      nextHint: 'Для перехода нажмите стрелку справа',
+      wheelHint: ' или прокрутите колёсико мыши вниз',
     },
     en: {
       flip: 'Flip',
@@ -86,6 +93,13 @@
       showNft: 'Show NFT',
       swipe: 'Browse the cards with the arrows or by dragging',
       range: 'Drag the slider to change the calculation',
+      flipNftHint: 'Tap the NFT card to flip it.',
+      tapShort: 'Tap',
+      openShort: 'Open',
+      nftFlipBack: 'Tap again to open “What is inside the key”.',
+
+      nextHint: 'To continue, use the arrow on the right',
+      wheelHint: ' or scroll the mouse wheel down',
     },
   };
 
@@ -128,6 +142,8 @@
     let nftBox = null;
     let cardButton = null;
     let cardLabel = null;
+    let systemGuidance = null;
+
     const lastNft = { step: null, index: null, total: null };
 
     /* ---------- tiny DOM kit (works with the bounded test adapter) ---------- */
@@ -357,6 +373,7 @@
         if (typeof host.click === 'function') host.click(); /* the slide's own flip handler */
       };
       host.addEventListener('keydown', rec.onKey);
+
       return rec;
     }
 
@@ -365,6 +382,7 @@
       if (rec.onKey) {
         try { rec.host.removeEventListener('keydown', rec.onKey); } catch (e) {}
       }
+
       detach(rec.mark);
       if (rec.host.classList) rec.host.classList.remove('rwa-action-host');
       removeAttr(rec.host, 'role');
@@ -390,10 +408,52 @@
           setAttr(rec.host, 'tabindex', started ? '0' : '-1');
         }
         applyScale(rec.mark, scale);
+        let compact = false;
+        try { compact = rec.host.getBoundingClientRect().width * scale < 140; } catch (e) {}
+        rec.mark.classList.toggle('rwa-flip-compact', compact);
+        setAttr(rec.mark, 'data-short', t(flipped ? 'openShort' : 'tapShort'));
         /* The exposed back already has named buttons; another floating
            "choose an action" badge only covers those controls on a phone. */
         hide(rec.mark, !started || (rec.nested && flipped));
       });
+    }
+
+    function updateSystemGuidance(started, scale) {
+      const anchor = doc.getElementById('nftCard');
+      if (!anchor) return;
+      if (!systemGuidance) {
+        const node = el('div', 'rwa-system-guidance');
+        setAttr(node, 'role', 'note');
+        const action = el('div', 'rwa-system-action');
+        const next = el('div', 'rwa-system-next');
+        const arrow = el('span');
+        const mouse = el('span', 'rwa-system-mouse');
+        next.appendChild(arrow); next.appendChild(mouse);
+        node.appendChild(action); node.appendChild(next); body().appendChild(node);
+        systemGuidance = { node: node, action: action, next: next, arrow: arrow, mouse: mouse };
+      }
+      const box = systemGuidance;
+      const step = Number(win._currentStep || 1);
+      const card = doc.getElementById('nftFlip');
+      box.action.textContent = t(hasClass(card, 'flipped') ? 'nftFlipBack' : 'flipNftHint');
+      box.arrow.textContent = t('nextHint'); box.mouse.textContent = t('wheelHint');
+      let nextReady = true;
+      try {
+        const next = win.top.document.body.querySelector('[data-voice-listening-nav="next"]');
+        if (next) nextReady = !next.hidden;
+      } catch (e) {}
+      hide(box.next, !nextReady);
+      applyScale(box.node, scale);
+      let nested = toArray(body().querySelectorAll('.calc-modal')).some(node => hasClass(node, 'open'));
+      try { nested = nested || hasClass(win.top.document.getElementById('screenModal'), 'open'); } catch (e) {}
+      const visible = started && frameActive(anchor) && step === 1 && !nested;
+      hide(box.node, !visible);
+      if (visible && box.node.style && typeof anchor.getBoundingClientRect === 'function') {
+        const rect = anchor.getBoundingClientRect();
+        box.node.style.top = (rect.bottom + 12 / scale) + 'px';
+        box.node.style.left = (rect.left + rect.width / 2) + 'px';
+        box.node.style.width = Math.min(500 / scale, win.innerWidth - 128 / scale) + 'px';
+      }
     }
 
     /* ---------- slide 14: chooser button, counter, one-time swipe hint ---------- */
@@ -641,6 +701,7 @@
       const started = gateStarted();
       const scale = viewScale();
       updateFlipCards(started, scale);
+      updateSystemGuidance(started, scale);
       updateChooser(started, scale);
       scanRanges();
       updateRanges(started, scale);
@@ -724,6 +785,7 @@
           if (i >= 0) rangeGroups.splice(i, 1);
         });
         if (nftBox) { detach(nftBox.box); nftBox = null; }
+        if (systemGuidance) { detach(systemGuidance.node); systemGuidance = null; }
         if (cardButton) { detach(cardButton); cardButton = null; cardLabel = null; }
         onChange = null;
       },

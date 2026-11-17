@@ -119,6 +119,21 @@ html, body {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
+.inside-nav-hint {
+  position: absolute;
+  top: calc(100% + 18px * var(--inside-hint-inv, 1));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(520px * var(--inside-hint-inv, 1)), calc(100vw - 96px * var(--inside-hint-inv, 1)));
+  margin: 0;
+  font: 400 calc(13px * var(--inside-hint-inv, 1))/1.5 var(--body);
+  text-align: center;
+  color: rgba(245, 245, 247, 0.72);
+  pointer-events: none;
+}
+.inside-nav-hint[hidden] { display: none; }
+.inside-nav-mouse { display: block; }
+@media (pointer: coarse) { .inside-nav-mouse { display: none; } }
 .master-card {
   position: relative;
   width: clamp(280px, 28vw, 460px);
@@ -658,6 +673,10 @@ html, body {
         <span class="defi-icon">⛁</span>
       </div>
     </div>
+    <p class="inside-nav-hint" id="insideNavHint" role="note" hidden>
+      <span data-i18n="s04.nav.arrow">Чтобы перейти дальше, нажмите стрелку справа.</span>
+      <span class="inside-nav-mouse" data-i18n="s04.nav.mouse">На компьютере можно прокрутить колёсико мыши вниз.</span>
+    </p>
   </div>
 
   <!-- SCENE 1: ДОСТУП -->
@@ -1030,6 +1049,7 @@ function buildSceneLinks(){
 const els = {
   eyebrow: document.getElementById('eyebrow'),
   card: document.getElementById('masterCard'),
+  navHint: document.getElementById('insideNavHint'),
   final: document.getElementById('final'),
   /* порядок появления: Доход -> Капитал -> Бизнес -> Доступ -> Наследие */
   scenes: [
@@ -1064,6 +1084,7 @@ function hideScene(idx){
 }
 
 function step(n){
+  els.navHint.hidden = n !== 1;
   // Сброс крупных состояний
   els.eyebrow.classList.remove('shown');
   els.final.classList.remove('shown');
@@ -1091,7 +1112,21 @@ function step(n){
   prevStep = n;
 }
 
+function updateInsideHintScale(){
+  let scale = 1, view = window;
+  try {
+    for (let depth = 0; depth < 6 && view.frameElement; depth++) {
+      const frame = view.frameElement;
+      if (frame.offsetWidth) scale *= frame.getBoundingClientRect().width / frame.offsetWidth;
+      view = view.parent;
+    }
+  } catch (e) {}
+  if (!(scale > 0)) scale = 1;
+  els.card.style.setProperty('--inside-hint-inv', String(1 / scale));
+}
+
 function start(){
+  updateInsideHintScale();
   buildSceneLinks();
   SlideEngine.init({
     totalSteps: 7,
@@ -1108,6 +1143,7 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 }
 
 window.addEventListener('resize', () => {
+  updateInsideHintScale();
   buildSceneLinks();
   step(window._currentStep || 1);
 });

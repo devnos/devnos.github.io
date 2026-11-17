@@ -296,6 +296,9 @@
     "fc.totalcount": { en: "(total" },
     "fc.note": { en: "The figures are indicative: calculated using the platform actual return range of 11-16% per month. Reinvestment happens daily once 2 USDT is accumulated (smart contract rule). Want to set up your own strategy?" },
 
+    "s04.nav.arrow": { en: "To continue, use the arrow on the right." },
+    "s04.nav.mouse": { en: "On a computer, scroll the mouse wheel down." },
+
     /* ===== Слайд 14: Выбор NFT ===== */
     "s14.eyebrow": { en: "How to start" },
     "s14.title": { en: "Choose <em>your NFT</em>" },

@@ -14,6 +14,20 @@
 
 .rwa-action-host { position: relative; }
 
+/* One explanation below the central card, outside every 3D face. */
+.rwa-system-guidance {
+  position: fixed;
+  z-index: 27;
+  width: min(calc(500px * var(--rwa-inv-scale, 1)), calc(100vw - 128px * var(--rwa-inv-scale, 1)));
+  transform: translateX(-50%);
+  color: rgba(245, 245, 247, 0.76);
+  font: 400 calc(13px * var(--rwa-inv-scale, 1))/1.45 'DM Sans', system-ui, sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+.rwa-system-next { color: rgba(245, 245, 247, 0.60); }
+@media (pointer: coarse) { .rwa-system-mouse { display: none; } }
+
 .rwa-action-host:focus-visible { outline: 2px solid rgba(240, 198, 116, 0.85); outline-offset: 4px; }
 
 .rwa-flip-mark {
@@ -42,6 +56,21 @@
 }
 
 .rwa-flip-ico { font-size: 1.1em; opacity: 0.85; transition: transform 0.25s ease; }
+
+/* A full action name belongs in the central explanation, not over a tiny tile. */
+.rwa-flip-mark.rwa-flip-compact {
+  left: 2px;
+  bottom: 2px;
+  max-width: calc(100% - 4px);
+  box-sizing: border-box;
+  padding: .2em .25em;
+  font-size: calc(11px * var(--rwa-inv-scale, 1));
+  letter-spacing: 0;
+  gap: 0;
+  overflow: hidden;
+}
+.rwa-flip-compact .rwa-flip-ico, .rwa-flip-compact .rwa-flip-txt { display: none; }
+.rwa-flip-compact::after { content: attr(data-short); }
 
 .rwa-action-host:hover .rwa-flip-mark { border-color: rgba(240, 198, 116, 0.7); color: #fff5df; background: rgba(20, 15, 8, 0.82); }
 

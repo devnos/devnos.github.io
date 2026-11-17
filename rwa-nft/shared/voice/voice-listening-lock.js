@@ -660,9 +660,9 @@
 
     function navigationLabels() {
       if (hintLanguage() === 'en') {
-        return { group: 'Navigation', next: 'Next', prev: 'Back' };
+        return { group: 'Navigation', next: 'Next', prev: 'Back', caption: 'Tap the arrow' };
       }
-      return { group: 'Навигация', next: 'Далее', prev: 'Назад' };
+      return { group: 'Навигация', next: 'Далее', prev: 'Назад', caption: 'Нажмите стрелку' };
     }
 
     function readNavigationAvailability() {
@@ -790,6 +790,19 @@
         button.innerHTML = '<svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden="true" fill="none" opacity="' + GHOST_OPACITY + '">' +
           '<path d="' + path + '" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         const svg = button.querySelector('svg');
+        const caption = doc.createElement('span');
+        caption.className = 'voice-nav-caption';
+        caption.setAttribute('aria-hidden', 'true');
+        caption.setAttribute('style', [
+          'position:absolute', 'top:calc(100% + 6px)', 'left:0', 'width:100%',
+          'box-sizing:border-box', 'margin:0', 'padding:0 2px',
+          'font:500 12px/1.25 system-ui,-apple-system,"Segoe UI",sans-serif',
+          'text-align:center', 'white-space:normal', 'letter-spacing:0',
+          'color:inherit', 'opacity:0.9', 'pointer-events:none',
+          'text-shadow:0 0 1px var(--voice-arrow-outline, #171318)',
+        ].join(';'));
+        caption.textContent = navigationLabels().caption;
+        button.appendChild(caption);
         /* 'pending' until the first successful sample; 'fallback' only when the
            sampler module is missing or fails, in which case one thin outline
            keeps the gold stroke readable on any surface. */
@@ -858,6 +871,10 @@
       navPrev.setAttribute('aria-label', labels.prev);
 
       navNext.setAttribute('aria-label', labels.next);
+      for (const button of [navPrev, navNext]) {
+        const caption = button.querySelector('.voice-nav-caption');
+        if (caption && caption.textContent !== labels.caption) caption.textContent = labels.caption;
+      }
 
 
       setDisplay(navPrev, available.hasPrevious, 'inline-flex');
