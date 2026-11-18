@@ -1,11 +1,11 @@
 {
   "framework": "Astro 7",
   "base": "/rwa-nft/",
-  "sourceCommit": "a9ae698678fa1cd7f71ad463651be7c16ebeec73",
-  "release": "startup-language-unlocked",
-  "builtAt": "2026-11-17T16:20:51.899898+00:00",
+  "sourceCommit": "e1b91da1ad596f8e2e3beca40a75c1e2694cf610",
+  "release": "cta-rwa-club-default",
+  "builtAt": "2026-11-18T04:05:45.134031+00:00",
+  "defaultCtaUrl": "https://rwa-club.goldjacker.com/",
   "checks": {
-    "unit": 583,
-    "startupLanguageBrowser": 2
+    "unit": 583
   }
 }
